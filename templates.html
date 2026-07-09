@@ -3,33 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Templates & Sistemas — Rê Araujo</title>
-<meta name="description" content="Planners e sistemas Notion feitos pra uso real. Cada um saiu da minha rotina.">
+<title>Produtos Digitais | Rê Araujo</title>
+<meta name="description" content="Templates, planners, eBooks, sistemas e arquivos digitais criados por Rê Araujo para organizar rotina, projetos e presença digital.">
+<link rel="canonical" href="https://renatajoin.com/templates.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Produtos Digitais | Rê Araujo">
+<meta property="og:description" content="Produtos digitais para organizar rotina, projetos, treino, alimentação e sistemas de trabalho.">
+<meta property="og:url" content="https://renatajoin.com/templates.html">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@400&display=swap');
 
 /* ─── TOKENS — espelho exato do renatajoin.com ─── */
 :root {
   /* site principal (dark) */
-  --site-bg:      #0e0d0c;
-  --site-bg2:     #161412;
+  --site-bg:      #010200;
+  --site-bg2:     #161112;
   --site-line:    rgba(255,255,255,.07);
   --site-white:   #f5f2ee;
   --site-muted:   #7a7166;
-  --site-clay:    #b5896a;
-  --site-clay-d:  #a07050;
+  --site-clay:    #ffc1ea;
+  --site-clay-d:  #ff78b1;
 
   /* página (light) */
-  --bg:        #FDFAF7;
-  --bg-2:      #F5F0EA;
-  --card:      #FFFFFF;
-  --line:      #E8E0D8;
-  --ink:       #2B2420;
-  --ink-mid:   #6B5E56;
-  --ink-faint: #B0A49A;
-  --clay:      #C9A98A;
-  --clay-d:    #A8866A;
-  --rose:      #E8D5C4;
+  --bg:        #FEF4D1;
+  --bg-2:      #FCEFF2;
+  --card:      #FFFDF7;
+  --line:      rgba(33,23,25,.14);
+  --ink:       #211719;
+  --ink-mid:   #6F564B;
+  --ink-faint: #B8A7A9;
+  --clay:      #FFC1EA;
+  --clay-d:    #A61956;
+  --rose:      #D45C7A;
+  --power:     #FF0164;
 
   --f-serif: 'Playfair Display', serif;
   --f-sans:  'DM Sans', sans-serif;
@@ -68,7 +74,7 @@ nav {
   text-decoration: none;
   letter-spacing: .01em;
 }
-.nav-logo em { font-style: italic; color: var(--site-clay); }
+.nav-logo em { font-style: italic; color: var(--site-clay-d); }
 
 .nav-links {
   display: flex;
@@ -98,7 +104,7 @@ nav {
   text-decoration: none;
   transition: background .2s, color .2s;
 }
-.nav-cta:hover { background: var(--site-clay); color: var(--site-white); }
+.nav-cta:hover { background: var(--site-clay-d); color: var(--site-white); }
 
 /* ─── HERO ─── */
 .hero {
@@ -141,6 +147,7 @@ nav {
 .filters {
   display: flex;
   gap: 0;
+  flex-wrap: wrap;
 }
 .filter-btn {
   font-family: var(--f-mono);
@@ -169,8 +176,8 @@ nav {
 .templates-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--line);
+  gap: 14px;
+  background: transparent;
 }
 
 /* ─── CARD BASE ─── */
@@ -179,9 +186,11 @@ nav {
   display: flex;
   flex-direction: column;
   position: relative;
-  transition: background .2s;
+  transition: background .2s, transform .2s, border-color .2s;
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 60px rgba(33,23,25,.06);
 }
-.card:hover { background: var(--bg-2); }
+.card:hover { background: var(--bg-2); transform: translateY(-2px); border-color: rgba(166,25,86,.28); }
 
 /* capa: proporção fixa 4:3, igual para todos */
 .card-cover {
@@ -212,8 +221,8 @@ nav {
   padding: 4px 9px;
   z-index: 3;
 }
-.badge-novo  { background: var(--ink); color: #FDFAF7; }
-.badge-top   { background: var(--clay-d); color: #FDFAF7; }
+.badge-novo  { background: var(--power); color: #FFFDF7; }
+.badge-top   { background: var(--ink); color: #FFFDF7; }
 .badge-breve { background: var(--line); color: var(--ink-faint); }
 
 .cover-label { position: relative; z-index: 2; }
@@ -441,36 +450,71 @@ footer {
 .reveal { opacity: 0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
 .reveal.visible { opacity: 1; transform: none; }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Produtos Digitais Rê Araujo",
+  "itemListElement": [
+    {
+      "@type": "Product",
+      "position": 1,
+      "name": "Guia de Planejamento Alimentar Antiflamatório",
+      "category": "eBook",
+      "offers": {
+        "@type": "Offer",
+        "price": "67",
+        "priceCurrency": "BRL",
+        "availability": "https://schema.org/InStock"
+      }
+    },
+    {
+      "@type": "Product",
+      "position": 2,
+      "name": "Planner de Treino",
+      "category": "Planner",
+      "offers": {
+        "@type": "Offer",
+        "price": "25",
+        "priceCurrency": "BRL",
+        "availability": "https://schema.org/InStock"
+      }
+    }
+  ]
+}
+</script>
 </head>
 <body>
 
 <!-- ── NAV ── -->
 <nav>
-  <a href="https://renatajoin.com" class="nav-logo">Rê <em>Araujo</em></a>
+  <a href="index.html" class="nav-logo">Rê <em>Araujo</em></a>
   <ul class="nav-links">
-    <li><a href="https://renatajoin.com#sobre">Sobre</a></li>
-    <li><a href="https://renatajoin.com#servicos">Serviços</a></li>
-    <li><a href="https://renatajoin.com#produtos">Produtos</a></li>
-    <li><a href="/templates" class="active">Templates</a></li>
-    <li><a href="https://renatajoin.com#processo">Processo</a></li>
-    <li><a href="https://renatajoin.com#contato">Contato</a></li>
+    <li><a href="index.html#sobre">Sobre</a></li>
+    <li><a href="index.html#servicos">Serviços</a></li>
+    <li><a href="index.html#templates" class="active">Produtos</a></li>
+    <li><a href="index.html#processo">Processo</a></li>
+    <li><a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Vim%20pela%20p%C3%A1gina%20de%20produtos%20digitais%20e%20quero%20falar%20com%20voc%C3%AA." target="_blank">Contato</a></li>
   </ul>
-  <a href="https://renatajoin.com#contato" class="nav-cta">Falar comigo</a>
+  <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Vim%20pela%20p%C3%A1gina%20de%20produtos%20digitais%20e%20quero%20falar%20com%20voc%C3%AA." target="_blank" class="nav-cta">Falar comigo</a>
 </nav>
 
 <!-- ── HERO ── -->
 <header class="hero reveal">
-  <p class="eyebrow">Templates · Planners &amp; Sistemas Notion</p>
-  <h1>Feito por quem usa.<br><em>Aberto pra você.</em></h1>
-  <p class="hero-sub">Cada template saiu da minha rotina real — testado, ajustado, refinado. Você duplica no Notion, adapta e já começa a usar.</p>
+  <p class="eyebrow">Produtos · Templates · Planners · eBooks · Sistemas</p>
+  <h1>Produtos digitais<br><em>com rotina dentro.</em></h1>
+  <p class="hero-sub">Materiais criados a partir de sistemas que eu uso, testo e refino. Você compra, adapta e coloca em prática sem precisar começar do zero.</p>
 </header>
 
 <!-- ── FILTROS ── -->
 <div class="filters-wrap reveal">
   <div class="filters">
     <button class="filter-btn active" data-filter="all">Todos</button>
+    <button class="filter-btn" data-filter="template">Templates</button>
     <button class="filter-btn" data-filter="planner">Planners</button>
+    <button class="filter-btn" data-filter="ebook">eBooks</button>
     <button class="filter-btn" data-filter="sistema">Sistemas</button>
+    <button class="filter-btn" data-filter="arquivo">Arquivos Digitais</button>
     <button class="filter-btn" data-filter="breve">Em breve</button>
   </div>
 </div>
@@ -479,25 +523,25 @@ footer {
 <div class="grid-wrap reveal">
   <div class="templates-grid">
 
-    <!-- CARD 1 — Planner Anti-Inflamatório -->
-    <article class="card" data-category="planner">
+    <!-- CARD 1 — Guia Alimentar -->
+    <article class="card" data-category="ebook planner arquivo">
       <span class="card-badge badge-novo">Novo</span>
-      <div class="card-cover" style="background:linear-gradient(155deg,#3D2B20 0%,#5C3D2A 55%,#2B1E16 100%);">
-        <span class="card-icon">🌿</span>
+      <div class="card-cover" style="background:#5C3D2A;">
+        <span class="card-icon">+</span>
         <div class="cover-label">
-          <small>Planner · Saúde</small>
-          <p>Planner<br>Anti-Inflamatório</p>
+          <small>Guia · Alimentação</small>
+          <p>Planejamento<br>Alimentar Antiflamatório</p>
         </div>
       </div>
       <div class="card-body">
-        <p class="card-cat">Notion Template · Planner</p>
-        <h2 class="card-title">Planner <em>Anti-Inflamatório</em></h2>
-        <p class="card-desc">Déficit calórico + low carb, feito do zero pra minha rotina. Cardápio real com quantidades, lista de compras por categoria, tabela de substituições e espaço pra sua prescrição.</p>
+        <p class="card-cat">eBook · Arquivo Digital</p>
+        <h2 class="card-title">Guia de Planejamento Alimentar <em>Antiflamatório</em></h2>
+        <p class="card-desc">Um material para organizar refeições, lista de compras, substituições e rotina alimentar com mais clareza. Feito para transformar intenção em planejamento visível.</p>
         <div class="card-tags">
-          <span class="tag">Notion</span>
-          <span class="tag">Low Carb</span>
-          <span class="tag">Déficit calórico</span>
-          <span class="tag">PDF incluído</span>
+          <span class="tag">PDF</span>
+          <span class="tag">Planejamento</span>
+          <span class="tag">Lista de compras</span>
+          <span class="tag">Rotina</span>
         </div>
         <div class="card-footer">
           <div class="price-wrap">
@@ -505,18 +549,49 @@ footer {
             <span class="price-val">R$67</span>
           </div>
           <div style="display:flex;gap:7px">
-            <a href="https://renatajoin.notion.site/guia-alimentar" target="_blank" class="btn-s">Preview</a>
-            <a href="https://gumroad.com/l/planner-anti-inflamatorio" target="_blank" class="btn-p">Comprar</a>
+            <a href="guia-alimentar.html" class="btn-p">Ver landing</a>
           </div>
         </div>
       </div>
     </article>
 
-    <!-- CARD 2 — Sistema Criadora de Conteúdo -->
-    <article class="card" data-category="sistema">
-      <span class="card-badge badge-top">+ Vendido</span>
-      <div class="card-cover" style="background:linear-gradient(155deg,#1E1410 0%,#2E1E14 55%,#140E0A 100%);">
-        <span class="card-icon">🗂️</span>
+    <!-- CARD 2 — Planner de Treino -->
+    <article class="card" data-category="planner arquivo">
+      <span class="card-badge badge-top">R$25</span>
+      <div class="card-cover" style="background:#1E1410;">
+        <span class="card-icon">•</span>
+        <div class="cover-label">
+          <small>Planner · Treino</small>
+          <p>Planner<br>de Treino</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="card-cat">Planner · Arquivo Digital</p>
+        <h2 class="card-title">Planner <em>de Treino</em></h2>
+        <p class="card-desc">Baseado no sistema que uso diariamente para registrar treinos, acompanhar evolução e manter consistência sem depender de memória ou aplicativos confusos.</p>
+        <div class="card-tags">
+          <span class="tag">Treino</span>
+          <span class="tag">Evolução</span>
+          <span class="tag">Hábitos</span>
+          <span class="tag">Rotina</span>
+        </div>
+        <div class="card-footer">
+          <div class="price-wrap">
+            <span class="price-lbl">pagamento único</span>
+            <span class="price-val">R$25</span>
+          </div>
+          <div style="display:flex;gap:7px">
+            <a href="planner-treino.html" class="btn-p">Ver landing</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- CARD 3 — Sistema de Conteúdo -->
+    <article class="card" data-category="template sistema breve">
+      <span class="card-badge badge-breve">Em breve</span>
+      <div class="card-cover cover-light" style="background:#E8E0D8;">
+        <span class="card-icon">#</span>
         <div class="cover-label">
           <small>Sistema · Conteúdo</small>
           <p>Sistema Criadora<br>de Conteúdo</p>
@@ -525,30 +600,27 @@ footer {
       <div class="card-body">
         <p class="card-cat">Notion Template · Sistema</p>
         <h2 class="card-title">Sistema <em>Criadora</em> de Conteúdo</h2>
-        <p class="card-desc">Calendário editorial, banco de ideias, tracker de engajamento e roteiro de Reels. Para criar com consistência sem improvisar toda semana.</p>
+        <p class="card-desc">Calendário editorial, banco de ideias, roteiro de Reels e visão de consistência para criar conteúdo com método.</p>
         <div class="card-tags">
           <span class="tag">Notion</span>
           <span class="tag">Conteúdo</span>
           <span class="tag">Instagram</span>
-          <span class="tag">Reels</span>
         </div>
         <div class="card-footer">
           <div class="price-wrap">
-            <span class="price-lbl">pagamento único</span>
-            <span class="price-val">R$97</span>
+            <span class="price-lbl">em breve</span>
+            <span class="price-val price-muted">—</span>
           </div>
-          <div style="display:flex;gap:7px">
-            <a href="https://msha.ke/renatajoin" target="_blank" class="btn-p">Comprar</a>
-          </div>
+          <span class="btn-s" style="opacity:.4;cursor:default">Em breve</span>
         </div>
       </div>
     </article>
 
-    <!-- CARD 3 — Em breve -->
-    <article class="card card-soon" data-category="breve sistema">
+    <!-- CARD 4 — CRM -->
+    <article class="card card-soon" data-category="template sistema breve">
       <span class="card-badge badge-breve">Em breve</span>
-      <div class="card-cover cover-light" style="background:linear-gradient(155deg,#F0EBE4 0%,#E8E0D8 100%);">
-        <span class="card-icon">🧾</span>
+      <div class="card-cover cover-light" style="background:#DCCBBC;">
+        <span class="card-icon">□</span>
         <div class="cover-label">
           <small>Sistema · Negócios</small>
           <p>CRM para<br>Freelancers</p>
@@ -557,11 +629,40 @@ footer {
       <div class="card-body">
         <p class="card-cat">Notion Template · Sistema</p>
         <h2 class="card-title">CRM para <em>Freelancers</em></h2>
-        <p class="card-desc">Gestão de clientes, propostas, projetos e financeiro em um sistema Notion. Em desenvolvimento.</p>
+        <p class="card-desc">Gestão de clientes, propostas, projetos e financeiro em um sistema Notion. Inspirado nos fluxos de propostas e atendimento do meu próprio trabalho.</p>
         <div class="card-tags">
           <span class="tag">Notion</span>
           <span class="tag">CRM</span>
-          <span class="tag">Freelancer</span>
+          <span class="tag">Projetos</span>
+        </div>
+        <div class="card-footer">
+          <div class="price-wrap">
+            <span class="price-lbl">em breve</span>
+            <span class="price-val price-muted">—</span>
+          </div>
+          <span class="btn-s" style="opacity:.4;cursor:default">Em breve</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- CARD 5 — Plano de Ação -->
+    <article class="card card-soon" data-category="arquivo breve">
+      <span class="card-badge badge-breve">Em breve</span>
+      <div class="card-cover cover-light" style="background:#E5D7CA;">
+        <span class="card-icon">→</span>
+        <div class="cover-label">
+          <small>Arquivo · Estratégia</small>
+          <p>Plano de Ação<br>de Marca</p>
+        </div>
+      </div>
+      <div class="card-body">
+        <p class="card-cat">Arquivo Digital</p>
+        <h2 class="card-title">Plano de Ação <em>de Marca</em></h2>
+        <p class="card-desc">Checklist guiado para transformar diagnóstico em prioridades, decisões visuais e próximos passos de presença digital.</p>
+        <div class="card-tags">
+          <span class="tag">Checklist</span>
+          <span class="tag">Branding</span>
+          <span class="tag">Ação</span>
         </div>
         <div class="card-footer">
           <div class="price-wrap">
@@ -593,7 +694,7 @@ footer {
 <!-- ── FOOTER ── -->
 <footer>
   <span class="footer-copy">© 2025 Rê Araujo · Design & TI · Brasília/DF</span>
-  <a href="https://renatajoin.com" class="footer-back">← Voltar ao site</a>
+  <a href="index.html" class="footer-back">← Voltar ao site</a>
 </footer>
 
 <script>

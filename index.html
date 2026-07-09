@@ -3,31 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rê Araujo — Design · Dev · Identidade</title>
+<title>Rê Araujo | Branding, Design e Tecnologia</title>
+<meta name="description" content="Branding, UX/UI, sistemas visuais e tecnologia para marcas que precisam comunicar com clareza, estrutura e presença digital.">
+<link rel="canonical" href="https://renatajoin.com/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rê Araujo | Branding, Design e Tecnologia">
+<meta property="og:description" content="Estratégia, identidade visual, design e tecnologia para marcas com clareza, sofisticação e estrutura.">
+<meta property="og:url" content="https://renatajoin.com/">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#070707;--bg2:#0d0d0d;--bg3:#121212;--bg4:#171717;
-  --border:#1c1c1c;--border2:#262626;--border3:#303030;
-  --text:#eae2da;--text2:#c4bdb5;--text3:#9a9088;
-  --muted:#5a5450;--muted2:#7a7268;
-  --r:#8b2a2a;--r2:#b05050;--r3:#c87878;
-  --gold:#c8a96e;--gold2:#dfc08a;
+  --bg:#070606;--bg2:#100c0a;--bg3:#17100d;--bg4:#231612;
+  --border:#261b17;--border2:#3b2b25;--border3:#6f574c;
+  --text:#fff8ef;--text2:#eadccf;--text3:#c8ad9b;
+  --muted:#816d60;--muted2:#a89080;
+  --r:#a61956;--r2:#d45c7a;--r3:#ff78b1;
+  --orange:#e33742;--rose:#ffc1ea;--beige:#fef4d1;
+  --cream:#fceff2;--power:#ff0164;--black:#010200;
+  --gold:#dba423;--gold2:#f2d58f;
   --serif:'Cormorant Garamond',Georgia,serif;
   --mono:'DM Mono',monospace;
   --sans:'Instrument Sans',sans-serif;
 }
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:300;line-height:1.7;overflow-x:hidden;cursor:none}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:300;line-height:1.7;overflow-x:hidden;cursor:url("data:image/svg+xml,%3Csvg width='28' height='28' viewBox='0 0 28 28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 4l15 8-7 2.2L11.4 22 6 4z' fill='%23d58a78' stroke='%23f3e1c8' stroke-width='1.4'/%3E%3C/svg%3E") 4 4, auto}
 
 /* GRAIN */
 body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9990;opacity:.3}
 
 /* CURSOR */
-.cur{position:fixed;width:10px;height:10px;background:var(--r3);border-radius:50%;pointer-events:none;z-index:9999;transition:transform .15s,background .2s;mix-blend-mode:difference}
-.cur-ring{position:fixed;width:36px;height:36px;border:1px solid rgba(200,120,120,.35);border-radius:50%;pointer-events:none;z-index:9998}
+.cur,.cur-ring{display:none}
 
 /* PROGRESS */
 .pgbar{position:fixed;top:0;left:0;height:1px;background:linear-gradient(90deg,var(--r),var(--gold));z-index:2000;width:0%;transition:width .06s linear}
@@ -43,9 +52,9 @@ nav.solid{background:rgba(7,7,7,.96);border-bottom:1px solid var(--border);backd
 .logo{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--text);text-decoration:none;letter-spacing:.01em}
 .logo em{font-style:italic;color:var(--r3)}
 .nav-links{display:flex;align-items:center;gap:28px}
-.nav-links a{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--muted2);text-decoration:none;text-transform:uppercase;transition:color .2s;cursor:none}
+.nav-links a{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--muted2);text-decoration:none;text-transform:uppercase;transition:color .2s}
 .nav-links a:hover{color:var(--text)}
-.nav-btn{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--r3);border:1px solid var(--r);padding:9px 20px;text-decoration:none;transition:all .2s;cursor:none}
+.nav-btn{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--r3);border:1px solid var(--r);padding:9px 20px;text-decoration:none;transition:all .2s}
 .nav-btn:hover{background:var(--r);color:var(--text)}
 
 /* HERO */
@@ -76,7 +85,7 @@ nav.solid{background:rgba(7,7,7,.96);border-bottom:1px solid var(--border);backd
 .ftag:nth-child(4){top:80%;right:6%;animation-delay:7s}
 @keyframes floatTag{0%,100%{opacity:.3}50%{opacity:.7}}
 
-.hero-content{position:relative;max-width:900px}
+.hero-content{position:relative;max-width:900px;z-index:2}
 .hero-tag{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;display:flex;align-items:center;gap:14px;margin-bottom:32px;opacity:0;animation:slideUp .9s ease .2s forwards}
 .hero-tag::before{content:'';width:36px;height:1px;background:var(--gold)}
 h1.hero-h{font-family:var(--serif);font-size:clamp(56px,9vw,108px);font-weight:300;color:#f8f0e8;line-height:.96;margin-bottom:12px;opacity:0;animation:slideUp 1s ease .4s forwards}
@@ -85,12 +94,13 @@ h1.hero-h .ghost{-webkit-text-stroke:1px rgba(248,240,232,.18);color:transparent
 .hero-desc{font-size:17px;color:var(--muted2);max-width:480px;margin:32px 0 52px;line-height:1.8;opacity:0;animation:slideUp .9s ease .65s forwards}
 .hero-desc strong{color:var(--text3);font-weight:400}
 .hero-actions{display:flex;gap:18px;align-items:center;flex-wrap:wrap;opacity:0;animation:slideUp .9s ease .85s forwards}
-.btn-p{display:inline-flex;align-items:center;gap:10px;background:var(--r);color:#f8f0e8;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:16px 36px;text-decoration:none;position:relative;overflow:hidden;transition:transform .2s;cursor:none}
+.btn-p{display:inline-flex;align-items:center;gap:10px;background:var(--r);color:#f8f0e8;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;padding:16px 36px;text-decoration:none;position:relative;overflow:hidden;transition:transform .2s}
 .btn-p::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);transform:translateX(-100%);transition:transform .5s ease}
 .btn-p:hover{transform:translateY(-2px)}
 .btn-p:hover::after{transform:translateX(100%)}
-.btn-g{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);text-decoration:none;border-bottom:1px solid var(--border2);padding-bottom:2px;transition:all .2s;cursor:none}
+.btn-g{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);text-decoration:none;border-bottom:1px solid var(--border2);padding-bottom:2px;transition:all .2s}
 .btn-g:hover{color:var(--text);border-color:var(--muted2)}
+.section-actions{margin-top:36px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
 
 .hero-scroll{position:absolute;bottom:36px;left:40px;display:flex;align-items:center;gap:12px;opacity:0;animation:slideUp .9s ease 1.1s forwards}
 .scroll-line{width:1px;height:48px;background:linear-gradient(to bottom,var(--border3),transparent);animation:scrollLine 2s ease-in-out infinite}
@@ -134,8 +144,10 @@ strong{color:var(--text3);font-weight:400}
 .about-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:80px;align-items:center;margin-top:48px}
 .about-visual{position:relative}
 .about-frame{width:100%;aspect-ratio:3/4;background:var(--bg3);border:1px solid var(--border2);position:relative;overflow:hidden}
+.about-frame img{width:100%;height:100%;object-fit:cover;filter:saturate(.92) contrast(1.04)}
 .about-frame::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--r),transparent)}
-.about-frame-inner{position:absolute;inset:12px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.about-frame::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,6,6,.04),rgba(7,6,6,.58));pointer-events:none}
+.about-frame-inner{position:absolute;left:12px;right:12px;bottom:12px;border:1px solid rgba(244,236,226,.18);background:rgba(7,6,6,.5);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;padding:22px;z-index:2}
 .about-frame-inner .af-name{font-family:var(--serif);font-size:28px;color:var(--text);font-style:italic}
 .about-frame-inner .af-handle{font-family:var(--mono);font-size:11px;color:var(--muted2);letter-spacing:.14em}
 .about-frame-inner .af-tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
@@ -146,30 +158,34 @@ strong{color:var(--text3);font-weight:400}
 .about-text .big{font-family:var(--serif);font-size:clamp(18px,2.5vw,28px);color:var(--text2);line-height:1.45;font-style:italic;border-left:2px solid var(--r);padding-left:24px;margin-bottom:28px}
 .about-text .big strong{font-style:normal;color:#f0e8e0;font-weight:400}
 .pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
-.pill{font-family:var(--mono);font-size:10px;color:var(--muted2);border:1px solid var(--border2);padding:5px 14px;letter-spacing:.08em;transition:all .2s;cursor:none}
+.pill{font-family:var(--mono);font-size:10px;color:var(--muted2);border:1px solid var(--border2);padding:5px 14px;letter-spacing:.08em;transition:all .2s}
 .pill:hover{border-color:var(--r);color:var(--r3)}
 
 /* SERVICES */
 .services-tabs{display:flex;gap:0;margin-bottom:48px;border-bottom:1px solid var(--border)}
-.stab{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:14px 24px;cursor:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s}
+.stab{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:14px 24px;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;background:transparent;border-left:0;border-right:0;border-top:0}
 .stab.active{color:var(--r3);border-bottom-color:var(--r3)}
 .stab:hover{color:var(--text3)}
 .spanel{display:none}.spanel.active{display:block}
-.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--border)}
-.scard{background:var(--bg2);padding:32px 28px;transition:background .25s;position:relative;overflow:hidden;cursor:none}
-.scard:hover{background:var(--bg3)}
-.scard::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--r),transparent);opacity:0;transition:opacity .3s}
+.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;background:transparent}
+.scard{background:#f5eadc;color:#2b1b14;border:1px solid rgba(78,50,35,.16);padding:32px 28px;transition:border-color .25s,transform .25s,box-shadow .25s;position:relative;overflow:hidden}
+#tab-design .scard{background:#f7ebe7;border-top:3px solid #c67f83}
+#tab-ti .scard{background:#efe0cf;border-top:3px solid #8a5c41}
+#tab-consultoria .scard{background:#f4eadc;border-top:3px solid #6f3d2d}
+#tab-parcerias .scard{background:#f6e6e3;border-top:3px solid #b86a72}
+.scard:hover{border-color:rgba(139,42,42,.32);box-shadow:0 18px 50px rgba(20,8,4,.08);transform:translateY(-2px)}
+.scard::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:transparent;opacity:0;transition:opacity .3s}
 .scard:hover::before{opacity:1}
 .scard-icon{font-size:20px;margin-bottom:18px;display:block}
-.scard-name{font-family:var(--serif);font-size:19px;color:var(--text2);margin-bottom:8px}
-.scard-desc{font-size:13px;color:var(--muted2);line-height:1.75;margin-bottom:20px}
-.scard-price{font-family:var(--serif);font-size:28px;color:var(--text);line-height:1}
-.scard-price-note{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;margin-top:4px}
+.scard-name{font-family:var(--serif);font-size:21px;color:#2b1b14;margin-bottom:8px}
+.scard-desc{font-size:13px;color:#6f594a;line-height:1.75;margin-bottom:20px}
+.scard-price{font-family:var(--serif);font-size:28px;color:#2b1b14;line-height:1}
+.scard-price-note{font-family:var(--mono);font-size:10px;color:#8b7564;letter-spacing:.08em;margin-top:4px}
 .scard-list{list-style:none;margin-top:16px;border-top:1px solid var(--border);padding-top:16px}
-.scard-list li{font-size:12px;color:var(--muted2);padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:flex-start}
+.scard-list li{font-size:12px;color:#6f594a;padding:5px 0;border-bottom:1px solid rgba(78,50,35,.12);display:flex;gap:8px;align-items:flex-start}
 .scard-list li::before{content:'—';color:var(--r2);flex-shrink:0}
 .scard-list li:last-child{border-bottom:none}
-.scard-cta{display:inline-block;margin-top:20px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--r3);text-decoration:none;border-bottom:1px solid rgba(200,120,120,.3);padding-bottom:2px;transition:all .2s;cursor:none}
+.scard-cta{display:inline-block;margin-top:20px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--r3);text-decoration:none;border-bottom:1px solid rgba(200,120,120,.3);padding-bottom:2px;transition:all .2s}
 .scard-cta:hover{border-color:var(--r3)}
 
 /* PROCESS */
@@ -182,17 +198,26 @@ strong{color:var(--text3);font-weight:400}
 .pstep p{font-size:12px;color:var(--muted);line-height:1.6}
 
 /* PRODUCTS */
-.products-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:40px}
-.pcard{background:var(--bg2);border:1px solid var(--border);padding:28px 32px;position:relative;transition:border-color .3s,transform .25s;cursor:none}
-.pcard:hover{border-color:var(--border3);transform:translateY(-3px)}
-.pcard.featured{border-color:var(--r);background:#0c0808}
-.pcard-badge{font-family:var(--mono);font-size:9px;color:var(--gold);background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.2);padding:2px 10px;letter-spacing:.12em;text-transform:uppercase;display:inline-block;margin-bottom:14px}
-.pcard h3{font-family:var(--serif);font-size:20px;margin-bottom:6px}
-.pcard p{font-size:13px;color:var(--muted2);margin-bottom:20px}
-.pcard-price{font-family:var(--serif);font-size:38px;color:#f8f0e8;line-height:1}
-.pcard-note{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;margin-top:4px;margin-bottom:16px}
-.pcard-link{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--r3);text-decoration:none;border-bottom:1px solid rgba(200,120,120,.3);transition:border-color .2s;cursor:none}
+.products-section{background:var(--beige);color:#211719;position:relative}
+.products-section::before{content:'';position:absolute;top:0;left:0;right:0;height:10px;background:var(--black)}
+.products-section .sec-tag{color:#a61956}.products-section .sec-tag::before{background:#a61956}.products-section h2{color:#211719}.products-section h2 em{color:#a61956}.products-section p{color:#6b5347}
+.products-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:40px}
+.pcard{background:#fffdf7;border:1px solid rgba(1,2,0,.12);padding:32px 34px;position:relative;transition:border-color .3s,transform .25s;box-shadow:0 18px 60px rgba(24,12,8,.08);overflow:hidden}
+.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:7px;background:#1f1a1c}
+.pcard::after{content:'';position:absolute;right:24px;bottom:24px;width:62px;height:62px;border:1px solid rgba(166,25,86,.22);opacity:.55}
+.pcard:hover{border-color:#a61956;transform:translateY(-3px)}
+.pcard.featured{border-color:rgba(166,25,86,.28);background:#fceff2}
+.pcard.featured::before{background:#ff0164}
+.pcard-badge{font-family:var(--mono);font-size:9px;color:#a61956;background:#fef4d1;border:1px solid rgba(166,25,86,.18);padding:4px 12px;letter-spacing:.12em;text-transform:uppercase;display:inline-block;margin-bottom:18px}
+.pcard h3{font-family:var(--serif);font-size:22px;margin-bottom:6px;color:#2b1c14}
+.pcard p{font-size:13px;color:#6a4d3a;margin-bottom:20px}
+.pcard-price{font-family:var(--serif);font-size:38px;color:#2b1c14;line-height:1}
+.pcard-note{font-family:var(--mono);font-size:10px;color:#866853;letter-spacing:.08em;margin-top:4px;margin-bottom:16px}
+.pcard-link{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#a61956;text-decoration:none;border-bottom:1px solid rgba(166,25,86,.3);transition:border-color .2s}
 .pcard-link:hover{border-color:var(--r3)}
+.products-section .section-actions{margin-top:28px}
+.products-section .btn-g{display:inline-flex;align-items:center;justify-content:center;min-width:170px;border:2px solid #010200;color:#211719;background:rgba(255,255,255,.22);padding:14px 24px;box-shadow:8px 8px 0 #ff0164}
+.products-section .btn-g:hover{color:#010200;border-color:#010200;transform:translate(-2px,-2px);box-shadow:10px 10px 0 #ff0164}
 
 /* CONTACT */
 .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:48px;align-items:start}
@@ -205,11 +230,11 @@ strong{color:var(--text3);font-weight:400}
 .contact-form{background:var(--bg2);border:1px solid var(--border);padding:32px}
 .form-group{margin-bottom:18px}
 .form-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted2);text-transform:uppercase;display:block;margin-bottom:8px}
-.form-input,.form-select,.form-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:14px;font-weight:300;padding:12px 16px;transition:border-color .2s;outline:none;cursor:none}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:14px;font-weight:300;padding:12px 16px;transition:border-color .2s;outline:none}
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--r)}
 .form-textarea{resize:vertical;min-height:100px}
 .form-select option{background:var(--bg3)}
-.form-btn{width:100%;background:var(--r);color:#f8f0e8;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:16px;border:none;cursor:none;transition:background .2s;margin-top:8px}
+.form-btn{width:100%;background:var(--r);color:#f8f0e8;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;padding:16px;border:none;transition:background .2s;margin-top:8px}
 .form-btn:hover{background:var(--r2)}
 
 /* FOOTER */
@@ -218,12 +243,12 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
 .footer-brand .fl{font-family:var(--serif);font-size:28px;color:var(--text);font-style:italic;display:block;margin-bottom:12px}
 .footer-brand p{font-size:13px;color:var(--muted);max-width:240px;line-height:1.7}
 .footer-col h4{font-family:var(--mono);font-size:10px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:16px}
-.footer-col a{display:block;font-size:13px;color:var(--muted2);text-decoration:none;margin-bottom:8px;transition:color .2s;cursor:none}
+.footer-col a{display:block;font-size:13px;color:var(--muted2);text-decoration:none;margin-bottom:8px;transition:color .2s}
 .footer-col a:hover{color:var(--r3)}
 .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-top:1px solid var(--border);padding-top:24px}
 .footer-copy{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em}
 .footer-social{display:flex;gap:16px}
-.footer-social a{font-family:var(--mono);font-size:10px;color:var(--muted);text-decoration:none;letter-spacing:.1em;text-transform:uppercase;transition:color .2s;cursor:none}
+.footer-social a{font-family:var(--mono);font-size:10px;color:var(--muted);text-decoration:none;letter-spacing:.1em;text-transform:uppercase;transition:color .2s}
 .footer-social a:hover{color:var(--r3)}
 
 /* STICKY */
@@ -234,7 +259,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
 .sticky-price{font-family:var(--serif);font-size:22px;color:var(--text)}
 
 /* BACK TO TOP */
-.btt{position:fixed;bottom:24px;right:32px;width:44px;height:44px;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:16px;color:var(--muted2);cursor:none;z-index:800;opacity:0;transition:all .3s;text-decoration:none}
+.btt{position:fixed;bottom:24px;right:32px;width:44px;height:44px;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:16px;color:var(--muted2);z-index:800;opacity:0;transition:all .3s;text-decoration:none}
 .btt.on{opacity:1}
 .btt:hover{border-color:var(--r);color:var(--r3)}
 
@@ -261,6 +286,33 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
   nav .nav-links{display:none}
 }
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "Rê Araujo",
+  "url": "https://renatajoin.com/",
+  "areaServed": "BR",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Brasília",
+    "addressRegion": "DF",
+    "addressCountry": "BR"
+  },
+  "sameAs": [
+    "https://instagram.com/renatajoin",
+    "https://www.linkedin.com/in/renatajoin/"
+  ],
+  "serviceType": [
+    "Branding",
+    "Identidade visual",
+    "UX/UI",
+    "Desenvolvimento web",
+    "Sistemas Notion",
+    "Marcas e parcerias"
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -275,11 +327,11 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
   <div class="nav-links">
     <a href="#sobre">Sobre</a>
     <a href="#servicos">Serviços</a>
-    <a href="#notion">Notion</a>
+    <a href="#templates">Produtos</a>
     <a href="#processo">Processo</a>
     <a href="#contato">Contato</a>
   </div>
-  <a href="#contato" class="nav-btn">Falar comigo</a>
+  <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Vim%20pelo%20site%20e%20quero%20conversar%20sobre%20um%20projeto." target="_blank" class="nav-btn">Falar comigo</a>
 </nav>
 
 <!-- HERO -->
@@ -292,24 +344,24 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
     <div class="hero-glow1"></div>
     <div class="hero-glow2"></div>
     <div class="float-tags">
-      <div class="ftag">Design · Dev · Identidade</div>
+      <div class="ftag">Estratégia · Branding · Tecnologia</div>
       <div class="ftag">Brasília/DF</div>
       <div class="ftag">@renatajoin</div>
-      <div class="ftag">Neurodesign · Branding</div>
+      <div class="ftag">Design · Sistemas · Presença</div>
     </div>
   </div>
 
   <div class="hero-content">
-    <div class="hero-tag">Designer · Desenvolvedora · Estrategista</div>
+    <div class="hero-tag">Branding · Design · Tecnologia</div>
     <h1 class="hero-h">
-      Marca que<br>
-      fala por<br>
-      <em>você.</em>
-      <span class="ghost"> Inteira.</span>
+      Estratégia<br>
+      que vira<br>
+      <em>presença.</em>
+      <span class="ghost"> Clara.</span>
     </h1>
     <p class="hero-desc">
-      Design com propósito, código com identidade, estratégia com neurociência.<br>
-      <strong>Para marcas que não cabem em caixinha.</strong>
+      Conecto posicionamento, identidade visual, experiência digital e sistemas para marcas que precisam comunicar melhor e operar com mais clareza.<br>
+      <strong>Design bonito é pouco. A marca precisa fazer sentido.</strong>
     </p>
     <div class="hero-actions">
       <a href="#servicos" class="btn-p">Ver serviços →</a>
@@ -336,8 +388,8 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
     <div class="mq-item">Desenvolvimento Web</div>
     <div class="mq-item">Landing Pages</div>
     <div class="mq-item">Sistemas Notion</div>
-    <div class="mq-item">Análise de Imagem</div>
-    <div class="mq-item">Colorimetria</div>
+    <div class="mq-item">Marcas & Parcerias</div>
+    <div class="mq-item">UGC</div>
     <div class="mq-item">Posicionamento Digital</div>
     <div class="mq-item">Neurodesign</div>
     <div class="mq-item">Branding</div>
@@ -345,8 +397,8 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
     <div class="mq-item">Desenvolvimento Web</div>
     <div class="mq-item">Landing Pages</div>
     <div class="mq-item">Sistemas Notion</div>
-    <div class="mq-item">Análise de Imagem</div>
-    <div class="mq-item">Colorimetria</div>
+    <div class="mq-item">Marcas & Parcerias</div>
+    <div class="mq-item">UGC</div>
     <div class="mq-item">Posicionamento Digital</div>
     <div class="mq-item">Neurodesign</div>
     <div class="mq-item">Branding</div>
@@ -360,16 +412,17 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
     <div class="about-grid">
       <div class="about-visual rv">
         <div class="about-frame">
+          <img src="assets/reh-home-ai.png" alt="Rê Araujo em retrato profissional">
           <div class="about-frame-inner">
             <div class="af-name">Rê Araujo</div>
             <div class="af-handle">@renatajoin · Brasília/DF</div>
             <div class="af-tags">
               <span class="af-tag">Designer</span>
               <span class="af-tag">Dev</span>
-              <span class="af-tag">Cristã</span>
-              <span class="af-tag">Rock</span>
-              <span class="af-tag">Neurodesign</span>
-              <span class="af-tag">Direitista</span>
+              <span class="af-tag">Branding</span>
+              <span class="af-tag">UX/UI</span>
+              <span class="af-tag">Sistemas</span>
+              <span class="af-tag">Estratégia</span>
             </div>
           </div>
         </div>
@@ -377,19 +430,19 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
         <div class="about-corner br">DESIGN & TI · BSB</div>
       </div>
       <div class="about-text rv d2">
-        <h2>Designer que<br>também <em>programa.</em></h2>
+        <h2>Estratégia,<br>design e <em>sistema.</em></h2>
         <div class="big">
-          Não sou a profissional que entrega só o logo.<br>
-          Entrego a <strong>marca inteira</strong> — do conceito ao código.
+          Meu trabalho organiza o que a marca quer dizer, como ela aparece e como ela funciona.<br>
+          <strong>Da estratégia ao visual, do visual à experiência.</strong>
         </div>
-        <p>Formada em Design, com repertório em desenvolvimento web, neurociência aplicada e sistemas de produtividade. Trabalho na interseção entre estética e tecnologia — onde uma marca não só parece certa, mas funciona certa.</p>
-        <p style="margin-top:12px">Cristã, conservadora, alternativa, direitista. Com opinião sobre tudo e sem pedir desculpa por nenhuma das três coisas. A identidade que vejo nas marcas que crio começa na minha própria.</p>
+        <p>Sou designer formada, desenvolvedora em formação e estrategista por prática. Minha experiência passa por branding, direção de arte, UX/UI, comunicação institucional e sistemas digitais que dão estrutura para marcas, processos e produtos.</p>
+        <p style="margin-top:12px">Atuo na interseção entre estética, tecnologia e comportamento: criando identidades, páginas, templates e fluxos que não dependem de excesso de explicação para comunicar valor.</p>
         <div class="pills">
           <span class="pill">Identidade Visual</span>
           <span class="pill">Dev Web</span>
           <span class="pill">Notion Systems</span>
-          <span class="pill">Colorimetria</span>
-          <span class="pill">Neurodesign</span>
+          <span class="pill">Sistemas Visuais</span>
+          <span class="pill">Direção de Arte</span>
           <span class="pill">Branding</span>
           <span class="pill">UX/UI</span>
           <span class="pill">Estratégia de Marca</span>
@@ -398,8 +451,11 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
     </div>
 
     <div class="quote-block rv" style="margin-top:60px">
-      <p class="quote-text">"Quem compra de mim não compra um serviço.<br>Compra a confiança de que a pessoa que vai cuidar da marca dela vive o que prega."</p>
+      <p class="quote-text">"Uma marca forte não nasce do excesso.<br>Nasce quando estratégia, visual e experiência passam a dizer a mesma coisa."</p>
       <div class="quote-attr">Rê Araujo · @renatajoin</div>
+    </div>
+    <div class="section-actions rv d1">
+      <a href="sobre.html" class="btn-g">Saiba mais</a>
     </div>
   </div>
 </section>
@@ -409,13 +465,13 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
   <div class="sec-wrap">
     <div class="sec-tag rv">Serviços</div>
     <h2 class="rv d1">O que eu<br><em>entrego.</em></h2>
-    <p class="rv d2">Cada serviço é pensado como sistema — não peças soltas, mas soluções que se conectam e comunicam quem você é de forma consistente.</p>
+    <p class="rv d2">Cada entrega parte de uma pergunta simples: o que precisa ficar mais claro para a marca crescer, vender ou se organizar melhor?</p>
 
     <div class="services-tabs rv d2" style="margin-top:40px">
       <button class="stab active" onclick="showTab('design')">Design & Marca</button>
       <button class="stab" onclick="showTab('ti')">TI & Web</button>
-      <button class="stab" onclick="showTab('imagem')">Imagem & Estilo</button>
       <button class="stab" onclick="showTab('consultoria')">Consultoria</button>
+      <button class="stab" onclick="showTab('parcerias')">Marcas & Parcerias</button>
     </div>
 
     <!-- DESIGN & MARCA -->
@@ -425,7 +481,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
           <span class="scard-icon">◈</span>
           <div class="scard-name">Identidade Visual Completa</div>
           <div class="scard-desc">Marca com propósito, desenvolvida com neurociência e intenção. Não é só um logo — é um sistema visual que comunica quem você é antes de você abrir a boca.</div>
-          <div class="scard-price">R$2.000</div>
+          <div class="scard-price">R$3.000</div>
           <div class="scard-price-note">A PARTIR DE · PRAZO: 14 DIAS ÚTEIS</div>
           <ul class="scard-list">
             <li>Logotipo + variações</li>
@@ -434,7 +490,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Manual da marca</li>
             <li>Aplicações (social, impresso)</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="midia-kit.html" class="scard-cta">Ver mais →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -449,7 +505,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Estratégia de presença digital</li>
             <li>Manual completo da marca</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="midia-kit.html" class="scard-cta">Ver mais →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -463,7 +519,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Novas aplicações</li>
             <li>Guia de uso atualizado</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="embaixadora.html" class="scard-cta">Ver mais →</a>
         </div>
       </div>
     </div>
@@ -484,7 +540,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Otimização de velocidade</li>
             <li>Integração de pagamento (opcional)</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="midia-kit.html" class="scard-cta">Ver mais →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -499,7 +555,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>SEO básico configurado</li>
             <li>Domínio e hospedagem (orientação)</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="midia-kit.html" class="scard-cta">Ver mais →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -514,7 +570,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Painel administrativo</li>
             <li>Documentação e treinamento</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20um%20sistema%20web%20ou%20plataforma." target="_blank" class="scard-cta">Fale comigo →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -529,7 +585,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Automações (quando aplicável)</li>
             <li>Treinamento de uso</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20um%20sistema%20Notion%20personalizado." target="_blank" class="scard-cta">Fale comigo →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -543,7 +599,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Otimização de performance</li>
             <li>Integração de ferramentas</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20manuten%C3%A7%C3%A3o%20ou%20suporte%20web." target="_blank" class="scard-cta">Fale comigo →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -557,58 +613,58 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Estrutura de navegação</li>
             <li>Versão mobile responsiva</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="embaixadora.html" class="scard-cta">Ver mais →</a>
         </div>
+      </div>
+      <div class="section-actions">
+        <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20uma%20proposta%20de%20marca%20ou%20parceria." target="_blank" class="btn-p">Enviar proposta →</a>
       </div>
     </div>
 
-    <!-- IMAGEM & ESTILO -->
-    <div class="spanel" id="tab-imagem">
+    <!-- MARCAS & PARCERIAS -->
+    <div class="spanel" id="tab-parcerias">
       <div class="services-grid">
         <div class="scard">
           <span class="scard-icon">◈</span>
-          <div class="scard-name">Análise de Imagem Pessoal</div>
-          <div class="scard-desc">Uma entrega sobre quem você quer se mostrar ao mundo — com base em psicologia, comportamento e design. Não é consultoria de moda. É estratégia de presença.</div>
-          <div class="scard-price">R$497</div>
-          <div class="scard-price-note">SESSÃO ÚNICA · ENTREGA EM PDF</div>
+          <div class="scard-name">Conteúdo para Marcas</div>
+          <div class="scard-desc">Produção de conteúdo com direção estética, clareza de mensagem e leitura real de comunidade. Para campanhas que precisam parecer humanas sem perder intenção estratégica.</div>
+          <div class="scard-price">Sob consulta</div>
+          <div class="scard-price-note">UGC · CONTEÚDO · CAMPANHAS</div>
           <ul class="scard-list">
-            <li>Análise de arquétipo visual</li>
-            <li>Como você se comunica sem falar</li>
-            <li>Paleta pessoal de cores e estilos</li>
-            <li>Direção de imagem e presença</li>
-            <li>Aplicação no feed e marca pessoal</li>
+            <li>Roteiro e produção de conteúdo</li>
+            <li>UGC com estética alinhada à marca</li>
+            <li>Conteúdo para redes e lançamentos</li>
+            <li>Campanhas e ativações comerciais</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20conte%C3%BAdo%20para%20marca." target="_blank" class="scard-cta">Fale comigo →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
-          <div class="scard-name">Colorimetria Pessoal</div>
-          <div class="scard-desc">Identificação da sua paleta de cores com base em neurociência e teoria da cor. O que funciona para você — roupas, maquiagem, ambiente e marca — explicado com ciência.</div>
-          <div class="scard-price">R$297</div>
-          <div class="scard-price-note">ONLINE · ENTREGA EM PDF + PALETA</div>
+          <div class="scard-name">Mídia Kit & Parcerias</div>
+          <div class="scard-desc">Estruturação de apresentação comercial para marcas, com posicionamento, formatos de entrega, argumentos de valor e organização das oportunidades.</div>
+          <div class="scard-price">Sob consulta</div>
+          <div class="scard-price-note">MÍDIA KIT · PROPOSTA · NEGOCIAÇÃO</div>
           <ul class="scard-list">
-            <li>Análise de subtom de pele e coloração</li>
-            <li>Paleta de cores pessoal</li>
-            <li>Guia de maquiagem e roupas</li>
-            <li>Cores a evitar e por quê</li>
-            <li>Aplicação na identidade digital</li>
+            <li>Mídia kit estratégico</li>
+            <li>Pacotes comerciais</li>
+            <li>Propostas para marcas</li>
+            <li>Organização de entregáveis</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="midia-kit.html" class="scard-cta">Ver mais →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
-          <div class="scard-name">Imagem + Colorimetria + Marca</div>
-          <div class="scard-desc">O pacote completo. Análise de imagem, colorimetria e identidade visual da sua marca pessoal integradas. Tudo que você é, comunicado com coerência.</div>
-          <div class="scard-price">R$990</div>
-          <div class="scard-price-note">PACOTE COMPLETO · ECONOMIA DE R$304</div>
+          <div class="scard-name">Embaixadora & Eventos</div>
+          <div class="scard-desc">Parcerias comerciais, presença em eventos e ativações com marcas que dialogam com design, tecnologia, rotina, bem-estar, fé, estilo de vida e produtividade.</div>
+          <div class="scard-price">Sob consulta</div>
+          <div class="scard-price-note">EVENTOS · INFLUÊNCIA · EMBAIXADORA</div>
           <ul class="scard-list">
-            <li>Análise de imagem pessoal</li>
-            <li>Colorimetria completa</li>
-            <li>Paleta visual da marca</li>
-            <li>Direção de feed e presença</li>
-            <li>2 semanas de suporte por DM</li>
+            <li>Presença em eventos</li>
+            <li>Campanhas publicitárias</li>
+            <li>Parcerias de longo prazo</li>
+            <li>Divulgação com narrativa autoral</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="embaixadora.html" class="scard-cta">Ver mais →</a>
         </div>
       </div>
     </div>
@@ -629,7 +685,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Calendário editorial modelo</li>
             <li>5 quick wins para 48h</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20uma%20auditoria%20de%20posicionamento%20digital." target="_blank" class="scard-cta">Fale comigo →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -643,7 +699,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Plano de ação documentado</li>
             <li>Gravação da sessão</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20a%20consultoria%20estrat%C3%A9gica%20de%20marca." target="_blank" class="scard-cta">Fale comigo →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -658,36 +714,68 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Estratégia de monetização</li>
             <li>30 dias de suporte por DM</li>
           </ul>
-          <a href="#contato" class="scard-cta">Solicitar proposta →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20mentoria%20de%20marca%20pessoal." target="_blank" class="scard-cta">Fale comigo →</a>
+        </div>
+        <div class="scard">
+          <span class="scard-icon">◈</span>
+          <div class="scard-name">Curso: Marca com Estrutura</div>
+          <div class="scard-desc">Formação prática para organizar posicionamento, identidade e presença digital sem depender de fórmulas prontas.</div>
+          <div class="scard-price">Em breve</div>
+          <div class="scard-price-note">CURSO · POSICIONAMENTO E SISTEMAS VISUAIS</div>
+          <ul class="scard-list">
+            <li>Clareza de marca</li>
+            <li>Sistema visual e conteúdo</li>
+            <li>Organização de presença digital</li>
+          </ul>
+          <a href="servicos.html#consultoria" class="scard-cta">Saiba mais →</a>
+        </div>
+        <div class="scard">
+          <span class="scard-icon">◈</span>
+          <div class="scard-name">Mentoria: Presença com Método</div>
+          <div class="scard-desc">Acompanhamento para profissionais que precisam transformar conhecimento, estética e rotina em uma marca mais clara e consistente.</div>
+          <div class="scard-price">Em breve</div>
+          <div class="scard-price-note">MENTORIA · MARCA PESSOAL E ROTINA CRIATIVA</div>
+          <ul class="scard-list">
+            <li>Diagnóstico de presença</li>
+            <li>Plano de ação editorial</li>
+            <li>Ritual de produção sustentável</li>
+          </ul>
+          <a href="servicos.html#consultoria" class="scard-cta">Saiba mais →</a>
         </div>
       </div>
+    </div>
+    <div class="section-actions rv d2">
+      <a href="servicos.html" class="btn-g">Saiba mais</a>
     </div>
   </div>
 </section>
 
-<!-- NOTION -->
-<section id="notion">
+<!-- PRODUTOS -->
+<section id="templates" class="products-section">
   <div class="sec-wrap">
-    <div class="sec-tag rv">Notion</div>
-    <h2 class="rv d1">Compre agora,<br><em>use hoje.</em></h2>
-    <p class="rv d2">Infoprodutos prontos para uso imediato. Sem call, sem espera — você compra e acessa na hora.</p>
+    <div class="sec-tag rv">Produtos</div>
+    <h2 class="rv d1">Produtos digitais<br><em>para usar de verdade.</em></h2>
+    <p class="rv d2">Templates, planners, eBooks, sistemas e arquivos digitais criados a partir de rotinas reais, com estrutura simples de aplicar e adaptar.</p>
     <div class="products-grid">
       <div class="pcard featured rv">
-        <div class="pcard-badge">⭐ Mais vendido</div>
-        <h3>Sistema de Criadora de Conteúdo</h3>
-        <p>Template Notion completo com calendário editorial, banco de ideias, tracker de engajamento e roteiro de Reel. Duplique em 1 clique.</p>
-        <div class="pcard-price">R$97</div>
-        <div class="pcard-note">PAGAMENTO ÚNICO · ACESSO VITALÍCIO · NOTION</div>
-        <a href="https://msha.ke/renatajoin" target="_blank" class="pcard-link">Comprar agora →</a>
+        <div class="pcard-badge">Produto atual</div>
+        <h3>Guia de Planejamento Alimentar Antiflamatório</h3>
+        <p>Material para organizar refeições, lista de compras, substituições e rotina alimentar com clareza. Um guia prático para tirar o planejamento da cabeça.</p>
+        <div class="pcard-price">R$67</div>
+        <div class="pcard-note">PAGAMENTO ÚNICO · GUIA DIGITAL</div>
+        <a href="guia-alimentar.html" class="pcard-link">Ver detalhes →</a>
       </div>
       <div class="pcard rv d1">
         <div class="pcard-badge">Novo</div>
-        <h3>Auditoria + Estratégia de Posicionamento</h3>
-        <p>Diagnóstico completo do seu perfil + estratégia de 90 dias personalizada. Entregue em PDF e Notion. 5 etapas, quick wins, funil de conversão.</p>
-        <div class="pcard-price">R$497</div>
-        <div class="pcard-note">BETA · VAGAS LIMITADAS · PDF + NOTION</div>
-        <a href="#contato" class="pcard-link">Solicitar agora →</a>
+        <h3>Planner de Treino</h3>
+        <p>Produto baseado no sistema que uso diariamente para acompanhar treinos, evolução, consistência e ajustes de rotina.</p>
+        <div class="pcard-price">R$25</div>
+        <div class="pcard-note">PAGAMENTO ÚNICO · PLANNER DIGITAL</div>
+        <a href="planner-treino.html" class="pcard-link">Ver detalhes →</a>
       </div>
+    </div>
+    <div class="section-actions rv d2">
+      <a href="templates.html" class="btn-g">Ver produtos</a>
     </div>
   </div>
 </section>
@@ -697,7 +785,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
   <div class="sec-wrap">
     <div class="sec-tag rv">Como trabalho</div>
     <h2 class="rv d1">Do briefing à<br><em>entrega.</em></h2>
-    <p class="rv d2">Processo claro, comunicação direta. Você sabe em que etapa está, o que vem a seguir e quando vai receber.</p>
+    <p class="rv d2">Eu analiso a demanda antes de propor qualquer solução. Entendo o que a marca, projeto ou pessoa realmente precisa, separo prioridade de ruído e desenho o caminho mais coerente.</p>
     <div class="process-row">
       <div class="pstep rv">
         <div class="pstep-n">1</div>
@@ -725,6 +813,9 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
         <p>Revisões incluídas. Você sai com algo que realmente vai usar.</p>
       </div>
     </div>
+    <div class="section-actions rv d2">
+      <a href="processo.html" class="btn-g">Saiba mais</a>
+    </div>
   </div>
 </section>
 
@@ -732,7 +823,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
 <section id="contato">
   <div class="sec-wrap">
     <div class="sec-tag rv">Contato</div>
-    <h2 class="rv d1">Bora<br><em>construir.</em></h2>
+    <h2 class="rv d1">Bora construir</h2>
     <p class="rv d2">Me conta o que você precisa. Respondo em até 24h úteis.</p>
     <div class="contact-grid">
       <div class="contact-info rv">
@@ -747,7 +838,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
           <div class="c-icon">📱</div>
           <div>
             <div class="c-label">WhatsApp</div>
-            <div class="c-val"><a href="https://wa.me/5561992191272" target="_blank">(61) 99219-1272</a></div>
+            <div class="c-val"><a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Vim%20pelo%20site%20e%20quero%20conversar." target="_blank">(61) 99219-1272</a></div>
           </div>
         </div>
         <div class="c-item">
@@ -767,8 +858,8 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
         <div class="c-item">
           <div class="c-icon">🔗</div>
           <div>
-            <div class="c-label">Links</div>
-            <div class="c-val"><a href="https://msha.ke/renatajoin" target="_blank">msha.ke/renatajoin</a></div>
+            <div class="c-label">Instagram</div>
+            <div class="c-val"><a href="https://instagram.com/renatajoin" target="_blank">@renatajoin</a></div>
           </div>
         </div>
       </div>
@@ -791,10 +882,10 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <option>Site Institucional</option>
             <option>Sistema Web / Plataforma</option>
             <option>Sistema Notion</option>
-            <option>Análise de Imagem Pessoal</option>
-            <option>Colorimetria</option>
+            <option>Marcas & Parcerias</option>
             <option>Auditoria de Posicionamento Digital</option>
             <option>Mentoria de Marca Pessoal</option>
+            <option>Curso / Mentoria em breve</option>
             <option>Outro</option>
           </select>
         </div>
@@ -826,24 +917,23 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
       </div>
       <div class="footer-col">
         <h4>Mais</h4>
-        <a href="#servicos" onclick="showTab('imagem');return false">Análise de Imagem</a>
-        <a href="#servicos" onclick="showTab('imagem');return false">Colorimetria</a>
+        <a href="#servicos" onclick="showTab('parcerias');return false">Marcas & Parcerias</a>
+        <a href="#templates">Produtos</a>
         <a href="#servicos" onclick="showTab('consultoria');return false">Consultoria</a>
-        <a href="#notion">Notion Notion</a>
       </div>
       <div class="footer-col">
         <h4>Links</h4>
         <a href="https://instagram.com/renatajoin" target="_blank">Instagram</a>
-        <a href="https://msha.ke/renatajoin" target="_blank">Todos os links</a>
+        <a href="clientes.html">Projetos de Confiança</a>
         <a href="mailto:contatorenatajoin@gmail.com">E-mail</a>
-        <a href="https://wa.me/5561992191272" target="_blank">WhatsApp</a>
+        <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Vim%20pelo%20site%20e%20quero%20conversar." target="_blank">WhatsApp</a>
       </div>
     </div>
     <div class="footer-bottom">
       <div class="footer-copy">© 2025 RÊ ARAUJO · DESIGN & TI · BRASÍLIA/DF</div>
       <div class="footer-social">
         <a href="https://instagram.com/renatajoin" target="_blank">Instagram</a>
-        <a href="https://msha.ke/renatajoin" target="_blank">Links</a>
+        <a href="clientes.html">Projetos</a>
       </div>
     </div>
   </div>
@@ -853,8 +943,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
 <div class="sticky" id="sticky">
   <div class="sticky-l">Rê Araujo · Design, Dev & Identidade · Brasília/DF</div>
   <div class="sticky-r">
-    <div class="sticky-price">A partir de R$97</div>
-    <a href="#contato" class="btn-p" style="padding:10px 22px;font-size:10px">Falar comigo →</a>
+    <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Vim%20pelo%20site%20e%20quero%20falar%20com%20voc%C3%AA." target="_blank" class="btn-p" style="padding:10px 22px;font-size:10px">Falar comigo →</a>
   </div>
 </div>
 
@@ -909,7 +998,7 @@ rvEls.forEach(el=>rvObs.observe(el));
 // TABS
 function showTab(id){
   document.querySelectorAll('.stab').forEach((t,i)=>{
-    const ids=['design','ti','imagem','consultoria'];
+    const ids=['design','ti','consultoria','parcerias'];
     t.classList.toggle('active',ids[i]===id);
   });
   document.querySelectorAll('.spanel').forEach(p=>p.classList.remove('active'));
@@ -932,7 +1021,7 @@ function sendWhatsApp(){
   const name=document.querySelector('.form-input').value||'';
   const service=document.querySelector('.form-select').value||'';
   const msg=document.querySelector('.form-textarea').value||'';
-  const text=encodeURIComponent(`Olá, Rê! Sou ${name}.\n\nServiço de interesse: ${service}\n\n${msg}`);
+  const text=encodeURIComponent(`Olá, Rê! Vim pelo site.\n\nMeu nome: ${name}\nServiço de interesse: ${service}\n\n${msg}`);
   window.open(`https://wa.me/5561992191272?text=${text}`,'_blank');
 }
 </script>
