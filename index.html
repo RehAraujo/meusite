@@ -90,7 +90,7 @@ nav.solid{background:rgba(7,7,7,.96);border-bottom:1px solid var(--border);backd
 .hero-tag::before{content:'';width:36px;height:1px;background:var(--gold)}
 h1.hero-h{font-family:var(--serif);font-size:clamp(56px,9vw,108px);font-weight:300;color:#f8f0e8;line-height:.96;margin-bottom:12px;opacity:0;animation:slideUp 1s ease .4s forwards}
 h1.hero-h em{font-style:italic;color:var(--r3)}
-h1.hero-h .ghost{-webkit-text-stroke:0;color:var(--r3)}
+h1.hero-h .ghost{-webkit-text-stroke:0;color:#fff8ef}
 .hero-desc{font-size:17px;color:var(--muted2);max-width:480px;margin:32px 0 52px;line-height:1.8;opacity:0;animation:slideUp .9s ease .65s forwards}
 .hero-desc strong{color:var(--text3);font-weight:400}
 .hero-actions{display:flex;gap:18px;align-items:center;flex-wrap:wrap;opacity:0;animation:slideUp .9s ease .85s forwards}
@@ -171,8 +171,18 @@ strong{color:var(--text3);font-weight:400}
 .scard{background:#f5eadc;color:#2b1b14;border:1px solid rgba(78,50,35,.16);padding:32px 28px;transition:border-color .25s,transform .25s,box-shadow .25s;position:relative;overflow:hidden}
 #tab-design .scard{background:#f7ebe7;border-top:3px solid #c67f83}
 #tab-ti .scard{background:#efe0cf;border-top:3px solid #8a5c41}
-#tab-consultoria .scard{background:#f4eadc;border-top:3px solid #6f3d2d}
-#tab-parcerias .scard{background:#f6e6e3;border-top:3px solid #b86a72}
+#tab-ti .scard:nth-child(n+4){display:none}
+#tab-organizacao .scard{background:#edf0e7;border-top:3px solid #758569}
+#tab-aprenda .scard{background:rgba(255,248,239,.07);color:var(--text);border:1px solid rgba(255,255,255,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.09);backdrop-filter:blur(16px);opacity:.72}
+#tab-aprenda .scard-name,#tab-aprenda .scard-price{color:var(--text)}
+#tab-aprenda .scard-desc,#tab-aprenda .scard-list li,#tab-aprenda .scard-price-note{color:var(--muted2)}
+#tab-aprenda .scard-cta{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14);color:var(--muted2);pointer-events:none}
+#tab-aprenda .scard:nth-child(-n+3){display:none}
+#tab-parcerias{background:linear-gradient(135deg,#1a0d08,#32160c);margin:0 -40px;padding:40px;border:1px solid #6f2f17}
+#tab-parcerias .scard{background:#fff1e6;border:1px solid #a94c27;border-top:3px solid #e86a33}
+#tab-parcerias .scard-cta{background:#e86a33;border-color:#ff9a5c}
+.coming-badge{position:absolute;top:18px;right:18px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:6px 9px;border:1px solid rgba(255,255,255,.16);color:var(--muted2);background:rgba(255,255,255,.05)}
+.stab-partner{color:#ff9a5c!important;border-color:#a94c27!important}
 .scard:hover{border-color:rgba(139,42,42,.32);box-shadow:0 18px 50px rgba(20,8,4,.08);transform:translateY(-2px)}
 .scard::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:transparent;opacity:0;transition:opacity .3s}
 .scard:hover::before{opacity:1}
@@ -363,22 +373,23 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
     <h1 class="hero-h">
       Estratégia<br>
       que vira<br>
-      <em>presença.</em>
+      <em>presença</em>
       <span class="ghost"> Clara.</span>
     </h1>
     <p class="hero-desc">
-      Conecto posicionamento, identidade visual, experiência digital e sistemas para marcas que precisam comunicar melhor e operar com mais clareza.<br>
-      <strong>Design bonito é pouco. A marca precisa fazer sentido.</strong>
+      Eu entendo o seu negócio, o que você precisa comunicar e o cliente que precisa confiar em você. A partir disso, transformo estratégia em marca, presença digital e sistemas que ajudam seu negócio a crescer com clareza.<br>
+      <strong>Design bonito é importante. Uma solução que funciona é melhor.</strong>
     </p>
     <div class="hero-actions">
-      <a href="#servicos" class="btn-p">Ver serviços →</a>
-      <a href="#sobre" class="btn-g">Quem é a Rê</a>
+      <a href="#servicos" class="btn-p">Encontrar a solução certa →</a>
+      <a href="#templates" class="btn-g">Conhecer produtos</a>
+      <a href="#servicos" onclick="showTab('parcerias')" class="btn-g">Propostas e parcerias</a>
     </div>
   </div>
 
   <div class="hero-scroll">
     <div class="scroll-line"></div>
-    <div class="scroll-txt">scroll</div>
+    <div class="scroll-txt">continue</div>
   </div>
 
   <div class="hero-nums">
@@ -472,14 +483,15 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
 <section id="servicos">
   <div class="sec-wrap">
     <div class="sec-tag rv">Serviços</div>
-    <h2 class="rv d1">O que eu<br><em>entrego.</em></h2>
-    <p class="rv d2">Cada entrega parte de uma pergunta simples: o que precisa ficar mais claro para a marca crescer, vender ou se organizar melhor?</p>
+    <h2 class="rv d1">O que precisa funcionar<br><em>melhor no seu negócio?</em></h2>
+    <p class="rv d2">Eu não começo pela ferramenta. Primeiro entendo o problema, quem você precisa alcançar e o que precisa mudar para a solução funcionar.</p>
 
     <div class="services-tabs rv d2" style="margin-top:40px">
       <button class="stab active" type="button" aria-selected="true" aria-controls="tab-design" onclick="showTab('design')">Design & Marca</button>
       <button class="stab" type="button" aria-selected="false" aria-controls="tab-ti" onclick="showTab('ti')">TI & Web</button>
-      <button class="stab" type="button" aria-selected="false" aria-controls="tab-consultoria" onclick="showTab('consultoria')">Consultoria</button>
-      <button class="stab" type="button" aria-selected="false" aria-controls="tab-parcerias" onclick="showTab('parcerias')">Marcas & Parcerias</button>
+      <button class="stab" type="button" aria-selected="false" aria-controls="tab-organizacao" onclick="showTab('organizacao')">Vida & Negócio Organizados</button>
+      <button class="stab" type="button" aria-selected="false" aria-controls="tab-aprenda" onclick="showTab('aprenda')">Aprenda</button>
+      <button class="stab stab-partner" type="button" aria-selected="false" aria-controls="tab-parcerias" onclick="showTab('parcerias')">Marcas & Parcerias</button>
     </div>
 
     <!-- DESIGN & MARCA -->
@@ -487,9 +499,9 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
       <div class="services-grid">
         <div class="scard">
           <span class="scard-icon">◈</span>
-          <div class="scard-name">Identidade Visual Completa</div>
-          <div class="scard-desc">Marca com propósito, desenvolvida com neurociência e intenção. Não é só um logo — é um sistema visual que comunica quem você é antes de você abrir a boca.</div>
-          <div class="scard-price">R$3.000</div>
+          <div class="scard-name">Identidade Visual</div>
+          <div class="scard-desc">Um sistema visual próprio e consistente para negócios que precisam parecer tão profissionais quanto já são.</div>
+          <div class="scard-price">R$5.500</div>
           <div class="scard-price-note">A PARTIR DE · PRAZO: 14 DIAS ÚTEIS</div>
           <ul class="scard-list">
             <li>Logotipo + variações</li>
@@ -502,9 +514,9 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
-          <div class="scard-name">Branding Estratégico</div>
-          <div class="scard-desc">Posicionamento, voz de marca, narrativa e identidade visual integrados. Para quem quer que a marca comunique exatamente o que precisa — sem precisar explicar.</div>
-          <div class="scard-price">R$3.500</div>
+          <div class="scard-name">Marca com Clareza</div>
+          <div class="scard-desc">Diagnóstico, posicionamento, narrativa e identidade visual unidos para alinhar o que a marca é, o que comunica e o que o cliente percebe.</div>
+          <div class="scard-price">R$8.500</div>
           <div class="scard-price-note">A PARTIR DE · PRAZO: 21 DIAS ÚTEIS</div>
           <ul class="scard-list">
             <li>Diagnóstico e posicionamento</li>
@@ -517,17 +529,17 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
-          <div class="scard-name">Redesign de Marca</div>
-          <div class="scard-desc">Sua marca já existe mas não te representa mais. Atualizamos o que não funciona, preservamos o que tem valor — e entregamos algo que você finalmente vai querer mostrar.</div>
-          <div class="scard-price">R$1.500</div>
-          <div class="scard-price-note">A PARTIR DE · PRAZO: 10 DIAS ÚTEIS</div>
+          <div class="scard-name">Presença Autoral</div>
+          <div class="scard-desc">Para pessoas que desejam alinhar identidade, imagem e comunicação sem criar um personagem. Reconheça o que existe de verdadeiro em você e expresse isso com intenção.</div>
+          <div class="scard-price">R$2.800</div>
+          <div class="scard-price-note">A PARTIR DE · EXPERIÊNCIA INDIVIDUAL</div>
           <ul class="scard-list">
-            <li>Auditoria da marca atual</li>
-            <li>Atualização de identidade</li>
-            <li>Novas aplicações</li>
-            <li>Guia de uso atualizado</li>
+            <li>Leitura de identidade e momento</li>
+            <li>Valores, referências e traços pessoais</li>
+            <li>Direção estética e visual</li>
+            <li>Presença digital coerente</li>
           </ul>
-          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20solicitar%20um%20or%C3%A7amento%20para%20Redesign%20de%20Marca." target="_blank" rel="noopener" class="scard-cta">Solicitar orçamento →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conhecer%20a%20experi%C3%AAncia%20Presen%C3%A7a%20Autoral." target="_blank" rel="noopener" class="scard-cta">Quero alinhar minha presença →</a>
         </div>
       </div>
     </div>
@@ -537,9 +549,9 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
       <div class="services-grid">
         <div class="scard">
           <span class="scard-icon">◈</span>
-          <div class="scard-name">Landing Page</div>
-          <div class="scard-desc">Página de conversão com design estratégico e código limpo. Para lançamentos, serviços, infoprodutos e qualquer coisa que precisa convencer rápido.</div>
-          <div class="scard-price">R$900</div>
+          <div class="scard-name">Landing Page Estratégica</div>
+          <div class="scard-desc">Mensagem, experiência e tecnologia trabalhando juntas para reduzir dúvidas e conduzir o público até a ação.</div>
+          <div class="scard-price">R$3.500</div>
           <div class="scard-price-note">A PARTIR DE · PRAZO: 7 DIAS ÚTEIS</div>
           <ul class="scard-list">
             <li>Design personalizado</li>
@@ -554,7 +566,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
           <span class="scard-icon">◈</span>
           <div class="scard-name">Site Institucional</div>
           <div class="scard-desc">Sua presença digital completa. Design com identidade, código robusto e estrutura que você consegue atualizar. Para negócios que precisam de credibilidade online.</div>
-          <div class="scard-price">R$2.500</div>
+          <div class="scard-price">R$7.500</div>
           <div class="scard-price-note">A PARTIR DE · PRAZO: 14 DIAS ÚTEIS</div>
           <ul class="scard-list">
             <li>Até 6 páginas</li>
@@ -569,7 +581,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
           <span class="scard-icon">◈</span>
           <div class="scard-name">Sistema Web / Plataforma</div>
           <div class="scard-desc">Aplicação web personalizada. CRM, portal, sistema interno, plataforma de assinatura. Desenvolvido sob medida para o seu processo — sem gambiarra.</div>
-          <div class="scard-price">R$4.000</div>
+          <div class="scard-price">R$12.000</div>
           <div class="scard-price-note">A PARTIR DE · PRAZO: SOB CONSULTA</div>
           <ul class="scard-list">
             <li>Levantamento de requisitos</li>
@@ -625,7 +637,31 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
         </div>
       </div>
       <div class="section-actions">
-        <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20uma%20proposta%20de%20marca%20ou%20parceria." target="_blank" class="btn-p">Enviar proposta →</a>
+        <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20encontrar%20a%20melhor%20solu%C3%A7%C3%A3o%20digital%20para%20meu%20projeto." target="_blank" rel="noopener" class="btn-p">Conversar sobre meu projeto →</a>
+      </div>
+    </div>
+
+    <!-- VIDA & NEGÓCIO ORGANIZADOS -->
+    <div class="spanel" id="tab-organizacao">
+      <div class="services-grid">
+        <div class="scard">
+          <span class="scard-icon">◈</span>
+          <div class="scard-name">Sistema Notion para Negócios</div>
+          <div class="scard-desc">Seu negócio não precisa depender da sua memória para funcionar. Organizo clientes, projetos, conteúdo, processos e conhecimento em um ambiente claro e adaptado à sua operação.</div>
+          <div class="scard-price">R$2.500</div>
+          <div class="scard-price-note">A PARTIR DE · SISTEMA PERSONALIZADO</div>
+          <ul class="scard-list"><li>Diagnóstico da operação</li><li>Arquitetura de databases</li><li>Dashboards e automações</li><li>Treinamento de uso</li></ul>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20organizar%20meu%20neg%C3%B3cio%20com%20um%20sistema%20no%20Notion." target="_blank" rel="noopener" class="scard-cta">Quero organizar meu negócio →</a>
+        </div>
+        <div class="scard">
+          <span class="scard-icon">◈</span>
+          <div class="scard-name">Planner de Vida Personalizado</div>
+          <div class="scard-desc">Uma estrutura feita para a sua realidade: rotina, hábitos, alimentação, treino, estudos ou projetos pessoais reunidos sem transformar organização em rigidez.</div>
+          <div class="scard-price">R$1.500</div>
+          <div class="scard-price-note">A PARTIR DE · PLANNER PERSONALIZADO</div>
+          <ul class="scard-list"><li>Mapeamento da rotina</li><li>Áreas e prioridades pessoais</li><li>Painéis e acompanhamento</li><li>Orientação de uso</li></ul>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20um%20Planner%20de%20Vida%20personalizado%20no%20Notion." target="_blank" rel="noopener" class="scard-cta">Quero organizar minha rotina →</a>
+        </div>
       </div>
     </div>
 
@@ -677,10 +713,10 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
       </div>
     </div>
 
-    <!-- CONSULTORIA -->
-    <div class="spanel" id="tab-consultoria">
+    <!-- APRENDA -->
+    <div class="spanel" id="tab-aprenda">
       <div class="services-grid">
-        <div class="scard">
+        <div class="scard" hidden>
           <span class="scard-icon">◈</span>
           <div class="scard-name">Auditoria de Posicionamento Digital</div>
           <div class="scard-desc">Diagnóstico real do seu Instagram + estratégia de 90 dias. Para quem não quer mais improvisar — quer construir audiência e conversão com sistema.</div>
@@ -695,7 +731,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
           </ul>
           <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20agendar%20uma%20Auditoria%20de%20Posicionamento%20Digital." target="_blank" rel="noopener" class="scard-cta">Agendar auditoria →</a>
         </div>
-        <div class="scard">
+        <div class="scard" hidden>
           <span class="scard-icon">◈</span>
           <div class="scard-name">Consultoria Estratégica de Marca</div>
           <div class="scard-desc">Sessão intensiva de 2h para diagnóstico e estratégia de posicionamento da sua marca pessoal ou negócio. Você sai com clareza e plano de ação.</div>
@@ -709,7 +745,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
           </ul>
           <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20agendar%20uma%20Consultoria%20Estrat%C3%A9gica%20de%20Marca." target="_blank" rel="noopener" class="scard-cta">Agendar consultoria →</a>
         </div>
-        <div class="scard">
+        <div class="scard" hidden>
           <span class="scard-icon">◈</span>
           <div class="scard-name">Mentoria de Marca Pessoal</div>
           <div class="scard-desc">4 semanas de acompanhamento para construir sua marca pessoal do zero. Identidade, conteúdo, presença e monetização — com quem vive o que ensina.</div>
@@ -726,29 +762,31 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
-          <div class="scard-name">Curso: Marca com Estrutura</div>
-          <div class="scard-desc">Formação prática para organizar posicionamento, identidade e presença digital sem depender de fórmulas prontas.</div>
+          <span class="coming-badge">Em breve</span>
+          <div class="scard-name">Curso: Posicionamento Começa em Você</div>
+          <div class="scard-desc">Um curso gravado para profissionais que querem comunicar seu valor sem copiar fórmulas, criar personagens ou transformar a própria presença em uma performance cansativa.</div>
           <div class="scard-price">Em breve</div>
-          <div class="scard-price-note">CURSO · POSICIONAMENTO E SISTEMAS VISUAIS</div>
+          <div class="scard-price-note">CURSO GRAVADO · POSICIONAMENTO PESSOAL</div>
           <ul class="scard-list">
-            <li>Clareza de marca</li>
-            <li>Sistema visual e conteúdo</li>
-            <li>Organização de presença digital</li>
+            <li>Identidade, valores e repertório</li>
+            <li>Mensagem e diferenciação</li>
+            <li>Presença digital com personalidade</li>
           </ul>
-          <a href="servicos.html#consultoria" class="scard-cta">Saiba mais →</a>
+          <span class="scard-cta" aria-disabled="true">Lista de interesse em breve</span>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
-          <div class="scard-name">Mentoria: Presença com Método</div>
-          <div class="scard-desc">Acompanhamento para profissionais que precisam transformar conhecimento, estética e rotina em uma marca mais clara e consistente.</div>
+          <span class="coming-badge">Em breve</span>
+          <div class="scard-name">Jornada: Presença com Clareza</div>
+          <div class="scard-desc">Uma jornada gravada para transformar autoconhecimento, experiência e boas ideias em uma presença reconhecível, coerente e possível de sustentar.</div>
           <div class="scard-price">Em breve</div>
-          <div class="scard-price-note">MENTORIA · MARCA PESSOAL E ROTINA CRIATIVA</div>
+          <div class="scard-price-note">JORNADA GRAVADA · PLANO DE 90 DIAS</div>
           <ul class="scard-list">
-            <li>Diagnóstico de presença</li>
-            <li>Plano de ação editorial</li>
-            <li>Ritual de produção sustentável</li>
+            <li>Clareza sobre quem você é</li>
+            <li>Identidade, mensagem e conteúdo</li>
+            <li>Plano de presença para 90 dias</li>
           </ul>
-          <a href="servicos.html#consultoria" class="scard-cta">Saiba mais →</a>
+          <span class="scard-cta" aria-disabled="true">Novidades em breve</span>
         </div>
       </div>
     </div>
@@ -885,15 +923,15 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
           <select class="form-select">
             <option value="">Selecione...</option>
             <option>Identidade Visual</option>
-            <option>Branding Estratégico</option>
-            <option>Landing Page</option>
+            <option>Marca com Clareza</option>
+            <option>Presença Autoral</option>
+            <option>Landing Page Estratégica</option>
             <option>Site Institucional</option>
             <option>Sistema Web / Plataforma</option>
-            <option>Sistema Notion</option>
+            <option>Sistema Notion para Negócios</option>
+            <option>Planner de Vida Personalizado</option>
             <option>Marcas & Parcerias</option>
-            <option>Auditoria de Posicionamento Digital</option>
-            <option>Mentoria de Marca Pessoal</option>
-            <option>Curso / Mentoria em breve</option>
+            <option>Curso / Jornada em breve</option>
             <option>Outro</option>
           </select>
         </div>
@@ -922,12 +960,13 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
         <a href="#servicos" onclick="showTab('ti');return false">Landing Page</a>
         <a href="#servicos" onclick="showTab('ti');return false">Sites</a>
         <a href="#servicos" onclick="showTab('ti');return false">Sistemas Web</a>
+        <a href="#servicos" onclick="showTab('organizacao');return false">Vida & Negócio Organizados</a>
       </div>
       <div class="footer-col">
         <h4>Mais</h4>
         <a href="#servicos" onclick="showTab('parcerias');return false">Marcas & Parcerias</a>
         <a href="#templates">Produtos</a>
-        <a href="#servicos" onclick="showTab('consultoria');return false">Consultoria</a>
+        <a href="#servicos" onclick="showTab('aprenda');return false">Aprenda</a>
       </div>
       <div class="footer-col">
         <h4>Links</h4>
