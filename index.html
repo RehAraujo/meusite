@@ -187,6 +187,9 @@ strong{color:var(--text3);font-weight:400}
 .scard-list li:last-child{border-bottom:none}
 .scard-cta{display:inline-block;margin-top:20px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--r3);text-decoration:none;border-bottom:1px solid rgba(200,120,120,.3);padding-bottom:2px;transition:all .2s}
 .scard-cta:hover{border-color:var(--r3)}
+.scard-cta{background:#a61956;color:#fff8ef;border:1px solid #c94d78;padding:10px 14px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.scard-cta:hover{background:#c12c68;color:#fff;border-color:#e06b92}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 
 /* PROCESS */
 .process-row{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:48px;position:relative}
@@ -284,7 +287,11 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
   .quote-block{padding:32px 28px}
   .sticky{flex-direction:column;gap:10px;text-align:center;padding:14px 20px}
   nav .nav-links{display:none}
+  .services-tabs{overflow-x:auto;scrollbar-width:thin;white-space:nowrap;padding-bottom:2px}
+  .stab{flex:0 0 auto;padding:14px 16px}
+  .scard-cta{width:100%;padding:12px 14px}
 }
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 <script type="application/ld+json">
 {
@@ -331,7 +338,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
     <a href="#processo">Processo</a>
     <a href="#contato">Contato</a>
   </div>
-  <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Vim%20pelo%20site%20e%20quero%20conversar%20sobre%20um%20projeto." target="_blank" class="nav-btn">Falar comigo</a>
+  <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Vim%20pelo%20site%20e%20quero%20solicitar%20um%20or%C3%A7amento." target="_blank" rel="noopener" class="nav-btn">Solicitar orçamento</a>
 </nav>
 
 <!-- HERO -->
@@ -412,7 +419,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
     <div class="about-grid">
       <div class="about-visual rv">
         <div class="about-frame">
-          <img src="assets/reh-home-ai.png" alt="Rê Araujo em retrato profissional">
+          <img src="assets/reh-home-ai.jpg" alt="Rê Araujo em retrato profissional" width="832" height="1216" loading="lazy" decoding="async">
           <div class="about-frame-inner">
             <div class="af-name">Rê Araujo</div>
             <div class="af-handle">@renatajoin · Brasília/DF</div>
@@ -468,10 +475,10 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
     <p class="rv d2">Cada entrega parte de uma pergunta simples: o que precisa ficar mais claro para a marca crescer, vender ou se organizar melhor?</p>
 
     <div class="services-tabs rv d2" style="margin-top:40px">
-      <button class="stab active" onclick="showTab('design')">Design & Marca</button>
-      <button class="stab" onclick="showTab('ti')">TI & Web</button>
-      <button class="stab" onclick="showTab('consultoria')">Consultoria</button>
-      <button class="stab" onclick="showTab('parcerias')">Marcas & Parcerias</button>
+      <button class="stab active" type="button" aria-selected="true" aria-controls="tab-design" onclick="showTab('design')">Design & Marca</button>
+      <button class="stab" type="button" aria-selected="false" aria-controls="tab-ti" onclick="showTab('ti')">TI & Web</button>
+      <button class="stab" type="button" aria-selected="false" aria-controls="tab-consultoria" onclick="showTab('consultoria')">Consultoria</button>
+      <button class="stab" type="button" aria-selected="false" aria-controls="tab-parcerias" onclick="showTab('parcerias')">Marcas & Parcerias</button>
     </div>
 
     <!-- DESIGN & MARCA -->
@@ -490,7 +497,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Manual da marca</li>
             <li>Aplicações (social, impresso)</li>
           </ul>
-          <a href="midia-kit.html" class="scard-cta">Ver mais →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20solicitar%20um%20or%C3%A7amento%20para%20Identidade%20Visual." target="_blank" rel="noopener" class="scard-cta">Solicitar orçamento →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -505,7 +512,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Estratégia de presença digital</li>
             <li>Manual completo da marca</li>
           </ul>
-          <a href="midia-kit.html" class="scard-cta">Ver mais →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20solicitar%20um%20or%C3%A7amento%20para%20Branding%20Estrat%C3%A9gico." target="_blank" rel="noopener" class="scard-cta">Solicitar orçamento →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -519,7 +526,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Novas aplicações</li>
             <li>Guia de uso atualizado</li>
           </ul>
-          <a href="embaixadora.html" class="scard-cta">Ver mais →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20solicitar%20um%20or%C3%A7amento%20para%20Redesign%20de%20Marca." target="_blank" rel="noopener" class="scard-cta">Solicitar orçamento →</a>
         </div>
       </div>
     </div>
@@ -540,7 +547,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Otimização de velocidade</li>
             <li>Integração de pagamento (opcional)</li>
           </ul>
-          <a href="midia-kit.html" class="scard-cta">Ver mais →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20solicitar%20um%20or%C3%A7amento%20para%20Landing%20Page." target="_blank" rel="noopener" class="scard-cta">Solicitar orçamento →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -555,7 +562,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>SEO básico configurado</li>
             <li>Domínio e hospedagem (orientação)</li>
           </ul>
-          <a href="midia-kit.html" class="scard-cta">Ver mais →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20solicitar%20um%20or%C3%A7amento%20para%20Site%20Institucional." target="_blank" rel="noopener" class="scard-cta">Solicitar orçamento →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -570,7 +577,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Painel administrativo</li>
             <li>Documentação e treinamento</li>
           </ul>
-          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20um%20sistema%20web%20ou%20plataforma." target="_blank" class="scard-cta">Fale comigo →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20solicitar%20um%20or%C3%A7amento%20para%20Sistema%20Web%20ou%20Plataforma." target="_blank" rel="noopener" class="scard-cta">Solicitar orçamento →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -585,7 +592,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Automações (quando aplicável)</li>
             <li>Treinamento de uso</li>
           </ul>
-          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20um%20sistema%20Notion%20personalizado." target="_blank" class="scard-cta">Fale comigo →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20solicitar%20um%20or%C3%A7amento%20para%20Sistema%20Notion%20Personalizado." target="_blank" rel="noopener" class="scard-cta">Solicitar orçamento →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -599,7 +606,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Otimização de performance</li>
             <li>Integração de ferramentas</li>
           </ul>
-          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20manuten%C3%A7%C3%A3o%20ou%20suporte%20web." target="_blank" class="scard-cta">Fale comigo →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20solicitar%20um%20or%C3%A7amento%20para%20Manuten%C3%A7%C3%A3o%20ou%20Suporte%20Web." target="_blank" rel="noopener" class="scard-cta">Solicitar orçamento →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -613,7 +620,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Estrutura de navegação</li>
             <li>Versão mobile responsiva</li>
           </ul>
-          <a href="embaixadora.html" class="scard-cta">Ver mais →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20solicitar%20um%20or%C3%A7amento%20para%20Site%20no%20Notion." target="_blank" rel="noopener" class="scard-cta">Solicitar orçamento →</a>
         </div>
       </div>
       <div class="section-actions">
@@ -636,7 +643,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Conteúdo para redes e lançamentos</li>
             <li>Campanhas e ativações comerciais</li>
           </ul>
-          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20conte%C3%BAdo%20para%20marca." target="_blank" class="scard-cta">Fale comigo →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20solicitar%20uma%20proposta%20para%20conte%C3%BAdo%20de%20marca." target="_blank" rel="noopener" class="scard-cta">Solicitar proposta →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -685,7 +692,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Calendário editorial modelo</li>
             <li>5 quick wins para 48h</li>
           </ul>
-          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20uma%20auditoria%20de%20posicionamento%20digital." target="_blank" class="scard-cta">Fale comigo →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20agendar%20uma%20Auditoria%20de%20Posicionamento%20Digital." target="_blank" rel="noopener" class="scard-cta">Agendar auditoria →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -699,7 +706,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Plano de ação documentado</li>
             <li>Gravação da sessão</li>
           </ul>
-          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20a%20consultoria%20estrat%C3%A9gica%20de%20marca." target="_blank" class="scard-cta">Fale comigo →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20agendar%20uma%20Consultoria%20Estrat%C3%A9gica%20de%20Marca." target="_blank" rel="noopener" class="scard-cta">Agendar consultoria →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -714,7 +721,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
             <li>Estratégia de monetização</li>
             <li>30 dias de suporte por DM</li>
           </ul>
-          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20conversar%20sobre%20mentoria%20de%20marca%20pessoal." target="_blank" class="scard-cta">Fale comigo →</a>
+          <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20solicitar%20uma%20vaga%20na%20Mentoria%20de%20Marca%20Pessoal." target="_blank" rel="noopener" class="scard-cta">Solicitar vaga →</a>
         </div>
         <div class="scard">
           <span class="scard-icon">◈</span>
@@ -930,7 +937,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
       </div>
     </div>
     <div class="footer-bottom">
-      <div class="footer-copy">© 2025 RÊ ARAUJO · DESIGN & TI · BRASÍLIA/DF</div>
+      <div class="footer-copy">© 2026 RÊ ARAUJO · DESIGN & TI · BRASÍLIA/DF</div>
       <div class="footer-social">
         <a href="https://instagram.com/renatajoin" target="_blank">Instagram</a>
         <a href="clientes.html">Projetos</a>
@@ -943,7 +950,7 @@ footer{padding:64px 0 40px;border-top:1px solid var(--border)}
 <div class="sticky" id="sticky">
   <div class="sticky-l">Rê Araujo · Design, Dev & Identidade · Brasília/DF</div>
   <div class="sticky-r">
-    <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Vim%20pelo%20site%20e%20quero%20falar%20com%20voc%C3%AA." target="_blank" class="btn-p" style="padding:10px 22px;font-size:10px">Falar comigo →</a>
+    <a href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Vim%20pelo%20site%20e%20quero%20solicitar%20um%20or%C3%A7amento." target="_blank" rel="noopener" class="btn-p" style="padding:10px 22px;font-size:10px">Solicitar orçamento →</a>
   </div>
 </div>
 
@@ -967,6 +974,11 @@ document.addEventListener('mousemove',e=>{
 document.querySelectorAll('a,button,.scard,.pcard,.pstep,.pill').forEach(el=>{
   el.addEventListener('mouseenter',()=>{cur.style.transform='scale(2.5)';ring.style.width='50px';ring.style.height='50px';ring.style.borderColor='rgba(200,120,120,.55)'});
   el.addEventListener('mouseleave',()=>{cur.style.transform='scale(1)';ring.style.width='36px';ring.style.height='36px';ring.style.borderColor='rgba(200,120,120,.35)'});
+});
+
+// Protege links externos abertos em uma nova aba.
+document.querySelectorAll('a[target="_blank"]').forEach(link=>{
+  link.rel='noopener noreferrer';
 });
 
 // PROGRESS
@@ -1000,6 +1012,7 @@ function showTab(id){
   document.querySelectorAll('.stab').forEach((t,i)=>{
     const ids=['design','ti','consultoria','parcerias'];
     t.classList.toggle('active',ids[i]===id);
+    t.setAttribute('aria-selected',ids[i]===id?'true':'false');
   });
   document.querySelectorAll('.spanel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
