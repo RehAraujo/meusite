@@ -27,6 +27,9 @@ section{padding:96px 0;border-bottom:1px solid var(--border)}h2{font-size:clamp(
 footer{padding:40px;background:#070606;color:#c7ad99;border-top:3px solid #a61956;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;text-align:center}
 @media(max-width:900px){.timeline{grid-template-columns:repeat(2,minmax(0,1fr))}.intro-grid{grid-template-columns:.8fr 1.2fr;gap:42px}.portrait{width:min(100%,340px)}}
 @media(max-width:760px){nav{padding:14px 20px}.nav-links{display:none}.wrap{padding:0 20px}.hero{padding:72px 20px 56px}.intro-grid,.timeline{grid-template-columns:1fr}.intro-grid{gap:38px;text-align:left}.portrait{width:min(72vw,300px)}section{padding:72px 0}}
+.intro-grid{grid-template-columns:minmax(220px,.48fr) minmax(0,1.52fr);gap:64px}.portrait{width:min(100%,270px)}
+@media(max-width:900px){.intro-grid{grid-template-columns:240px minmax(0,1fr);gap:38px}.portrait{width:230px}}
+@media(max-width:760px){.intro-grid{grid-template-columns:1fr;gap:30px}.portrait{width:min(58vw,210px);justify-self:start}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.timeline-item,.timeline-dot,.story-detail{transition:none}.timeline-item{opacity:1;transform:none}}
 </style>
 </head>
