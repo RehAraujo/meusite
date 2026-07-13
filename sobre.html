@@ -15,18 +15,19 @@ html{scroll-behavior:smooth}body{background:var(--bg);color:var(--text);font-fam
 nav{position:fixed;top:0;left:0;right:0;z-index:10;padding:18px 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(43,27,20,.96);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(20px)}
 .logo{font-family:var(--serif);font-size:22px;color:#f6ecdf;text-decoration:none}.logo em{font-style:italic;color:#d9a0a0}
 .nav-links{display:flex;gap:28px}.nav-links a{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:#c7ad99;text-decoration:none;text-transform:uppercase}.nav-links a:hover,.nav-links a.active{color:#fff9f1}
-main{padding-top:86px}.wrap{max-width:1060px;margin:0 auto;padding:0 40px}.hero{padding:80px 0 56px;border-bottom:1px solid var(--border)}
+main{padding-top:86px}.wrap{max-width:1060px;margin:0 auto;padding:0 40px}.hero{margin-top:36px;padding:72px 64px;background:#070606;border:1px solid #301820;box-shadow:18px 18px 0 #bd7a7d;color:#fff8ef}.hero h1{color:#fff8ef}.hero .lead{color:#d6c4bb}.hero .tag{color:#f08ca8}
 .tag{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:22px}
 h1,h2{font-family:var(--serif);font-weight:300;line-height:1.05;color:var(--text)}h1{font-size:clamp(48px,8vw,92px);max-width:850px}h1 em,h2 em{font-style:italic;color:var(--r)}
 .lead{font-family:var(--serif);font-size:clamp(22px,3vw,34px);color:var(--text2);line-height:1.35;max-width:760px;margin-top:28px}
 section{padding:72px 0;border-bottom:1px solid var(--border)}h2{font-size:clamp(34px,5vw,58px);margin-bottom:24px}p{color:var(--muted);font-size:17px;max-width:760px}p+p{margin-top:14px}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;background:transparent;margin-top:34px}.card{background:var(--bg2);border:1px solid var(--border);padding:30px}.card h3{font-family:var(--serif);font-size:26px;font-weight:400;color:var(--text2);margin-bottom:10px}.card p{font-size:15px}
-.btn{display:inline-block;margin-top:32px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--r3);text-decoration:none;border-bottom:1px solid rgba(200,120,120,.35);padding-bottom:3px}
-footer{padding:36px 40px;color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
-@media(max-width:760px){nav{padding:14px 20px}.nav-links{display:none}.wrap{padding:0 20px}.grid{grid-template-columns:1fr}.hero{padding-top:56px}}
+.intro-grid{display:grid;grid-template-columns:.82fr 1.18fr;gap:64px;align-items:center}.portrait{position:relative;background:#070606;padding:12px;box-shadow:14px 14px 0 #bd7a7d}.portrait img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover}.portrait::after{content:'DESIGN · TECNOLOGIA · ESTRATÉGIA';position:absolute;left:24px;bottom:22px;background:rgba(7,6,6,.82);color:#fff8ef;padding:8px 12px;font:9px var(--mono);letter-spacing:.12em}.btn{display:inline-flex;align-items:center;justify-content:center;margin-top:32px;background:#a61956;border:1px solid #d45c7a;color:#fff8ef;padding:13px 20px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;transition:.2s transform,.2s background}.btn:hover{transform:translateY(-2px);background:#c12c68}.home-fab{position:fixed;right:20px;bottom:20px;z-index:100;background:#070606;color:#fff8ef;border:1px solid #d45c7a;padding:10px 14px;text-decoration:none;font:10px var(--mono);letter-spacing:.1em;text-transform:uppercase;box-shadow:6px 6px 0 #a61956}
+footer{padding:40px;background:#070606;color:#c7ad99;border-top:3px solid #a61956;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;text-align:center}
+@media(max-width:760px){nav{padding:14px 20px}.nav-links{display:none}.wrap{padding:0 20px}.grid,.intro-grid{grid-template-columns:1fr}.hero{margin:20px 20px 0;padding:48px 24px;box-shadow:10px 10px 0 #bd7a7d}.intro-grid{gap:38px}}
 </style>
 </head>
 <body>
+<a href="index.html#home" class="home-fab" aria-label="Voltar ao início">⌂ Início</a>
 <nav>
   <a href="index.html#home" class="logo">Rê <em>Araujo</em></a>
   <div class="nav-links">
@@ -44,10 +45,9 @@ footer{padding:36px 40px;color:var(--muted);font-family:var(--mono);font-size:10
     <p class="lead">Sou Rê Araujo, designer, desenvolvedora e estrategista de marca. Meu trabalho começa ouvindo o que você diz — e percebendo aquilo que ainda não conseguiu colocar em palavras.</p>
   </header>
   <section>
-    <div class="wrap">
-      <h2>Antes de criar, eu <em>entendo.</em></h2>
-      <p>Gosto de conversar, fazer perguntas e prestar atenção nos detalhes que não chegam prontos no briefing. Quero compreender o negócio, a pessoa por trás dele e o cliente que está do outro lado — aquele que precisa se identificar, confiar e escolher.</p>
-      <p>É dessa escuta que nasce o meu trabalho. Organizo o que está confuso, encontro a mensagem central e conecto estratégia, estética e tecnologia para criar algo que tenha a sua cara e funcione de verdade.</p>
+    <div class="wrap intro-grid">
+      <figure class="portrait"><img src="assets/re-araujo-sobre.jpg" alt="Rê Araujo segurando um notebook" width="1024" height="1024" loading="eager" decoding="async"></figure>
+      <div><h2>Antes de criar, eu <em>entendo.</em></h2><p>Gosto de conversar, fazer perguntas e prestar atenção nos detalhes que não chegam prontos no briefing. Quero compreender o negócio, a pessoa por trás dele e o cliente que está do outro lado — aquele que precisa se identificar, confiar e escolher.</p><p>É dessa escuta que nasce o meu trabalho. Organizo o que está confuso, encontro a mensagem central e conecto estratégia, estética e tecnologia para criar algo que tenha a sua cara e funcione de verdade.</p><a href="index.html#servicos" class="btn">Conhecer minhas soluções →</a></div>
     </div>
   </section>
   <section>
