@@ -15,6 +15,7 @@
 @media(max-width:620px){body{font-size:16px}.wrap{width:calc(100% - 36px)}nav{padding:0 18px}.hero{padding:125px 0 70px;min-height:auto}h1{font-size:clamp(51px,16vw,70px)}section{padding:78px 0}.intro-grid{gap:34px}.portrait{width:210px}.portrait::after{right:-70px}.lesson-grid,.timeline,.skill-grid,.process-grid{grid-template-columns:1fr}.lesson:nth-child(odd){border-right:0}.lesson:nth-child(even){padding-left:0}.lesson{padding:27px 0}.moment{border-radius:12px}.projects{gap:10px}.footer-row,.footer-bottom{flex-direction:column}.home-fab{display:none}.btns{align-items:stretch}.btn{width:100%;text-align:center}.quote{font-size:29px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.reveal,.moment{opacity:1;transform:none}}
 </style>
+<link rel="stylesheet" href="legal-footer.css">
 </head>
 <body>
 <div class="progress" id="progress"></div>
@@ -53,5 +54,6 @@ const moments=[...document.querySelectorAll('.moment')];moments.forEach((moment,
 const observed=[...document.querySelectorAll('.reveal,.moment')];if('IntersectionObserver'in window){const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target)}}),{threshold:.12});observed.forEach(el=>observer.observe(el))}else observed.forEach(el=>el.classList.add('visible'));
 const progress=document.getElementById('progress');addEventListener('scroll',()=>{const max=document.documentElement.scrollHeight-innerHeight;progress.style.width=`${max>0?scrollY/max*100:0}%`},{passive:true});
 </script>
+<script src="legal-footer.js" defer></script>
 </body>
 </html>

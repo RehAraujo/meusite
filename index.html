@@ -28,6 +28,7 @@ footer{padding:70px 0 105px}.footer-grid{display:grid;grid-template-columns:1.3f
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"ProfessionalService","name":"Renata Join","url":"https://renatajoin.com/","areaServed":"BR","founder":{"@type":"Person","name":"Renata Araujo"},"sameAs":["https://instagram.com/renatajoin","https://www.linkedin.com/in/renatajoin/"]}</script>
+<link rel="stylesheet" href="legal-footer.css">
 </head>
 <body>
 <div class="progress" id="progress"></div>
@@ -62,5 +63,6 @@ const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isInte
 document.getElementById('unsureBtn').addEventListener('click',()=>{document.getElementById('interest').value='Ainda não sei do que preciso';document.getElementById('formulario').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>document.getElementById('name').focus(),500)});
 function sendWhatsApp(event){event.preventDefault();const name=document.getElementById('name').value.trim(),interest=document.getElementById('interest').value,message=document.getElementById('message').value.trim();const text=encodeURIComponent(`Olá, Rê! Vim pelo site.\n\nMeu nome: ${name}\nCaminho: ${interest}\n\n${message}`);window.open(`https://wa.me/5561992191272?text=${text}`,'_blank','noopener')}
 </script>
+<script src="legal-footer.js" defer></script>
 </body>
 </html>
