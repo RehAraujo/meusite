@@ -30,3 +30,12 @@
 
 /landing*
   X-Robots-Tag: noindex, nofollow
+
+/curriculo*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/documents/renata-gomes-araujo-curriculo.pdf
+  Content-Type: application/pdf
+  Content-Disposition: attachment; filename="renata-gomes-araujo-curriculo.pdf"
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: private, max-age=0, must-revalidate

@@ -8,6 +8,7 @@
 *.bak
 *.old
 *.tmp
+tmp/
 node_modules/
 .wrangler/
 .dev.vars

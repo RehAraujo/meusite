@@ -5,6 +5,8 @@
 /loja /ferramentas 301
 /loja.html /ferramentas 301
 /wrangler.jsonc /arquivo-interno-indisponivel 302
+/data/curriculo.json /arquivo-interno-indisponivel 302
+/scripts/build-curriculo.py /arquivo-interno-indisponivel 302
 /landing /guia-alimentar 302
 /landing.html /guia-alimentar 302
 /privacidade.html /privacidade 301
