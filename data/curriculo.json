@@ -115,6 +115,12 @@
   ],
   "development": [
     {
+      "course": "Lógica de programação: explore funções e listas",
+      "institution": "Alura",
+      "status": "Certificação concluída - credencial publicada no LinkedIn",
+      "topics": ["Funções", "Listas", "Lógica de programação"]
+    },
+    {
       "course": "Pensamento Computacional: Fundamentos da Computação e Lógica de Programação",
       "institution": "Alura",
       "status": "Em andamento",
@@ -122,7 +128,7 @@
     },
     {
       "course": "Estudos e aplicação profissional",
-      "status": "Conhecimentos estudados e aplicados; não apresentados como certificações",
+      "status": "Conhecimentos estudados e aplicados; certificações específicas são apresentadas separadamente",
       "topics": ["Análise de requisitos", "BRD, user stories, casos de uso e critérios de aceitação", "Scrum, Kanban e Lean", "Fundamentos de PMBOK e gestão de projetos", "Processos, indicadores e KPIs", "UX e arquitetura da informação", "Segurança da informação", "Inteligência artificial", "Notion e programação"]
     }
   ],
@@ -145,6 +151,7 @@
     "Instituições das graduações não confirmadas.",
     "Datas exatas de início da atuação independente e da experiência na VIJ/DF não confirmadas.",
     "Idiomas e respectivos níveis não confirmados.",
+    "Detalhes de certificados adicionais da Alura ainda não confirmados fora do LinkedIn.",
     "Métricas quantitativas de resultados ainda não documentadas."
   ]
 }

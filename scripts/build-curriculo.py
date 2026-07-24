@@ -243,6 +243,15 @@ def build_pdf(data):
         heading = item["course"]
         if item.get("institution"):
             heading += " | " + item["institution"]
+        if item["status"].startswith("Certificação concluída"):
+            story.append(
+                Paragraph(
+                    f"<b>{pdf_text(heading)}</b> - {pdf_text(item['status'])}. "
+                    f"Tópicos: {pdf_text(', '.join(item['topics']))}.",
+                    styles["body"],
+                )
+            )
+            continue
         story.append(Paragraph(pdf_text(heading), styles["h3"]))
         story.append(Paragraph(pdf_text(item["status"]), styles["small"]))
         story.extend(bullets(item["topics"], styles))
