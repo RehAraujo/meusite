@@ -16,6 +16,7 @@
 *.tmp
 *.md
 scripts/
+tmp/
 node_modules/
 wrangler.jsonc
 worker.js

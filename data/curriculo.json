@@ -1,0 +1,150 @@
+{
+  "updated": "2026-07-24",
+  "identity": {
+    "name": "Renata Gomes Araujo",
+    "professional_name": "Rê Araujo",
+    "title": "Analista de Requisitos, Processos e Soluções Digitais",
+    "subtitle": "Design, tecnologia, organização da informação e experiência do usuário.",
+    "location": "Brasília - Distrito Federal, Brasil",
+    "availability": "Brasília e Distrito Federal | Remoto | Híbrido | CLT, PJ e projetos"
+  },
+  "contacts": [
+    {"label": "Site", "value": "renatajoin.com", "url": "https://renatajoin.com"},
+    {"label": "LinkedIn", "value": "linkedin.com/in/renatajoin", "url": "https://www.linkedin.com/in/renatajoin/"},
+    {"label": "GitHub", "value": "github.com/RehAraujo", "url": "https://github.com/RehAraujo"},
+    {"label": "Instagram", "value": "@renatajoin", "url": "https://instagram.com/renatajoin"},
+    {"label": "WhatsApp", "value": "+55 61 99219-1272", "url": "https://wa.me/5561992191272"}
+  ],
+  "summary": "Profissional formada em Design Gráfico e Análise e Desenvolvimento de Sistemas, com experiência na integração entre tecnologia, processos, comunicação, estratégia e experiência do usuário. Atua na compreensão de necessidades, organização de informações, levantamento e estruturação de requisitos, desenho de processos, documentação, arquitetura da informação e criação de soluções digitais. Combina pensamento analítico, visão estética e raciocínio lógico para traduzir necessidades pouco estruturadas em fluxos, documentos, sistemas e experiências claras, funcionais e executáveis.",
+  "focus": "Direcionamento prioritário para análise de requisitos e negócios, processos, projetos, produtos digitais, documentação funcional, experiência do usuário e implantação de soluções.",
+  "competencies": [
+    {
+      "title": "Análise de requisitos e negócios",
+      "items": ["Levantamento e elicitação de requisitos", "Necessidades, regras de negócio e stakeholders", "Requisitos funcionais e não funcionais", "BRD, user stories e casos de uso", "Critérios de aceitação e documentação funcional", "Descoberta, escopo, priorização e viabilidade", "Tradução entre negócio, usuário e solução técnica"]
+    },
+    {
+      "title": "Processos e projetos",
+      "items": ["Mapeamento de processos e desenho de fluxos", "Identificação de gargalos e melhoria contínua", "Padronização de rotinas e responsabilidades", "Planejamento e acompanhamento de entregas", "Prioridades, etapas, indicadores e KPIs", "Scrum, Kanban, Lean e fundamentos de PMBOK", "MS Project e Visio"]
+    },
+    {
+      "title": "Tecnologia e soluções digitais",
+      "items": ["Sistemas de gestão, CRM e dashboards no Notion", "Arquitetura da informação e bases de dados", "Automações, integrações e documentação de soluções", "Sites com HTML, CSS e fundamentos de JavaScript", "GitHub, Cloudflare Pages e Cloudflare Workers", "Lógica de programação e pensamento computacional", "Inteligência artificial aplicada e análise de sistemas"]
+    },
+    {
+      "title": "Design, UX e comunicação",
+      "items": ["Design Gráfico, branding e posicionamento", "UX, hierarquia visual e prototipação", "Figma, Canva e ferramentas Adobe", "Design editorial e materiais digitais e impressos", "Planejamento e comunicação institucional", "Conteúdo digital, roteiros e copywriting", "Apresentação de projetos e tradução de temas técnicos"]
+    },
+    {
+      "title": "Organização e análise",
+      "items": ["Excel avançado", "Organização e estruturação de informações", "Documentação e bases de conhecimento", "Pensamento sistêmico e raciocínio lógico", "Análise de problemas e tomada de decisão contextual", "Simplificação de informações complexas"]
+    }
+  ],
+  "experience": [
+    {
+      "role": "Profissional independente - Estratégia, Design, Tecnologia e Processos",
+      "period": "Atuação atual",
+      "summary": "Diagnóstico de necessidades e construção de soluções visuais, digitais e operacionais para profissionais e organizações.",
+      "highlights": [
+        "Levanta necessidades, organiza informações, define escopo e planeja projetos com clientes.",
+        "Estrutura arquitetura da informação, sites, sistemas no Notion, CRM, dashboards, documentação e processos comerciais.",
+        "Conecta branding, posicionamento, conteúdo e experiência do usuário às necessidades reais da operação.",
+        "Cria produtos digitais e estruturas reutilizáveis que centralizam informações, padronizam fluxos e apoiam decisões."
+      ]
+    },
+    {
+      "role": "Analista de Comunicação, Processos e Soluções Digitais",
+      "organization": "Potência Solar",
+      "period": "2024 - 2026",
+      "summary": "Atuação multidisciplinar entre comunicação, operação, vendas e organização interna em empresa de energia solar.",
+      "highlights": [
+        "Planejou comunicação, marketing, campanhas, conteúdo, roteiros, materiais comerciais e direção criativa.",
+        "Produziu e editou vídeos, participou como rosto da marca e apoiou eventos, instalações e registros de projetos.",
+        "Criou CRM no Notion, estruturou funil comercial, documentos, modelos de contrato, relatórios e organização de demandas.",
+        "Apoiou a comunicação entre gestão, operação, vendas e público, tornando informações técnicas mais compreensíveis."
+      ]
+    },
+    {
+      "role": "Comunicação Institucional e Design",
+      "organization": "VIJ/DF",
+      "period": "Até janeiro de 2024",
+      "summary": "Experiência em comunicação pública, design e atendimento a demandas institucionais.",
+      "highlights": [
+        "Criou materiais institucionais, campanhas, conteúdo e peças de comunicação para públicos diversos.",
+        "Organizou demandas e apoiou a padronização visual e a comunicação entre áreas internas.",
+        "Adaptou informações sensíveis e complexas com clareza, responsabilidade e atenção ao contexto."
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "renatajoin.com",
+      "context": "Construção do próprio ecossistema profissional digital.",
+      "solution": "Planejamento, arquitetura da informação, UX, conteúdo, identidade e implementação web com GitHub e Cloudflare.",
+      "evidence": "Integra design e tecnologia com revisão de segurança, desempenho, acessibilidade e experiência."
+    },
+    {
+      "name": "Sistemas de gestão no Notion",
+      "context": "Informações dispersas, processos dependentes da memória e baixa visibilidade operacional.",
+      "solution": "CRM, financeiro, calendários, metas, funis, clientes, dashboards, documentação, automações e templates.",
+      "evidence": "Centralização de informações, padronização de fluxos e criação de estruturas reutilizáveis."
+    },
+    {
+      "name": "Potência Solar",
+      "context": "Serviço técnico de alto investimento que exigia confiança, clareza comercial e organização interna.",
+      "solution": "Integração entre marketing, design, conteúdo, processos, CRM, vendas, campanhas e direção criativa.",
+      "evidence": "Maior coerência entre percepção de marca, materiais comerciais e operação."
+    },
+    {
+      "name": "ASLU",
+      "context": "Conteúdos institucionais, eventos, convênios e informações que precisavam ser organizados para navegação.",
+      "solution": "Arquitetura da informação, estruturação de conteúdo e experiência de navegação.",
+      "evidence": "Informação mais encontrável e estrutura preparada para diferentes necessidades do público."
+    },
+    {
+      "name": "Produtos digitais e templates",
+      "context": "Necessidades recorrentes de planejamento, organização e documentação.",
+      "solution": "Transformação de métodos e experiências práticas em guias, planners e sistemas utilizáveis.",
+      "evidence": "Conhecimento convertido em ferramentas digitais editáveis e orientadas à experiência."
+    }
+  ],
+  "education": [
+    {"course": "Análise e Desenvolvimento de Sistemas", "status": "Graduação concluída", "year": "2025"},
+    {"course": "Design Gráfico", "status": "Graduação concluída", "year": "2019"},
+    {"course": "Estudos em Pedagogia", "status": "Formação não concluída", "note": "Repertório relacionado a educação, comportamento e comunicação."},
+    {"course": "Estudos em Arquitetura", "status": "Formação não concluída", "note": "Repertório relacionado a espaço, estrutura e experiência humana."}
+  ],
+  "development": [
+    {
+      "course": "Pensamento Computacional: Fundamentos da Computação e Lógica de Programação",
+      "institution": "Alura",
+      "status": "Em andamento",
+      "topics": ["Decomposição de problemas", "Reconhecimento de padrões", "Abstração", "Algoritmos", "Lógica de programação", "Sequências e decisões", "Resolução estruturada de problemas"]
+    },
+    {
+      "course": "Estudos e aplicação profissional",
+      "status": "Conhecimentos estudados e aplicados; não apresentados como certificações",
+      "topics": ["Análise de requisitos", "BRD, user stories, casos de uso e critérios de aceitação", "Scrum, Kanban e Lean", "Fundamentos de PMBOK e gestão de projetos", "Processos, indicadores e KPIs", "UX e arquitetura da informação", "Segurança da informação", "Inteligência artificial", "Notion e programação"]
+    }
+  ],
+  "complementary": [
+    "Palestra sobre cibersegurança - setembro de 2025",
+    "Participação em podcast da Record Brasília - outubro de 2025",
+    "Produção de conteúdo, apresentações, eventos, roteiros e vídeo",
+    "Criação e comercialização de produtos digitais e templates"
+  ],
+  "differentials": [
+    "Integra visão de negócio, tecnologia, design e comunicação sem perder o foco do problema.",
+    "Transforma necessidades pouco estruturadas em fluxos, documentos e soluções claras.",
+    "Organiza informações, processos e experiências com visão orientada ao usuário.",
+    "Facilita a comunicação entre pessoas técnicas e não técnicas.",
+    "Reúne experiência prática com clientes, operação, estratégia e execução.",
+    "Documenta e apresenta soluções para apoiar continuidade e tomada de decisão."
+  ],
+  "pending": [
+    "E-mail profissional não localizado no projeto.",
+    "Instituições das graduações não confirmadas.",
+    "Datas exatas de início da atuação independente e da experiência na VIJ/DF não confirmadas.",
+    "Idiomas e respectivos níveis não confirmados.",
+    "Métricas quantitativas de resultados ainda não documentadas."
+  ]
+}
