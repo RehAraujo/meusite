@@ -28,7 +28,7 @@
     },
     {
       "title": "Tecnologia e soluções digitais",
-      "items": ["Sistemas de gestão, CRM e dashboards no Notion", "Arquitetura da informação e bases de dados", "Automações, integrações e documentação de soluções", "Sites com HTML, CSS e fundamentos de JavaScript", "GitHub, Cloudflare Pages e Cloudflare Workers", "Lógica de programação e pensamento computacional", "Inteligência artificial aplicada e análise de sistemas"]
+      "items": ["Sistemas de gestão, CRM e dashboards no Notion", "Arquitetura da informação e bases de dados", "Automações, integrações e documentação de soluções", "HTML, CSS e fundamentos de JavaScript", "Python e SQL - fundamentos em desenvolvimento", "GitHub, Cloudflare Pages e Cloudflare Workers", "Lógica de programação e pensamento computacional", "Inteligência artificial aplicada e análise de sistemas"]
     },
     {
       "title": "Design, UX e comunicação",
@@ -129,7 +129,7 @@
     {
       "course": "Estudos e aplicação profissional",
       "status": "Conhecimentos estudados e aplicados; certificações específicas são apresentadas separadamente",
-      "topics": ["Análise de requisitos", "BRD, user stories, casos de uso e critérios de aceitação", "Scrum, Kanban e Lean", "Fundamentos de PMBOK e gestão de projetos", "Processos, indicadores e KPIs", "UX e arquitetura da informação", "Segurança da informação", "Inteligência artificial", "Notion e programação"]
+      "topics": ["Análise de requisitos funcionais e não funcionais", "Regras de negócio, BRD, user stories, casos de uso e critérios de aceitação", "Scrum, Kanban e Lean", "Fundamentos de PMBOK e gestão de projetos", "Mapeamento de processos, indicadores e KPIs", "UX e arquitetura da informação", "Segurança da informação", "Inteligência artificial aplicada", "Notion, CRM e dashboards", "Python e SQL - fundamentos em desenvolvimento"]
     }
   ],
   "complementary": [
