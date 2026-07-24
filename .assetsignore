@@ -18,5 +18,6 @@
 scripts/
 node_modules/
 wrangler.jsonc
+worker.js
 landing.html
 assets/renata-join-social-source.png
