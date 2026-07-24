@@ -5,7 +5,8 @@
   const REQUIRED_LINKS = [
     { label: 'Política de Privacidade', href: 'privacidade.html' },
     { label: 'Termos de Uso', href: 'termos.html' },
-    { label: 'Produtos Digitais', href: 'ferramentas.html' },
+    { label: 'Produtos Digitais', href: 'produtos-digitais.html' },
+    { label: 'Acessibilidade', href: 'acessibilidade.html' },
     { label: 'Contato', href: 'index.html#contato' }
   ];
 
@@ -36,6 +37,13 @@
     });
   }
 
+  function createElement(tagName, className, text) {
+    const element = document.createElement(tagName);
+    if (className) element.className = className;
+    if (typeof text === 'string') element.textContent = text;
+    return element;
+  }
+
   function fallbackCopy(value) {
     const input = document.createElement('textarea');
     input.value = value;
@@ -61,16 +69,20 @@
 
     const dialogId = 'rj-legal-dialog-' + index;
     footer.className = 'rj-footer';
-    footer.innerHTML = '';
-    footer.innerHTML = '<div class="rj-footer__inner">' +
-      '<p class="rj-footer__item">© 2026 Renata Join</p>' +
-      '<p class="rj-footer__item">Brasília • Brasil</p>' +
-      '<button class="rj-footer__legal-trigger" type="button" aria-haspopup="dialog" aria-controls="' + dialogId + '">Informações legais</button>' +
-      '<p class="rj-footer__item rj-footer__devotion">Ad Dei gloriam.</p>' +
-      '</div>';
+    footer.replaceChildren();
+    const footerInner = createElement('div', 'rj-footer__inner');
+    footerInner.append(
+      createElement('p', 'rj-footer__item', '© 2026 Renata Join'),
+      createElement('p', 'rj-footer__item', 'Brasília • Brasil')
+    );
+    const trigger = createElement('button', 'rj-footer__legal-trigger', 'Informações legais');
+    trigger.type = 'button';
+    trigger.setAttribute('aria-haspopup', 'dialog');
+    trigger.setAttribute('aria-controls', dialogId);
+    footerInner.append(trigger, createElement('p', 'rj-footer__item rj-footer__devotion', 'Ad Dei gloriam.'));
+    footer.appendChild(footerInner);
 
-    const trigger = footer.querySelector('.rj-footer__legal-trigger');
-    const dialog = document.createElement('div');
+    const dialog = createElement('div', 'rj-legal-dialog');
     dialog.className = 'rj-legal-dialog';
     dialog.id = dialogId;
     dialog.hidden = true;
@@ -78,29 +90,50 @@
     dialog.setAttribute('aria-modal', 'true');
     dialog.setAttribute('aria-labelledby', dialogId + '-title');
     dialog.setAttribute('aria-describedby', dialogId + '-intro');
-    dialog.innerHTML = '<div class="rj-legal-dialog__panel">' +
-      '<button class="rj-legal-dialog__close" type="button" aria-label="Fechar informações legais">Fechar</button>' +
-      '<p class="rj-legal-dialog__eyebrow">Transparência institucional</p>' +
-      '<h2 class="rj-legal-dialog__title" id="' + dialogId + '-title">Informações legais</h2>' +
-      '<p class="rj-legal-dialog__intro" id="' + dialogId + '-intro">Dados institucionais e caminhos importantes, reunidos de forma simples.</p>' +
-      '<dl class="rj-legal-dialog__facts">' +
-      '<div class="rj-legal-dialog__fact"><dt>Empresa</dt><dd>Renata Gomes Araujo</dd></div>' +
-      '<div class="rj-legal-dialog__fact"><dt>CNPJ</dt><dd>' + CNPJ + '</dd><button class="rj-legal-dialog__copy" type="button">Copiar CNPJ</button><p class="rj-legal-dialog__status" aria-live="polite"></p></div>' +
-      '</dl>' +
-      '<p class="rj-legal-dialog__links-title">Institucional</p>' +
-      '<nav class="rj-legal-dialog__links" aria-label="Links institucionais"></nav>' +
-      (navigationLinks.length ? '<div class="rj-legal-dialog__secondary"><p class="rj-legal-dialog__links-title">Navegação</p><nav class="rj-legal-dialog__links rj-legal-dialog__navigation" aria-label="Navegação preservada do rodapé"></nav></div>' : '') +
-      '</div>';
+    const panel = createElement('div', 'rj-legal-dialog__panel');
+    const closeButton = createElement('button', 'rj-legal-dialog__close', 'Fechar');
+    closeButton.type = 'button';
+    closeButton.setAttribute('aria-label', 'Fechar informações legais');
+    const title = createElement('h2', 'rj-legal-dialog__title', 'Informações legais');
+    title.id = dialogId + '-title';
+    const intro = createElement('p', 'rj-legal-dialog__intro', 'Dados institucionais e caminhos importantes, reunidos de forma simples.');
+    intro.id = dialogId + '-intro';
+
+    const facts = createElement('dl', 'rj-legal-dialog__facts');
+    const companyFact = createElement('div', 'rj-legal-dialog__fact');
+    companyFact.append(createElement('dt', '', 'Empresa'), createElement('dd', '', 'Renata Gomes Araujo'));
+    const cnpjFact = createElement('div', 'rj-legal-dialog__fact');
+    const copyButton = createElement('button', 'rj-legal-dialog__copy', 'Copiar CNPJ');
+    copyButton.type = 'button';
+    const status = createElement('p', 'rj-legal-dialog__status');
+    status.setAttribute('aria-live', 'polite');
+    cnpjFact.append(createElement('dt', '', 'CNPJ'), createElement('dd', '', CNPJ), copyButton, status);
+    facts.append(companyFact, cnpjFact);
+
+    const institutionalNav = createElement('nav', 'rj-legal-dialog__links');
+    institutionalNav.setAttribute('aria-label', 'Links institucionais');
+    panel.append(
+      closeButton,
+      createElement('p', 'rj-legal-dialog__eyebrow', 'Transparência institucional'),
+      title,
+      intro,
+      facts,
+      createElement('p', 'rj-legal-dialog__links-title', 'Institucional'),
+      institutionalNav
+    );
+    if (navigationLinks.length) {
+      const secondary = createElement('div', 'rj-legal-dialog__secondary');
+      const navigation = createElement('nav', 'rj-legal-dialog__links rj-legal-dialog__navigation');
+      navigation.setAttribute('aria-label', 'Navegação preservada do rodapé');
+      secondary.append(createElement('p', 'rj-legal-dialog__links-title', 'Navegação'), navigation);
+      panel.appendChild(secondary);
+    }
+    dialog.appendChild(panel);
 
     document.body.appendChild(dialog);
-    const institutionalNav = dialog.querySelector('[aria-label="Links institucionais"]');
     makeLinks(REQUIRED_LINKS).forEach(function (link) { institutionalNav.appendChild(link); });
     const navigation = dialog.querySelector('.rj-legal-dialog__navigation');
     if (navigation) makeLinks(navigationLinks).forEach(function (link) { navigation.appendChild(link); });
-
-    const closeButton = dialog.querySelector('.rj-legal-dialog__close');
-    const copyButton = dialog.querySelector('.rj-legal-dialog__copy');
-    const status = dialog.querySelector('.rj-legal-dialog__status');
 
     function closeDialog() {
       dialog.classList.remove('is-open');
@@ -164,7 +197,20 @@
     });
   }
 
+  function addSkipLink() {
+    const main = document.querySelector('main');
+    if (!main || document.querySelector('.rj-skip-link')) return;
+    if (!main.id) main.id = 'conteudo-principal';
+    if (!main.hasAttribute('tabindex')) main.setAttribute('tabindex', '-1');
+    const link = document.createElement('a');
+    link.className = 'rj-skip-link';
+    link.href = '#' + main.id;
+    link.textContent = 'Ir para o conteúdo';
+    document.body.prepend(link);
+  }
+
   function initialize() {
+    addSkipLink();
     removeFloatingButtons();
     document.querySelectorAll('footer').forEach(initializeFooter);
   }
