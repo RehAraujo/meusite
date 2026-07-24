@@ -1,12 +1,32 @@
 /*
   X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
-  X-Frame-Options: SAMEORIGIN
-  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), usb=()
   Cross-Origin-Opener-Policy: same-origin-allow-popups
+  Cross-Origin-Resource-Policy: same-origin
+  Origin-Agent-Cluster: ?1
+  X-Permitted-Cross-Domain-Policies: none
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-+KKjRKZSxPC8bx0iP/bGdxCCMPw3dc4m32t4qWO5ESc=' 'sha256-2TLZ64LNxH6tYBfdsYMYuF0fNDcClMZ6yePeVTIeX1E=' 'sha256-4qQ74Jn1E4J5a1v/uxc/sTcQI54F17YF5n6CKGwH4Jk=' 'sha256-5VVgS5xbTxwmSKgej5fhmjLT95nK1eg9h3aRsb7oJwg=' 'sha256-ANojtNgsb7Obu98g6f6C7tbXrCY2bUEr/svcZvRiuHM=' 'sha256-FDpFofBAbzo8xRYDQtMX3Li5iue4EQLDuHEVBiExy54=' 'sha256-Iev7tquBtgfzicPNY15QLJDVkg8r3+FXydwWGMyDVPQ=' 'sha256-JJzzXm+WgFauS/xFsg4M+BzkBBj0wAGacZoW7wrkgBA=' 'sha256-KfGbfRVR6MJZJXDaIaCi0EedfDb6BPoTjuyF8+h+Raw=' 'sha256-NwwC9vIHk+JiB2hNL34Iny+ID1fy/nJZdRWg4yM6cZQ=' 'sha256-ODE0EJlAPlbGCEDl02eE+IId78a4RMggZb8+1vQbpcw=' 'sha256-P79iVi35cWKLH+nvOYGZC6qg+J6Fjmm8FcbJKxZem9M=' 'sha256-SbXaa+hLDvbe0YQi6XIZK4NGwym32Hi15Q+OqPEmuIU=' 'sha256-XDt2YIq2r8+FAf+llLV07YMnkm/efJ4GabCuZLDjI2s=' 'sha256-eAMWWYPs15MVlHmO9CQUmMjBix5w6pg9KnfTyJysH14=' 'sha256-gxgeY78MwLVUWC/cha+7lkeUI7jEWC8NteVmWb3immQ=' 'sha256-qGH1uBzXQmemoRNJtAH0d0GyKTMegCbXvM69xAE0Uoc=' 'sha256-rXgcwmh7LTrK7cgbHjztsCbxW4qPe5rAE9exVvmEif8=' 'sha256-v7ppfWwOuuO7xt+/IPUQXjVkHQbwzY9p+W161fDY5qQ='; script-src-attr 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; media-src 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; worker-src 'none'; upgrade-insecure-requests; block-all-mixed-content
 
 /assets/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+
+/*.css
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+/*.js
   Cache-Control: public, max-age=604800, stale-while-revalidate=86400
 
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
+
+/404*
+  X-Robots-Tag: noindex, nofollow
+
+/templates*
+  X-Robots-Tag: noindex, nofollow
+
+/landing*
+  X-Robots-Tag: noindex, nofollow

@@ -1,0 +1,14 @@
+.DS_Store
+**/.DS_Store
+.env
+.env.*
+!.env.example
+*.log
+*.map
+*.bak
+*.old
+*.tmp
+node_modules/
+.wrangler/
+.dev.vars
+.dev.vars.*

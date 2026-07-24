@@ -239,6 +239,27 @@ body.rj-dialog-open {
   overflow: hidden;
 }
 
+.rj-skip-link {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 12000;
+  padding: 11px 15px;
+  background: #fffaf4;
+  color: #17110f;
+  border: 2px solid #c72f75;
+  font: 500 10px/1.3 'DM Mono', ui-monospace, monospace;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transform: translateY(-150%);
+  transition: transform .15s ease;
+}
+
+.rj-skip-link:focus {
+  transform: none;
+}
+
 @media (max-width: 720px) {
   .rj-footer__inner {
     width: calc(100% - 36px);
