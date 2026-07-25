@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "title": "Identidade sem personagem",
+      "subtitle": "",
+      "slug": "identidade-sem-personagem",
+      "description": "Notas sobre presença, coerência e a coragem de não fabricar uma versão de si.",
+      "category": "Identidade",
+      "series": "",
+      "date": "",
+      "readingTime": "",
+      "image": "",
+      "socialImage": "",
+      "featured": false,
+      "essential": false,
+      "tags": ["identidade", "coerência", "presença"],
+      "content": "",
+      "related": [],
+      "status": "draft"
+    },
+    {
+      "title": "Clareza é uma forma de respeito",
+      "subtitle": "",
+      "slug": "clareza-e-uma-forma-de-respeito",
+      "description": "Como organizar uma mensagem muda a forma como pessoas compreendem e escolhem.",
+      "category": "Comunicação e autoridade",
+      "series": "",
+      "date": "",
+      "readingTime": "",
+      "image": "",
+      "socialImage": "",
+      "featured": false,
+      "essential": false,
+      "tags": ["clareza", "comunicação", "percepção"],
+      "content": "",
+      "related": [],
+      "status": "draft"
+    },
+    {
+      "title": "Tecnologia precisa de contexto",
+      "subtitle": "",
+      "slug": "tecnologia-precisa-de-contexto",
+      "description": "Ferramentas só se tornam soluções quando fazem sentido para a vida real.",
+      "category": "Tecnologia e sistemas",
+      "series": "",
+      "date": "",
+      "readingTime": "",
+      "image": "",
+      "socialImage": "",
+      "featured": false,
+      "essential": false,
+      "tags": ["tecnologia", "sistemas", "pessoas"],
+      "content": "",
+      "related": [],
+      "status": "draft"
+    }
+  ]
+}
