@@ -34,6 +34,20 @@ describe('rotas essenciais', () => {
     expect(screen.queryByRole('link', { name: /^currículo$/i })).not.toBeInTheDocument();
   });
 
+  it('apresenta a narrativa de carreira e o currículo ATS', () => {
+    renderRoute('/carreira');
+    expect(
+      screen.getByRole('heading', { level: 1, name: /analista de soluções digitais/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /uma solução é consequência/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /baixar currículo pdf/i })).toHaveAttribute(
+      'href',
+      '/documents/renata-gomes-araujo-curriculo-ats.pdf',
+    );
+  });
+
   it('entrega uma página 404 útil', () => {
     renderRoute('/rota-inexistente');
     expect(

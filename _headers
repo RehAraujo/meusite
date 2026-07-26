@@ -39,3 +39,9 @@
   Content-Disposition: attachment; filename="renata-gomes-araujo-curriculo.pdf"
   X-Robots-Tag: noindex, nofollow, noarchive
   Cache-Control: private, max-age=0, must-revalidate
+
+/documents/renata-gomes-araujo-curriculo-ats.pdf
+  Content-Type: application/pdf
+  Content-Disposition: attachment; filename="renata-gomes-araujo-curriculo-ats.pdf"
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: private, max-age=0, must-revalidate

@@ -2,6 +2,7 @@ import { createRoutesFromElements, Route } from 'react-router-dom';
 import { SiteLayout } from '../components/layout/SiteLayout';
 import AboutPage from '../pages/AboutPage';
 import BusinessPage from '../pages/BusinessPage';
+import CareerPage from '../pages/CareerPage';
 import ContentPage from '../pages/ContentPage';
 import HomePage from '../pages/HomePage';
 import MediaKitPage from '../pages/MediaKitPage';
@@ -22,6 +23,8 @@ export const routes = createRoutesFromElements(
     <Route path="clientes" element={<ProjectsPage />} />
     <Route path="pensamentos" element={<ThoughtsPage />} />
     <Route path="ferramentas" element={<ToolsPage />} />
+    <Route path="carreira" element={<CareerPage />} />
+    <Route path="career" element={<CareerPage />} />
     <Route path="curriculo" element={<ResumePage />} />
     <Route path="midia-kit" element={<MediaKitPage />} />
     <Route path="embaixadora" element={<MediaKitPage />} />

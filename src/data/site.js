@@ -63,6 +63,7 @@ export const processSteps = [
 
 export const footerLinks = [
   ...navigation.slice(0, 6),
+  { label: 'Carreira', to: '/carreira' },
   { label: 'Privacidade', to: '/privacidade' },
   { label: 'Acessibilidade', to: '/acessibilidade' },
 ];

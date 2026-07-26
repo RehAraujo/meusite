@@ -10,6 +10,8 @@ const routes = [
   '/clientes',
   '/pensamentos',
   '/ferramentas',
+  '/carreira',
+  '/career',
   '/curriculo',
   '/midia-kit',
   '/embaixadora',
@@ -56,6 +58,14 @@ const metadata = {
     'Currículo | Renata Gomes Araujo',
     'Currículo profissional de Renata Gomes Araujo.',
   ],
+  '/carreira': [
+    'Carreira | Analista de Soluções Digitais | Renata Gomes Araujo',
+    'Trajetória e projetos de Renata Gomes Araujo em requisitos, processos, produto, tecnologia e experiência do usuário.',
+  ],
+  '/career': [
+    'Carreira | Analista de Soluções Digitais | Renata Gomes Araujo',
+    'Trajetória e projetos de Renata Gomes Araujo em requisitos, processos, produto, tecnologia e experiência do usuário.',
+  ],
   '/midia-kit': [
     'Parcerias e Mídia Kit | Renata Join',
     'Parcerias, conteúdo, campanhas e colaborações com Renata Join.',
@@ -100,8 +110,9 @@ const escapeAttribute = (value) =>
 
 const createHead = (route) => {
   const [title, description] = metadata[route];
-  const canonical = `https://renatajoin.com${route === '/' ? '/' : route}`;
-  const noindex = route === '/curriculo' || route === '/404';
+  const canonicalRoute = route === '/career' || route === '/curriculo' ? '/carreira' : route;
+  const canonical = `https://renatajoin.com${canonicalRoute === '/' ? '/' : canonicalRoute}`;
+  const noindex = route === '/404';
   return `
     <title>${title}</title>
     <meta name="description" content="${escapeAttribute(description)}" />
