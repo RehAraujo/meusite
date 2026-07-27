@@ -2,33 +2,34 @@
 
 ## Arquitetura
 
-O projeto é um site estático em HTML, CSS e JavaScript, publicado pela
-Cloudflare. Não existem banco de dados, autenticação, cookies de sessão,
-dependências npm ou segredos necessários no navegador.
+O projeto é uma aplicação React pré-renderizada na build e publicada como
+ativos estáticos pela Cloudflare. Não existem banco de dados, autenticação,
+cookies de sessão ou segredos necessários no navegador.
 
 ## Content Security Policy
 
-Scripts inline são autorizados por hashes SHA-256. A política bloqueia
-atributos JavaScript inline, `eval`, objetos incorporados, frames e conteúdo
-misto.
+Todo JavaScript da aplicação é empacotado em arquivo externo. A política
+bloqueia scripts e atributos JavaScript inline, `eval`, objetos incorporados,
+frames e conteúdo misto.
 
-Após qualquer alteração dentro de uma tag `<script>` sem `src`, execute:
-
-```sh
-python3 scripts/update-csp.py
-```
-
-O comando também falha caso um atributo como `onclick` ou `onsubmit` seja
-adicionado.
-
-Os estilos inline continuam permitidos por compatibilidade com a arquitetura
-visual atual. Remover `unsafe-inline` de `style-src` exige migrar os estilos
-embutidos e atributos `style` para folhas CSS externas.
+Os estilos da aplicação ficam em CSS externo. `style-src` ainda permite estilos
+inline porque a barra de progresso atualiza uma propriedade de apresentação
+calculada em tempo real. Essa exceção não permite execução de JavaScript.
 
 ## Arquivos públicos
 
-`.assetsignore` impede que configurações, documentação, arquivos temporários,
-segredos locais e scripts internos sejam enviados como ativos estáticos.
+A Cloudflare recebe somente a pasta `dist/`. Configurações, documentação,
+fontes, testes e scripts de build não integram os ativos publicados.
+
+## Dependências
+
+O lockfile deve ser versionado e instalações de CI usam modo imutável. A
+auditoria deve ser repetida em atualizações. Em 25 de julho de 2026, o registro
+reportou um alerta no modo React Server Components do React Router. O projeto
+não habilita RSC, actions, loaders remotos ou desserialização de dados do
+servidor. A linha anterior do pacote apresentava vulnerabilidades aplicáveis ao
+navegador, por isso foi mantida a versão atual e o risco não aplicável foi
+documentado até a publicação de uma correção estável.
 
 Nunca versionar:
 

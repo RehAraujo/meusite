@@ -1,0 +1,13 @@
+dist
+.prerender
+node_modules
+public
+*.html
+data
+curriculo.css
+curriculo.js
+legal-footer.css
+legal-footer.js
+worker.js
+wrangler.jsonc
+pnpm-lock.yaml
