@@ -40,15 +40,52 @@ export default function AboutPage() {
               Antes de criar, eu <em>entendo.</em>
             </h2>
             <p>
-              Gosto de conversar, fazer perguntas e prestar atenção nos detalhes que não chegam
-              prontos no briefing. Quero compreender o negócio, a pessoa por trás dele e quem está
-              do outro lado.
+              Minha trajetória começou no Design, onde aprendi a observar, organizar informações e
+              pensar na experiência das pessoas. A tecnologia ampliou essa capacidade: passei a
+              estruturar processos, requisitos, sistemas e soluções orientadas à realidade de cada
+              projeto.
             </p>
             <p>
-              Dessa escuta nasce o meu trabalho: organizo o que está confuso e conecto estratégia,
-              estética e tecnologia para criar algo que tenha identidade e funcione de verdade.
+              Hoje atuo na conexão entre negócio, tecnologia, processos e experiência. Não separo
+              lógica de sensibilidade — não acredito que estética e estrutura precisem competir.
+            </p>
+            <p>
+              Minha forma de trabalhar é influenciada por tudo que faz parte da minha vida: a
+              disciplina do treino, o ritmo da música, a curiosidade sobre comportamento e uma fé
+              que lembra que trabalho também é responsabilidade e serviço.
             </p>
             <ButtonLink to="/servicos">Conhecer minhas soluções</ButtonLink>
+          </div>
+        </div>
+      </section>
+      <section>
+        <div className="container">
+          <p className="eyebrow">Como penso</p>
+          <h2>
+            Quatro princípios que orientam <em>o trabalho.</em>
+          </h2>
+          <div className="card-grid">
+            <article>
+              <h3>Entender antes de executar</h3>
+              <p>
+                Não começo pela ferramenta. Começo pelo problema, pelo contexto e pelas pessoas
+                envolvidas.
+              </p>
+            </article>
+            <article>
+              <h3>Estruturar antes de acelerar</h3>
+              <p>Automatizar um processo confuso apenas faz a confusão acontecer mais rápido.</p>
+            </article>
+            <article>
+              <h3>Simplificar sem empobrecer</h3>
+              <p>Uma boa solução reduz complexidade sem apagar o que é importante.</p>
+            </article>
+            <article>
+              <h3>Construir para durar</h3>
+              <p>
+                Prefiro soluções que possam ser compreendidas, utilizadas, mantidas e evoluídas.
+              </p>
+            </article>
           </div>
         </div>
       </section>

@@ -5,7 +5,8 @@ import { useDocumentMeta } from '../hooks/useDocumentMeta';
 
 const processPage = {
   title: 'Compreender antes de construir.',
-  description: 'Um processo orientado por contexto, requisitos, estrutura, construção e validação.',
+  description:
+    'Um processo orientado por contexto, investigação, requisitos, estrutura, implementação, validação e evolução.',
 };
 
 export default function ContentPage({ path }) {
@@ -66,6 +67,10 @@ export default function ContentPage({ path }) {
               </li>
             ))}
           </ol>
+          <p className="lead">
+            Nem toda evolução é visível no início. Algumas estruturas precisam ser repetidas,
+            testadas e fortalecidas antes de sustentar algo maior.
+          </p>
           <ButtonLink to="/#contato">Começar um projeto</ButtonLink>
         </div>
       </section>

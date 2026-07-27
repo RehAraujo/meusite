@@ -7,7 +7,7 @@ import { useReveal } from '../hooks/useReveal';
 export default function ServicesPage() {
   useDocumentMeta({
     title: 'Como posso ajudar | Renata Join',
-    description: 'Soluções em identidade, posicionamento, sites, sistemas e organização.',
+    description: 'Sistemas, sites e organização estruturados a partir do problema real — identidade e posicionamento como parte da entrega.',
     path: '/servicos',
   });
   useReveal();

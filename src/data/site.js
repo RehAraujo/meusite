@@ -22,10 +22,10 @@ export const navigation = [
 ];
 
 export const principles = [
-  'Clareza antes da estética.',
-  'Estratégia antes da execução.',
+  'Entender antes de executar.',
+  'Estrutura antes da ferramenta.',
   'Pessoas antes dos produtos.',
-  'Identidade antes da comunicação.',
+  'Clareza antes da estética.',
   'Excelência sem perder o propósito.',
 ];
 
@@ -34,31 +34,45 @@ export const paths = [
     eyebrow: 'Para você',
     title: 'Clareza para ocupar o seu lugar.',
     description:
-      'Identidade, posicionamento pessoal, organização, carreira, presença digital e sistemas para a vida real.',
+      'Organização, carreira, posicionamento pessoal, presença digital e sistemas para a vida real.',
     to: '/servicos#para-voce',
   },
   {
     eyebrow: 'Para o seu negócio',
     title: 'Estrutura para sustentar crescimento.',
     description:
-      'Branding, identidade visual, sites, sistemas, processos, conteúdo, comunicação e direção estratégica.',
+      'Processos, sistemas, sites, dados organizados e direção estratégica — com identidade visual como parte da entrega, não o ponto de partida.',
     to: '/servicos#para-negocio',
   },
   {
     eyebrow: 'Para marcas e parceiros',
     title: 'Colaborações com significado.',
     description:
-      'Campanhas, conteúdo autoral, eventos, entrevistas e colaborações coerentes com a minha identidade.',
+      'Campanhas, conteúdo autoral, eventos, entrevistas e colaborações coerentes com a minha forma de trabalhar.',
     to: '/midia-kit',
   },
 ];
 
 export const processSteps = [
-  ['Compreender', 'Pessoas, contexto, objetivos, limitações e o que realmente precisa funcionar.'],
-  ['Decompor', 'Separar a complexidade para identificar causas, padrões e prioridades.'],
-  ['Estruturar', 'Organizar informações, requisitos, responsabilidades e possibilidades.'],
-  ['Construir', 'Transformar estratégia em design, tecnologia, documentação ou sistemas.'],
-  ['Validar', 'Observar, testar e ajustar para permitir que a solução continue evoluindo.'],
+  ['Compreensão', 'Entendo o contexto, o problema, as pessoas e os objetivos envolvidos.'],
+  [
+    'Investigação',
+    'Faço perguntas, identifico necessidades, restrições, riscos e informações ainda dispersas.',
+  ],
+  ['Estruturação', 'Organizo requisitos, regras, prioridades, fluxos e responsabilidades.'],
+  [
+    'Definição',
+    'Escolho a solução adequada ao contexto, sem partir automaticamente de uma ferramenta.',
+  ],
+  [
+    'Implementação',
+    'Transformo a estrutura em processo, documento, sistema, site ou experiência digital.',
+  ],
+  [
+    'Validação',
+    'Verifico se a solução responde ao problema e funciona para quem precisa utilizá-la.',
+  ],
+  ['Evolução', 'Documento, ajusto e preparo a solução para continuar sendo utilizável.'],
 ];
 
 export const footerLinks = [

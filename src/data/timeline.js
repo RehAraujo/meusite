@@ -25,19 +25,19 @@ export const timeline = [
     title: 'Da aparência ao significado',
     summary: 'Muitos problemas visuais eram, na verdade, problemas de clareza e coerência.',
     detail:
-      'Branding e neurodesign ampliaram meu olhar sobre atenção, emoção, memória e percepção sem transformar pessoas em objetos de manipulação.',
+      'Branding e neurodesign ampliaram meu olhar sobre atenção, emoção, memória e percepção — e mostraram que boa estética também é raciocínio, não só estilo.',
   },
   {
     label: 'Tecnologia',
     title: 'Estrutura para a vida real',
     summary: 'Programação e análise de requisitos reforçaram a necessidade de compreender antes de construir.',
     detail:
-      'Sites, produtos digitais e sistemas transformam processos, rotinas e conhecimento em estruturas utilizáveis.',
+      'Sites, produtos digitais e sistemas transformam processos, rotinas e conhecimento em estruturas utilizáveis — o mesmo raciocínio do Design, aplicado a outra camada do problema.',
   },
   {
     label: 'Hoje',
     title: 'Integração sem personagem',
-    summary: 'Renata Join reúne identidade, estratégia, design, tecnologia, processos e sistemas.',
+    summary: 'Renata Join reúne negócio, tecnologia, processos, experiência e Design.',
     detail:
       'A multidisciplinaridade não é uma lista de serviços. É a capacidade de escolher as perspectivas necessárias para cada problema.',
   },

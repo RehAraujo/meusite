@@ -59,7 +59,12 @@ export default function ProjectsPage() {
                 <p className="lead">{project.challenge}</p>
                 <details>
                   <summary>Conheça a construção</summary>
+                  <strong>Como atuei</strong>
+                  <p>{project.decision}</p>
+                  <strong>O que construímos</strong>
                   <p>{project.result}</p>
+                  <strong>Impacto</strong>
+                  <p>{project.impact}</p>
                   <ul className="tag-list">
                     {project.tags.map((tag) => (
                       <li key={tag}>{tag}</li>
