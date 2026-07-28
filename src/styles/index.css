@@ -642,6 +642,7 @@
   .about-preview img,
   .about-intro img {
     width: min(100%, 17rem);
+    height: auto;
     aspect-ratio: 1;
     border-radius: var(--radius-round);
     object-fit: cover;
