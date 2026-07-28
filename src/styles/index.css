@@ -280,25 +280,25 @@
   }
 
   .hero-editorial h1 {
-    max-width: 17ch;
+    max-width: 15ch;
     margin-bottom: var(--space-3);
-    font-size: clamp(2.35rem, 1.7rem + 2.6vw, 3.75rem);
-    line-height: 1.12;
+    font-size: clamp(2.1rem, 1.55rem + 2.1vw, 3.25rem);
+    line-height: 1.1;
     text-wrap: balance;
   }
 
   .hero-editorial .hero-copy {
     max-width: 34rem;
     color: var(--color-text);
-    font-size: clamp(1.05rem, 0.98rem + 0.3vw, 1.2rem);
-    line-height: 1.6;
+    font-size: clamp(1.1rem, 1.02rem + 0.35vw, 1.25rem);
+    line-height: 1.65;
   }
 
   .hero-signature {
     display: block;
     margin-top: var(--space-3);
     color: var(--color-pink);
-    font: 500 clamp(1.2rem, 1.02rem + 0.8vw, 1.6rem) / 1.35 var(--font-heading);
+    font: 500 clamp(1.3rem, 1.1rem + 0.85vw, 1.75rem) / 1.35 var(--font-heading);
     font-style: italic;
   }
 
@@ -309,8 +309,18 @@
     border-left: 2px solid var(--color-border-strong);
     padding-left: var(--space-3);
     color: var(--color-text-soft);
-    font: 400 clamp(0.92rem, 0.86rem + 0.25vw, 1.05rem) / 1.65 var(--font-heading);
+    font: 400 clamp(1rem, 0.93rem + 0.3vw, 1.15rem) / 1.68 var(--font-heading);
     font-style: italic;
+  }
+
+  .hero-editorial .button-group {
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+  }
+
+  .hero-editorial .button {
+    min-height: 3.25rem;
+    padding-inline: 1.7rem;
   }
 
   .hero-editorial .hero-portrait {
