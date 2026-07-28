@@ -264,24 +264,71 @@
 
   .hero-editorial {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(16rem, 34%);
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 40%);
     align-items: stretch;
     gap: 0;
     padding-top: 0;
   }
 
   .hero-editorial .hero-text {
+    max-width: 40rem;
     padding-inline-start: clamp(1.25rem, 4vw, 3.5rem);
+    padding-inline-end: clamp(1.5rem, 4vw, 2.5rem);
     padding-block: var(--space-6);
     display: flex;
     flex-direction: column;
     justify-content: center;
   }
 
+  .hero-editorial h1 {
+    max-width: 17ch;
+    margin-bottom: var(--space-3);
+    font-size: clamp(2.35rem, 1.7rem + 2.6vw, 3.75rem);
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+
+  .hero-editorial .hero-copy {
+    max-width: 34rem;
+    color: var(--color-text);
+    font-size: clamp(1.05rem, 0.98rem + 0.3vw, 1.2rem);
+    line-height: 1.6;
+  }
+
+  .hero-signature {
+    display: block;
+    margin-top: var(--space-3);
+    color: var(--color-pink);
+    font: 500 clamp(1.2rem, 1.02rem + 0.8vw, 1.6rem) / 1.35 var(--font-heading);
+    font-style: italic;
+  }
+
+  .hero-note {
+    position: relative;
+    margin-top: var(--space-4);
+    max-width: 32rem;
+    border-left: 2px solid var(--color-border-strong);
+    padding-left: var(--space-3);
+    color: var(--color-text-soft);
+    font: 400 clamp(0.92rem, 0.86rem + 0.25vw, 1.05rem) / 1.65 var(--font-heading);
+    font-style: italic;
+  }
+
   .hero-editorial .hero-portrait {
     position: relative;
-    min-height: 26rem;
+    min-height: 30rem;
     border-left: 1px solid var(--color-border);
+  }
+
+  .hero-editorial .hero-portrait::before {
+    position: absolute;
+    inset-block: 0;
+    left: -3rem;
+    z-index: 1;
+    width: 3rem;
+    background: linear-gradient(90deg, var(--color-background), transparent);
+    content: '';
+    pointer-events: none;
   }
 
   .hero-editorial .hero-portrait img {
@@ -290,12 +337,14 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center 22%;
   }
 
   .hero-editorial .hero-portrait span {
     position: absolute;
     left: var(--space-3);
     bottom: var(--space-3);
+    z-index: 1;
     color: var(--color-text);
     font: 500 0.65rem var(--font-mono);
     letter-spacing: 0.14em;
@@ -326,12 +375,6 @@
   .eyebrow::before {
     margin-right: 0.6rem;
     content: '—';
-  }
-
-  .microcopy {
-    margin-top: var(--space-3);
-    font: 0.65rem var(--font-mono);
-    letter-spacing: 0.08em;
   }
 
   .button-group {
@@ -1485,14 +1528,19 @@
     }
 
     .hero-editorial .hero-text {
+      max-width: none;
       padding-inline: clamp(1.25rem, 4vw, 3.5rem);
       padding-block: var(--space-5) var(--space-4);
     }
 
     .hero-editorial .hero-portrait {
-      min-height: 20rem;
+      min-height: 18rem;
       border-left: 0;
       border-top: 1px solid var(--color-border);
+    }
+
+    .hero-editorial .hero-portrait::before {
+      display: none;
     }
 
     .preview-grid {

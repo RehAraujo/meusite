@@ -38,10 +38,8 @@ export default function HomePage() {
               organizar informações, estruturar necessidades e construir soluções claras, funcionais
               e executáveis.
             </p>
-            <p>
-              <em>A estética chama atenção. A lógica faz ficar.</em>
-            </p>
           </div>
+          <p className="hero-signature">A estética chama atenção. A lógica faz ficar.</p>
           <div className="button-group">
             <ButtonLink to="/servicos" className="button--special">
               Descubra como posso ajudar
@@ -50,7 +48,7 @@ export default function HomePage() {
               Conheça minhas construções
             </ButtonLink>
           </div>
-          <p className="microcopy">
+          <p className="hero-note">
             Gosto de entender o problema antes de escolher a ferramenta. É assim que evito
             automatizar confusão, desenhar caminhos inúteis ou construir soluções que ninguém
             consegue manter.
