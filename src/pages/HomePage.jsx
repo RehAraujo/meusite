@@ -12,9 +12,9 @@ import { createWhatsAppUrl } from '../utils/whatsapp';
 export default function HomePage() {
   const [form, setForm] = useState({ name: '', interest: 'Projeto para mim', message: '' });
   useDocumentMeta({
-    title: 'Renata Join — Identidade, Estratégia, Design e Tecnologia',
+    title: 'Renata Join — Soluções Digitais, Estratégia e Tecnologia',
     description:
-      'Estratégia, identidade, design, tecnologia e sistemas para pessoas e organizações que desejam construir com clareza.',
+      'Transformo problemas complexos em soluções digitais bem estruturadas. Tecnologia, negócio, processos e experiência do usuário, com Design como diferencial.',
   });
   useReveal();
 
@@ -26,30 +26,47 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="hero" id="home">
-        <div className="container hero-content">
-          <p className="eyebrow">Identidade · estratégia · construção</p>
-          <h1>
-            Antes de existir uma marca, existe uma <em>pessoa.</em>
+      <section className="hero hero-editorial" id="home">
+        <div className="hero-text" data-reveal>
+          <p className="eyebrow">Tecnologia · negócio · processos · UX</p>
+          <h1 data-reveal="mask">
+            <span>Transformo problemas complexos em soluções digitais bem estruturadas.</span>
           </h1>
           <div className="hero-copy">
             <p>
-              Antes de existir uma empresa, uma carreira ou um projeto, existe alguém tentando
-              construir algo que faça sentido.
-            </p>
-            <p>Meu trabalho começa aí.</p>
-            <p>
-              Uno identidade, estratégia, design e tecnologia para transformar o que pessoas e
-              organizações pensam, fazem e acreditam em algo claro, coerente e reconhecível.
+              Atuo na interseção entre tecnologia, negócio, processos e experiência do usuário para
+              organizar informações, estruturar necessidades e construir soluções claras, funcionais
+              e executáveis.
             </p>
           </div>
+          <p className="hero-signature">A estética chama atenção. A lógica faz ficar.</p>
           <div className="button-group">
-            <ButtonLink to="/servicos">Descubra como posso ajudar</ButtonLink>
+            <ButtonLink to="/servicos" className="button--special">
+              Descubra como posso ajudar
+            </ButtonLink>
             <ButtonLink to="/clientes" secondary>
               Conheça minhas construções
             </ButtonLink>
           </div>
-          <p className="microcopy">Identidade para pensar, comunicar e construir sem personagem.</p>
+          <p className="hero-note">
+            Gosto de entender o problema antes de escolher a ferramenta. É assim que evito
+            automatizar confusão, desenhar caminhos inúteis ou construir soluções que ninguém
+            consegue manter.
+          </p>
+        </div>
+        <div
+          className="hero-portrait"
+          data-reveal
+          style={{ '--reveal-delay': '180ms' }}
+        >
+          <img
+            src="/assets/renata-hero-workspace.jpg"
+            alt="Renata Araujo em home office, com monitores ao fundo"
+            width="1024"
+            height="1024"
+            fetchPriority="high"
+          />
+          <span>Renata Araujo</span>
         </div>
       </section>
 
@@ -59,17 +76,20 @@ export default function HomePage() {
             eyebrow="Manifesto"
             title={
               <>
-                Toda construção revela uma <em>identidade.</em>
+                Tecnologia não começa no <em>código.</em>
               </>
             }
           >
             <p>
-              Uma marca revela como uma empresa pensa. Um sistema revela como ela funciona. Um site
-              revela como organiza sua mensagem.
+              Uma boa solução digital começa antes da implementação. Ela começa quando alguém
+              entende o contexto, faz as perguntas certas, organiza as informações e identifica o
+              que realmente precisa ser resolvido.
             </p>
             <p>
-              Por isso, não começo pela aparência. Começo pelas pessoas, pelo contexto e pela lógica
-              que sustenta cada decisão.
+              Meu trabalho acontece nessa ponte entre problema e execução: analiso necessidades,
+              estruturo requisitos, organizo processos, documento decisões e ajudo a transformar
+              ideias dispersas em soluções que pessoas e equipes conseguem compreender, utilizar e
+              evoluir.
             </p>
           </SectionHeading>
         </div>
@@ -95,7 +115,7 @@ export default function HomePage() {
           >
             <p>
               Nem todo mundo chega precisando da mesma coisa. Todos os caminhos começam pela
-              compreensão da identidade e do contexto.
+              compreensão do problema e do contexto.
             </p>
           </SectionHeading>
           <div className="card-grid card-grid--three">
@@ -201,11 +221,12 @@ export default function HomePage() {
           <div data-reveal>
             <p className="eyebrow">Sobre</p>
             <h2>
-              Design me ensinou percepção. Tecnologia me ensinou <em>estrutura.</em>
+              Não separo lógica de <em>sensibilidade.</em>
             </h2>
             <p>
-              Sou designer, profissional de tecnologia e estrategista. Observo pessoas, identifico
-              padrões e transformo complexidade em estruturas compreensíveis.
+              Minha trajetória começou no Design, onde aprendi a observar, organizar informações e
+              pensar na experiência das pessoas. A tecnologia ampliou essa capacidade: hoje atuo na
+              conexão entre negócio, processos e experiência do usuário.
             </p>
             <ButtonLink to="/sobre">Conheça minha trajetória</ButtonLink>
           </div>
