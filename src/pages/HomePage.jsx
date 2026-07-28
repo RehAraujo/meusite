@@ -60,10 +60,10 @@ export default function HomePage() {
           style={{ '--reveal-delay': '180ms' }}
         >
           <img
-            src="/assets/renata-hero-cafe.jpg"
-            alt="Renata Araujo em ambiente de trabalho, com blazer preto e xícara de café"
-            width="832"
-            height="1216"
+            src="/assets/renata-hero-workspace.jpg"
+            alt="Renata Araujo em home office, com monitores ao fundo"
+            width="1024"
+            height="1024"
             fetchPriority="high"
           />
           <span>Renata Araujo</span>
