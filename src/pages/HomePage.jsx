@@ -60,10 +60,10 @@ export default function HomePage() {
           style={{ '--reveal-delay': '180ms' }}
         >
           <img
-            src="/assets/reh-professional.jpg"
-            alt="Renata Araujo em ensaio profissional"
-            width="1500"
-            height="2250"
+            src="/assets/renata-hero-cafe.jpg"
+            alt="Renata Araujo em ambiente de trabalho, com blazer preto e xícara de café"
+            width="832"
+            height="1216"
             fetchPriority="high"
           />
           <span>Renata Araujo</span>
