@@ -27,9 +27,11 @@ export default function HomePage() {
   return (
     <>
       <section className="hero hero-editorial" id="home">
-        <div className="hero-text" data-reveal="mask">
+        <div className="hero-text" data-reveal>
           <p className="eyebrow">Tecnologia · negócio · processos · UX</p>
-          <h1>Transformo problemas complexos em soluções digitais bem estruturadas.</h1>
+          <h1 data-reveal="mask">
+            <span>Transformo problemas complexos em soluções digitais bem estruturadas.</span>
+          </h1>
           <div className="hero-copy">
             <p>
               Atuo na interseção entre tecnologia, negócio, processos e experiência do usuário para
