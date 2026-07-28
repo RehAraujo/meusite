@@ -26,8 +26,8 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="hero" id="home">
-        <div className="container hero-content">
+      <section className="hero hero-editorial" id="home">
+        <div className="hero-text" data-reveal="mask">
           <p className="eyebrow">Tecnologia · negócio · processos · UX</p>
           <h1>Transformo problemas complexos em soluções digitais bem estruturadas.</h1>
           <div className="hero-copy">
@@ -41,7 +41,9 @@ export default function HomePage() {
             </p>
           </div>
           <div className="button-group">
-            <ButtonLink to="/servicos">Descubra como posso ajudar</ButtonLink>
+            <ButtonLink to="/servicos" className="button--special">
+              Descubra como posso ajudar
+            </ButtonLink>
             <ButtonLink to="/clientes" secondary>
               Conheça minhas construções
             </ButtonLink>
@@ -51,6 +53,20 @@ export default function HomePage() {
             automatizar confusão, desenhar caminhos inúteis ou construir soluções que ninguém
             consegue manter.
           </p>
+        </div>
+        <div
+          className="hero-portrait"
+          data-reveal
+          style={{ '--reveal-delay': '180ms' }}
+        >
+          <img
+            src="/assets/reh-professional.jpg"
+            alt="Renata Araujo em ensaio profissional"
+            width="1500"
+            height="2250"
+            fetchPriority="high"
+          />
+          <span>Renata Araujo</span>
         </div>
       </section>
 

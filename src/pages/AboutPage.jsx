@@ -96,7 +96,12 @@ export default function AboutPage() {
             O que cada fase <em>construiu.</em>
           </h2>
           <div className="timeline-layout">
-            <div className="timeline-tabs" role="tablist" aria-label="Etapas da trajetória">
+            <div
+              className="timeline-tabs"
+              role="tablist"
+              aria-label="Etapas da trajetória"
+              style={{ '--timeline-progress': `${(active / (timeline.length - 1)) * 100}%` }}
+            >
               {timeline.map((moment, index) => (
                 <button
                   key={moment.label}
@@ -116,6 +121,7 @@ export default function AboutPage() {
               role="tabpanel"
               className="timeline-panel"
               tabIndex="0"
+              data-reveal
             >
               <p className="card-label">{timeline[active].label}</p>
               <h3>{timeline[active].title}</h3>
