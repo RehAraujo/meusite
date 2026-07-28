@@ -2,6 +2,7 @@ import { ButtonLink } from '../components/ui/ButtonLink';
 import { legalPages } from '../data/legal';
 import { processSteps } from '../data/site';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
+import { useReveal } from '../hooks/useReveal';
 
 const processPage = {
   title: 'Compreender antes de construir.',
@@ -16,6 +17,7 @@ export default function ContentPage({ path }) {
     description: page.intro ?? page.description,
     path,
   });
+  useReveal();
 
   if (legalPages[path]) {
     return (
@@ -59,11 +61,18 @@ export default function ContentPage({ path }) {
             Antes de propor uma solução, procuro compreender o problema por inteiro, separar causas
             e sintomas, organizar requisitos e construir um caminho lógico, visual e funcional.
           </p>
-          <ol className="process-list">
-            {processSteps.map(([title, description]) => (
-              <li key={title}>
-                <h2>{title}</h2>
-                <p>{description}</p>
+          <ol className="process-journey">
+            {processSteps.map(([title, description], index) => (
+              <li
+                key={title}
+                data-reveal
+                style={{ '--reveal-delay': `${index * 70}ms` }}
+              >
+                <span className="step-index">{String(index + 1).padStart(2, '0')}</span>
+                <div>
+                  <h2>{title}</h2>
+                  <p>{description}</p>
+                </div>
               </li>
             ))}
           </ol>

@@ -26,31 +26,47 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="hero" id="home">
-        <div className="container hero-content">
+      <section className="hero hero-editorial" id="home">
+        <div className="hero-text" data-reveal>
           <p className="eyebrow">Tecnologia · negócio · processos · UX</p>
-          <h1>Transformo problemas complexos em soluções digitais bem estruturadas.</h1>
+          <h1 data-reveal="mask">
+            <span>Transformo problemas complexos em soluções digitais bem estruturadas.</span>
+          </h1>
           <div className="hero-copy">
             <p>
               Atuo na interseção entre tecnologia, negócio, processos e experiência do usuário para
               organizar informações, estruturar necessidades e construir soluções claras, funcionais
               e executáveis.
             </p>
-            <p>
-              <em>A estética chama atenção. A lógica faz ficar.</em>
-            </p>
           </div>
+          <p className="hero-signature">A estética chama atenção. A lógica faz ficar.</p>
           <div className="button-group">
-            <ButtonLink to="/servicos">Descubra como posso ajudar</ButtonLink>
+            <ButtonLink to="/servicos" className="button--special">
+              Descubra como posso ajudar
+            </ButtonLink>
             <ButtonLink to="/clientes" secondary>
               Conheça minhas construções
             </ButtonLink>
           </div>
-          <p className="microcopy">
+          <p className="hero-note">
             Gosto de entender o problema antes de escolher a ferramenta. É assim que evito
             automatizar confusão, desenhar caminhos inúteis ou construir soluções que ninguém
             consegue manter.
           </p>
+        </div>
+        <div
+          className="hero-portrait"
+          data-reveal
+          style={{ '--reveal-delay': '180ms' }}
+        >
+          <img
+            src="/assets/renata-hero-cafe.jpg"
+            alt="Renata Araujo em ambiente de trabalho, com blazer preto e xícara de café"
+            width="832"
+            height="1216"
+            fetchPriority="high"
+          />
+          <span>Renata Araujo</span>
         </div>
       </section>
 
