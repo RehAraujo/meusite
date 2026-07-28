@@ -115,7 +115,8 @@
 
   p,
   li {
-    color: var(--color-text-muted);
+    color: var(--color-text-soft);
+    text-wrap: pretty;
   }
 
   p + p {
@@ -260,6 +261,16 @@
 
   .page-hero {
     min-height: min(44rem, 78svh);
+  }
+
+  .page-hero h1 {
+    max-width: 20ch;
+    font-size: clamp(2.5rem, 1.85rem + 2.9vw, 4rem);
+    line-height: 1.08;
+  }
+
+  .page-hero .lead {
+    margin-top: var(--space-3);
   }
 
   .hero-editorial {
@@ -985,8 +996,8 @@
 
   .career-hero h1 {
     max-width: 13ch;
-    font-size: var(--step-3);
-    line-height: 0.88;
+    font-size: clamp(2.75rem, 2rem + 3.2vw, 4.5rem);
+    line-height: 0.98;
   }
 
   .career-hero h1 em {
