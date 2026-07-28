@@ -27,8 +27,8 @@ const routes = [
 
 const metadata = {
   '/': [
-    'Renata Join — Identidade, Estratégia, Design e Tecnologia',
-    'Estratégia, identidade, design, tecnologia e sistemas para pessoas e organizações que desejam construir com clareza.',
+    'Renata Join — Soluções Digitais, Estratégia e Tecnologia',
+    'Transformo problemas complexos em soluções digitais bem estruturadas. Tecnologia, negócio, processos e experiência do usuário, com Design como diferencial.',
   ],
   '/sobre': [
     'Sobre | Renata Join',

@@ -1,12 +1,12 @@
 export const services = [
   {
-    id: 'identidade',
-    audience: 'Para você e para negócios',
-    title: 'Identidade e posicionamento',
-    problem: 'Quando existe valor, mas falta clareza para expressá-lo e ser reconhecido.',
+    id: 'sistemas',
+    audience: 'Para pessoas e negócios',
+    title: 'Sistemas e organização',
+    problem: 'Quando informações, tarefas e processos dependem da memória ou estão dispersos.',
     solution:
-      'Investigação de identidade, posicionamento, linguagem e direção visual para construir presença coerente.',
-    investment: 'Projetos a partir de R$ 4.800',
+      'Análise do fluxo real de trabalho, documentação, e sistemas em Notion que transformam rotina em estrutura utilizável.',
+    investment: 'Projetos a partir de R$ 3.800',
   },
   {
     id: 'web',
@@ -14,17 +14,17 @@ export const services = [
     title: 'Sites e experiências digitais',
     problem: 'Quando a presença digital não explica, não orienta ou não sustenta a decisão do cliente.',
     solution:
-      'Arquitetura da informação, UX, conteúdo, design e desenvolvimento de sites orientados ao contexto.',
+      'Arquitetura da informação e UX primeiro; depois conteúdo, design e desenvolvimento — sempre orientados ao contexto.',
     investment: 'Projetos a partir de R$ 6.500',
   },
   {
-    id: 'sistemas',
-    audience: 'Para pessoas e negócios',
-    title: 'Sistemas e organização',
-    problem: 'Quando informações, tarefas e processos dependem da memória ou estão dispersos.',
+    id: 'identidade',
+    audience: 'Para você e para negócios',
+    title: 'Identidade e posicionamento',
+    problem: 'Quando a base já está clara, mas falta uma linguagem visual à altura do que já foi construído.',
     solution:
-      'Diagnóstico, documentação, fluxos e sistemas em Notion para transformar rotina em estrutura utilizável.',
-    investment: 'Projetos a partir de R$ 3.800',
+      'Investigação de posicionamento, linguagem e direção visual — aplicada sobre uma estrutura já compreendida, não no lugar dela.',
+    investment: 'Projetos a partir de R$ 4.800',
   },
   {
     id: 'consultoria',
