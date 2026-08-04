@@ -40,9 +40,9 @@ describe('rotas essenciais', () => {
       screen.getByRole('heading', { level: 1, name: /analista de soluções digitais/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: /uma solução é consequência/i }),
+      screen.getByRole('heading', { name: /conhecimento organizado pelo problema/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /baixar currículo pdf/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /baixar currículo/i })).toHaveAttribute(
       'href',
       '/documents/renata-gomes-araujo-curriculo-ats.pdf',
     );
