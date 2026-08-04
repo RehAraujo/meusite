@@ -55,6 +55,7 @@
     --space-5: clamp(3rem, 7vw, 6rem);
     --space-6: clamp(5rem, 10vw, 9rem);
     --radius-small: 0.25rem;
+    --radius-medium: 0.85rem;
     --radius-round: 50%;
     --shadow-accent: 0.45rem 0.45rem 0 #32101f;
     --content-width: 72.5rem;
@@ -554,6 +555,29 @@
     background: var(--color-surface);
   }
 
+  .project-card--preview {
+    border: 0;
+    border-radius: var(--radius-medium);
+    background: var(--color-terracotta);
+  }
+
+  .project-card--preview .card-label {
+    color: var(--color-background);
+    opacity: 0.65;
+  }
+
+  .project-card--preview h3 {
+    color: var(--color-background);
+  }
+
+  .project-card--preview p {
+    color: var(--color-border-strong);
+  }
+
+  .project-card--preview a {
+    color: var(--color-background);
+  }
+
   .card-grid article h2,
   .card-grid article h3 {
     margin-bottom: var(--space-3);
@@ -570,6 +594,21 @@
     min-height: 28rem;
     flex-direction: column;
     align-items: flex-start;
+    border: 0;
+    border-radius: var(--radius-medium);
+    background: var(--color-paper);
+  }
+
+  .path-card .card-label {
+    color: var(--color-rose);
+  }
+
+  .path-card h3 {
+    color: var(--color-background);
+  }
+
+  .path-card p {
+    color: var(--color-border-strong);
   }
 
   .path-card .button {
@@ -578,16 +617,28 @@
 
   .principle-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 0;
+    gap: var(--space-2);
   }
 
   .principle-card {
     min-height: 13rem;
     padding: var(--space-4);
-    border: 1px solid var(--color-border);
+    border: 0;
+    border-radius: var(--radius-medium);
+    background: var(--color-rose);
   }
 
-  .principle-card span,
+  .principle-card span {
+    display: block;
+    margin-bottom: var(--space-4);
+    color: rgb(255 248 239 / 65%);
+    font: 0.7rem var(--font-mono);
+  }
+
+  .principle-card strong {
+    color: var(--color-text);
+  }
+
   .process-grid span {
     display: block;
     margin-bottom: var(--space-4);
@@ -692,6 +743,29 @@
     aspect-ratio: 1;
     border-radius: var(--radius-round);
     object-fit: cover;
+  }
+
+  .about-preview {
+    position: relative;
+  }
+
+  .about-preview::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    z-index: 0;
+    width: min(60vw, 22rem);
+    height: min(60vw, 22rem);
+    background: radial-gradient(circle, rgb(221 0 96 / 45%), transparent 70%);
+    filter: blur(2.5rem);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .about-preview img {
+    position: relative;
+    z-index: 1;
   }
 
   .contact-section {

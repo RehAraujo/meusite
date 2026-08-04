@@ -173,7 +173,11 @@ export default function HomePage() {
           </SectionHeading>
           <div className="card-grid card-grid--three">
             {projects.slice(0, 3).map((project) => (
-              <article className="project-card" key={project.name} data-reveal>
+              <article
+                className="project-card project-card--preview"
+                key={project.name}
+                data-reveal
+              >
                 <p className="card-label">{project.context}</p>
                 <h3>{project.name}</h3>
                 <p>{project.challenge}</p>
