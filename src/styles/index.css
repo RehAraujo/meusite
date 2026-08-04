@@ -27,7 +27,7 @@
 
 @layer tokens {
   :root {
-    --color-background: #070606;
+    --color-background: #191210;
     --color-surface: #100c0a;
     --color-surface-raised: #18100e;
     --color-paper: #f6ecdf;
@@ -37,8 +37,9 @@
     --color-border: #30211c;
     --color-border-strong: #5c4036;
     --color-pink: #ff78b1;
-    --color-rose: #a61956;
+    --color-rose: #dd0060;
     --color-terracotta: #d47a3f;
+    --color-terracotta-light: #ff9956;
     --font-heading: 'Cormorant Garamond', georgia, serif;
     --font-body: 'Instrument Sans', system-ui, sans-serif;
     --font-mono: 'DM Mono', monospace;
@@ -308,7 +309,7 @@
   .hero-signature {
     display: block;
     margin-top: var(--space-3);
-    color: var(--color-pink);
+    color: var(--color-terracotta);
     font: 500 clamp(1.3rem, 1.1rem + 0.85vw, 1.75rem) / 1.35 var(--font-heading);
     font-style: italic;
   }
@@ -372,6 +373,50 @@
     text-shadow: 0 0.1rem 0.4rem rgb(0 0 0 / 60%);
   }
 
+  .hero-indicators {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+    padding-block: var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .hero-indicators li {
+    padding-left: var(--space-4);
+    border-left: 1px solid var(--color-border);
+  }
+
+  .hero-indicators li:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .hero-indicators .indicator-value {
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--color-terracotta);
+    font: 300 var(--step-1) var(--font-heading);
+    font-style: italic;
+    line-height: 1;
+  }
+
+  .hero-indicators .indicator-label {
+    color: var(--color-text-soft);
+  }
+
+  .hero-indicators .indicator-title {
+    margin-bottom: var(--space-1);
+    color: var(--color-text);
+    font: 500 0.68rem var(--font-mono);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .hero-indicators .indicator-description {
+    color: var(--color-text-soft);
+    font-size: var(--step--1);
+  }
+
   .hero-copy,
   .lead {
     max-width: var(--reading-width);
@@ -424,7 +469,7 @@
   }
 
   .button:hover {
-    background: #c12c68;
+    background: #b3004f;
     transform: translateY(-0.15rem);
   }
 
@@ -462,7 +507,7 @@
   }
 
   .button--special:hover {
-    background: linear-gradient(120deg, #c12c68, #e08c4f);
+    background: linear-gradient(120deg, #b3004f, var(--color-terracotta-light));
   }
 
   .surface-section {
@@ -1525,12 +1570,18 @@
     .card-grid--three,
     .principle-grid,
     .process-grid,
-    .resume-grid {
+    .resume-grid,
+    .hero-indicators {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .career-study-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hero-indicators li:nth-child(2n + 1) {
+      padding-left: 0;
+      border-left: 0;
     }
   }
 
@@ -1544,8 +1595,20 @@
     .timeline-layout,
     .footer-grid,
     .resume-grid,
-    .hero-editorial {
+    .hero-editorial,
+    .hero-indicators {
       grid-template-columns: 1fr;
+    }
+
+    .hero-indicators {
+      gap: var(--space-3);
+      padding-block: var(--space-4);
+    }
+
+    .hero-indicators li,
+    .hero-indicators li:nth-child(2n + 1) {
+      padding-left: var(--space-3);
+      border-left: 2px solid var(--color-border-strong);
     }
 
     .hero-editorial .hero-text {

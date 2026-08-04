@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ButtonLink } from '../components/ui/ButtonLink';
 import { SectionHeading } from '../components/ui/SectionHeading';
-import { paths, principles, processSteps } from '../data/site';
+import { heroIndicators, paths, principles, processSteps } from '../data/site';
 import { projects } from '../data/projects';
 import { tools } from '../data/tools';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
@@ -67,6 +67,32 @@ export default function HomePage() {
             fetchPriority="high"
           />
           <span>Renata Araujo</span>
+        </div>
+      </section>
+
+      <section>
+        <div className="container">
+          <ol className="hero-indicators">
+            {heroIndicators.map((indicator, index) => (
+              <li
+                key={indicator.label ?? indicator.title}
+                data-reveal
+                style={{ '--reveal-delay': `${index * 80}ms` }}
+              >
+                {indicator.value ? (
+                  <>
+                    <span className="indicator-value">{indicator.value}</span>
+                    <span className="indicator-label">{indicator.label}</span>
+                  </>
+                ) : (
+                  <>
+                    <p className="indicator-title">{indicator.title}</p>
+                    <p className="indicator-description">{indicator.description}</p>
+                  </>
+                )}
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 

@@ -29,6 +29,22 @@ export const principles = [
   'Excelência sem perder o propósito.',
 ];
 
+// PENDENTE DE APROVAÇÃO: números e textos vindos do rascunho do Figma
+// (frame 9212:11410) — confirmar valores reais antes do merge para main.
+export const heroIndicators = [
+  { value: '+10', label: 'anos criando' },
+  { value: '+100', label: 'projetos' },
+  {
+    title: 'Resultados',
+    description: 'Organização, comunicação e estética no design e nos processos.',
+  },
+  {
+    title: 'Propósito',
+    description:
+      'Ajudar as pessoas a se entenderem, se comunicarem e alavancarem seus objetivos.',
+  },
+];
+
 export const paths = [
   {
     eyebrow: 'Para você',
