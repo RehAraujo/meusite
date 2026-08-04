@@ -108,8 +108,8 @@
     }
   ],
   "education": [
-    {"course": "Análise e Desenvolvimento de Sistemas", "status": "Graduação concluída", "year": "2025"},
-    {"course": "Design Gráfico", "status": "Graduação concluída", "year": "2019"},
+    {"course": "Análise e Desenvolvimento de Sistemas", "institution": "Universidade Católica de Brasília", "status": "Graduação concluída", "year": "2025"},
+    {"course": "Design Gráfico", "institution": "Centro Universitário UDF", "status": "Graduação concluída", "year": "2019"},
     {"course": "Estudos em Pedagogia", "status": "Formação não concluída", "note": "Repertório relacionado a educação, comportamento e comunicação."},
     {"course": "Estudos em Arquitetura", "status": "Formação não concluída", "note": "Repertório relacionado a espaço, estrutura e experiência humana."}
   ],
@@ -148,7 +148,6 @@
   ],
   "pending": [
     "E-mail profissional não localizado no projeto.",
-    "Instituições das graduações não confirmadas.",
     "Datas exatas de início da atuação independente e da experiência na VIJ/DF não confirmadas.",
     "Idiomas e respectivos níveis não confirmados.",
     "Detalhes de certificados adicionais da Alura ainda não confirmados fora do LinkedIn.",

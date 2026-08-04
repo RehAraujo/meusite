@@ -174,6 +174,7 @@ export default function CareerPage() {
           {resume.education.slice(0, 2).map((item) => (
             <article key={item.course}>
               <h3>{item.course}</h3>
+              {item.institution && <p className="career-clear-institution">{item.institution}</p>}
               <p>
                 {item.status} · {item.year}
               </p>
