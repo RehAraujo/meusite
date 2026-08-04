@@ -555,7 +555,7 @@
     background: var(--color-surface);
   }
 
-  .project-card--preview {
+  .project-card--preview.project-card--preview {
     border: 0;
     border-radius: var(--radius-medium);
     background: var(--color-terracotta);
@@ -594,6 +594,9 @@
     min-height: 28rem;
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .path-card.path-card {
     border: 0;
     border-radius: var(--radius-medium);
     background: var(--color-paper);
