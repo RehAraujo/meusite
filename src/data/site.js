@@ -16,17 +16,47 @@ export const navigation = [
   { label: 'Como posso ajudar', to: '/servicos' },
   { label: 'Construções', to: '/clientes' },
   { label: 'Pensamentos', to: '/pensamentos' },
-  { label: 'Ferramentas', to: '/ferramentas' },
   { label: 'Parcerias', to: '/midia-kit' },
   { label: 'Contato', to: '/#contato' },
 ];
 
 export const principles = [
-  'Entender antes de executar.',
-  'Estrutura antes da ferramenta.',
-  'Pessoas antes dos produtos.',
-  'Clareza antes da estética.',
-  'Excelência sem perder o propósito.',
+  {
+    title: 'Entender',
+    description: 'Antes de executar, investigo o contexto, as pessoas e o problema real.',
+  },
+  {
+    title: 'Estruturar',
+    description: 'A lógica vem antes da ferramenta e sustenta escolhas mais conscientes.',
+  },
+  {
+    title: 'Priorizar pessoas',
+    description: 'Produtos e processos só fazem sentido quando ajudam alguém de verdade.',
+  },
+  {
+    title: 'Comunicar com clareza',
+    description: 'A estética amplifica uma mensagem que já precisa ser compreensível.',
+  },
+  {
+    title: 'Preservar propósito',
+    description: 'Excelência é construir bem sem perder a razão pela qual começamos.',
+  },
+];
+
+// PENDENTE DE APROVAÇÃO: números e textos vindos do rascunho do Figma
+// (frame 9212:11410) — confirmar valores reais antes do merge para main.
+export const heroIndicators = [
+  { value: '+10', label: 'anos criando' },
+  { value: '+100', label: 'projetos' },
+  {
+    title: 'Resultados',
+    description: 'Organização, comunicação e estética no design e nos processos.',
+  },
+  {
+    title: 'Propósito',
+    description:
+      'Ajudar as pessoas a se entenderem, se comunicarem e alavancarem seus objetivos.',
+  },
 ];
 
 export const paths = [

@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ButtonLink } from '../components/ui/ButtonLink';
 import { SectionHeading } from '../components/ui/SectionHeading';
-import { paths, principles, processSteps } from '../data/site';
+import { heroIndicators, paths, principles, processSteps } from '../data/site';
 import { projects } from '../data/projects';
-import { tools } from '../data/tools';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { useReveal } from '../hooks/useReveal';
 import { createWhatsAppUrl } from '../utils/whatsapp';
@@ -39,7 +38,10 @@ export default function HomePage() {
               e executáveis.
             </p>
           </div>
-          <p className="hero-signature">A estética chama atenção. A lógica faz ficar.</p>
+          <p className="hero-signature">
+            A estética chama atenção.
+            <br /> A lógica faz ficar.
+          </p>
           <div className="button-group">
             <ButtonLink to="/servicos" className="button--special">
               Descubra como posso ajudar
@@ -54,11 +56,7 @@ export default function HomePage() {
             consegue manter.
           </p>
         </div>
-        <div
-          className="hero-portrait"
-          data-reveal
-          style={{ '--reveal-delay': '180ms' }}
-        >
+        <div className="hero-portrait" data-reveal style={{ '--reveal-delay': '180ms' }}>
           <img
             src="/assets/renata-hero-workspace.jpg"
             alt="Renata Araujo em home office, com monitores ao fundo"
@@ -67,6 +65,32 @@ export default function HomePage() {
             fetchPriority="high"
           />
           <span>Renata Araujo</span>
+        </div>
+      </section>
+
+      <section className="hero-indicator-section">
+        <div className="container">
+          <ol className="hero-indicators">
+            {heroIndicators.map((indicator, index) => (
+              <li
+                key={indicator.label ?? indicator.title}
+                data-reveal
+                style={{ '--reveal-delay': `${index * 80}ms` }}
+              >
+                {indicator.value ? (
+                  <>
+                    <span className="indicator-value">{indicator.value}</span>
+                    <span className="indicator-label">{indicator.label}</span>
+                  </>
+                ) : (
+                  <>
+                    <p className="indicator-title">{indicator.title}</p>
+                    <p className="indicator-description">{indicator.description}</p>
+                  </>
+                )}
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
@@ -95,10 +119,18 @@ export default function HomePage() {
         </div>
         <div className="principle-grid">
           {principles.map((principle, index) => (
-            <article key={principle} className="principle-card" data-reveal>
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <strong>{principle}</strong>
-            </article>
+            <details
+              key={principle.title}
+              className="principle-card"
+              data-reveal
+              style={{ '--reveal-delay': `${index * 55}ms` }}
+            >
+              <summary>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <strong>{principle.title}</strong>
+              </summary>
+              <p>{principle.description}</p>
+            </details>
           ))}
         </div>
       </section>
@@ -119,8 +151,13 @@ export default function HomePage() {
             </p>
           </SectionHeading>
           <div className="card-grid card-grid--three">
-            {paths.map((path) => (
-              <article className="path-card" key={path.title} data-reveal>
+            {paths.map((path, index) => (
+              <article
+                className="path-card"
+                key={path.title}
+                data-reveal
+                style={{ '--reveal-delay': `${index * 70}ms` }}
+              >
                 <p className="card-label">{path.eyebrow}</p>
                 <h3>{path.title}</h3>
                 <p>{path.description}</p>
@@ -145,9 +182,14 @@ export default function HomePage() {
               O que importa é o problema, o raciocínio e as soluções escolhidas para cada contexto.
             </p>
           </SectionHeading>
-          <div className="card-grid card-grid--three">
-            {projects.slice(0, 3).map((project) => (
-              <article className="project-card" key={project.name} data-reveal>
+          <div className="card-grid featured-project-grid">
+            {projects.slice(0, 2).map((project, index) => (
+              <article
+                className="project-card project-card--preview"
+                key={project.name}
+                data-reveal
+                style={{ '--reveal-delay': `${index * 70}ms` }}
+              >
                 <p className="card-label">{project.context}</p>
                 <h3>{project.name}</h3>
                 <p>{project.challenge}</p>
@@ -155,6 +197,9 @@ export default function HomePage() {
               </article>
             ))}
           </div>
+          <Link className="section-action" to="/clientes">
+            Ver todas as construções <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </section>
 
@@ -168,44 +213,15 @@ export default function HomePage() {
               </>
             }
           />
-          <ol className="process-grid">
+          <ol className="process-list">
             {processSteps.map(([title, description], index) => (
-              <li key={title} data-reveal>
+              <li key={title} data-reveal style={{ '--reveal-delay': `${index * 55}ms` }}>
                 <span>{String(index + 1).padStart(2, '0')}</span>
                 <h3>{title}</h3>
                 <p>{description}</p>
               </li>
             ))}
           </ol>
-        </div>
-      </section>
-
-      <section className="surface-section">
-        <div className="container">
-          <SectionHeading
-            eyebrow="Ferramentas"
-            title={
-              <>
-                Algumas construções podem começar <em>agora.</em>
-              </>
-            }
-          >
-            <p>
-              Produtos digitais criados a partir de problemas recorrentes e da minha própria
-              prática.
-            </p>
-          </SectionHeading>
-          <div className="card-grid">
-            {tools.map((tool) => (
-              <article className="tool-card" key={tool.id} data-reveal>
-                <p className="card-label">{tool.format}</p>
-                <h3>{tool.name}</h3>
-                <p>{tool.description}</p>
-                <strong className="price">{tool.price}</strong>
-                <ButtonLink to={tool.buyUrl}>Comprar ferramenta</ButtonLink>
-              </article>
-            ))}
-          </div>
         </div>
       </section>
 

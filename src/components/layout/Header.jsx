@@ -5,8 +5,10 @@ import { navigation } from '../../data/site';
 export function Header() {
   const [open, setOpen] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const location = useLocation();
 
+  useEffect(() => setMounted(true), []);
   useEffect(() => setOpen(false), [location]);
 
   useEffect(() => {
@@ -21,7 +23,7 @@ export function Header() {
 
   return (
     <>
-      <div className="progress" style={{ transform: `scaleX(${progress / 100})` }} />
+      {mounted && <div className="progress" style={{ transform: `scaleX(${progress / 100})` }} />}
       <header className="site-header">
         <Link className="logo" to="/" aria-label="Renata Join — página inicial">
           Renata <em>Join</em>
