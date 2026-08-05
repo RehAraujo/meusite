@@ -16,7 +16,7 @@ describe('rotas essenciais', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: /transformo problemas complexos em soluções digitais bem estruturadas/i,
+        name: /a estética chama atenção.*a lógica faz ficar/i,
       }),
     ).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: /navegação do rodapé/i })).toBeInTheDocument();
