@@ -16,17 +16,32 @@ export const navigation = [
   { label: 'Como posso ajudar', to: '/servicos' },
   { label: 'Construções', to: '/clientes' },
   { label: 'Pensamentos', to: '/pensamentos' },
-  { label: 'Ferramentas', to: '/ferramentas' },
   { label: 'Parcerias', to: '/midia-kit' },
   { label: 'Contato', to: '/#contato' },
 ];
 
 export const principles = [
-  'Consulta antes da proposta.',
-  'Estrutura antes da ferramenta.',
-  'Pessoas antes dos produtos.',
-  'Clareza antes da estética.',
-  'Excelência sem perder o propósito.',
+  {
+    title: 'Consulta',
+    description:
+      'Antes de propor uma solução, compreendo o contexto, as pessoas, os objetivos e o problema real.',
+  },
+  {
+    title: 'Estruturar',
+    description: 'A lógica vem antes da ferramenta e sustenta escolhas mais conscientes.',
+  },
+  {
+    title: 'Priorizar pessoas',
+    description: 'Produtos e processos só fazem sentido quando ajudam alguém de verdade.',
+  },
+  {
+    title: 'Comunicar com clareza',
+    description: 'A estética amplifica uma mensagem que já precisa ser compreensível.',
+  },
+  {
+    title: 'Preservar propósito',
+    description: 'Excelência é construir bem sem perder a razão pela qual começamos.',
+  },
 ];
 
 // PENDENTE DE APROVAÇÃO: números e textos vindos do rascunho do Figma
