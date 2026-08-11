@@ -32,8 +32,7 @@ export const services = [
     title: 'Clareza antes da solução',
     problem: 'Quando o problema é percebido, mas ainda não está claro o que precisa ser construído.',
     solution:
-      'Leitura do contexto, levantamento de necessidades e recomendação de prioridades e caminhos.',
-    investment: 'Sob análise de disponibilidade',
-    unavailable: true,
+      'Investigação aprofundada do contexto, mapeamento de prioridades e recomendação do caminho antes de qualquer execução.',
+    investment: 'Definido a partir da consulta inicial',
   },
 ];

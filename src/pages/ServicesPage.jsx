@@ -20,9 +20,10 @@ export default function ServicesPage() {
             O serviço certo começa pelo <em>problema certo.</em>
           </h1>
           <p className="lead">
-            Você não precisa escolher uma entrega antes de compreender aquilo que precisa mudar.
+            Você não precisa chegar sabendo qual solução contratar. A consulta começa pelo
+            contexto, pelo problema e pelo que precisa mudar.
           </p>
-          <ButtonLink to="/#contato">Apresentar meu contexto</ButtonLink>
+          <ButtonLink to="/#contato">Agendar uma consulta</ButtonLink>
         </div>
       </section>
       <section id="para-voce">
@@ -55,7 +56,7 @@ export default function ServicesPage() {
                 <p>{service.solution}</p>
                 <p className="investment">{service.investment}</p>
                 {!service.unavailable && (
-                  <ButtonLink to={`/#contato`}>Solicitar proposta</ButtonLink>
+                  <ButtonLink to={`/#contato`}>Conversar sobre este projeto</ButtonLink>
                 )}
               </article>
             ))}

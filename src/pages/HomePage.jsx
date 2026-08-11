@@ -248,7 +248,7 @@ export default function HomePage() {
 
   const submit = (event) => {
     event.preventDefault();
-    const message = `Olá, Rê! Vim pelo pré-diagnóstico do site.\n\nMeu nome: ${form.name.trim()}\nCaminho: ${form.interest}\nMomento: ${form.stage}\nPrioridade: ${form.priority}\n\nContexto:\n${form.message.trim()}`;
+    const message = `Olá, Rê! Vim pela consulta inicial do site.\n\nMeu nome: ${form.name.trim()}\nCaminho: ${form.interest}\nMomento: ${form.stage}\nPrioridade: ${form.priority}\n\nContexto:\n${form.message.trim()}`;
     window.open(createWhatsAppUrl(message), '_blank', 'noopener,noreferrer');
   };
 
@@ -461,8 +461,9 @@ export default function HomePage() {
             }
           >
             <p>
-              Nem todo mundo chega precisando da mesma coisa. Todos os caminhos começam pela
-              compreensão do problema e do contexto.
+              Nem todo mundo chega precisando da mesma coisa. Por isso, todo projeto começa por uma
+              consulta: antes de propor uma solução, compreendo o contexto, o problema e o que
+              precisa ser construído.
             </p>
           </SectionHeading>
           <div className="card-grid card-grid--three">
@@ -574,18 +575,18 @@ export default function HomePage() {
         <SectionConstellation variant="left" />
         <div className="container contact-grid">
           <div data-reveal>
-            <p className="eyebrow">Contato</p>
+            <p className="eyebrow">Consulta inicial</p>
             <h2>
               Toda construção começa com uma conversa <em>honesta.</em>
             </h2>
             <p>
-              Você não precisa chegar sabendo o nome do serviço ou a solução exata. Conte o contexto
-              e identificaremos o caminho mais coerente.
+              Você não precisa chegar sabendo o nome do serviço ou a solução exata — é para isso que
+              serve essa consulta: entender o contexto e identificar o caminho mais coerente.
             </p>
           </div>
           <form className="contact-diagnostic" onSubmit={submit} data-reveal>
             <div className="contact-diagnostic__intro">
-              <p className="eyebrow">Pré-diagnóstico inicial</p>
+              <p className="eyebrow">Antes da consulta</p>
               <h3>Vamos começar pelo contexto.</h3>
               <p>Quatro respostas rápidas ajudam a tornar nossa primeira conversa mais objetiva.</p>
             </div>
