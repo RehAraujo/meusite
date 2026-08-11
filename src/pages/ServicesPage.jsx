@@ -266,10 +266,10 @@ export default function ServicesPage() {
             </m.div>
             <m.img
               className="page-hero--servicos__portrait"
-              src="/assets/renata-diagnostico-inicial.jpg"
+              src="/assets/renata-diagnostico-inicial-cutout.png"
               alt="Renata Araujo segurando um tablet, sorrindo"
-              width="600"
-              height="900"
+              width="666"
+              height="1000"
               fetchPriority="high"
               variants={introItemVariants}
               initial={shouldReduceMotion ? false : 'hidden'}
@@ -279,8 +279,8 @@ export default function ServicesPage() {
         </section>
 
         <section className="diagnostic-section" id="diagnostico-inicial">
-          <div className="container diagnostic-intro">
-            <div data-reveal>
+          <div className="container diagnostic-grid">
+            <div className="diagnostic-intro" data-reveal>
               <p className="eyebrow">Diagnóstico inicial</p>
               <h2>Vamos começar pelo que está travando.</h2>
               <p className="lead">
@@ -288,9 +288,7 @@ export default function ServicesPage() {
                 problema. A partir disso, consigo avaliar qual caminho faz mais sentido.
               </p>
             </div>
-          </div>
 
-          <div className="container">
             <form className="diagnostic-form" onSubmit={handleSubmit}>
               {submitted ? (
                 <div className="diagnostic-success">
