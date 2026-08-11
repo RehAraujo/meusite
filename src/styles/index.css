@@ -1526,12 +1526,37 @@
   }
 
   .page-servicos {
-    background: var(--color-surface-raised);
+    background: var(--color-border);
+  }
+
+  .page-servicos .button {
+    gap: 0.65rem;
+    min-height: 3rem;
+    border-radius: 999px;
+    padding-inline: 1.35rem;
+    letter-spacing: 0.07em;
+  }
+
+  .page-servicos .button::after {
+    content: '→';
+    transition: transform var(--transition-fast);
+  }
+
+  .page-servicos .button:hover::after,
+  .page-servicos .button:focus-visible::after {
+    transform: translateX(0.2rem);
+  }
+
+  .page-servicos .button--special:hover,
+  .page-servicos .button--special:focus-visible {
+    border-color: #b3004f;
+    background: #b3004f;
   }
 
   .page-hero--servicos {
     position: relative;
     overflow: clip;
+    min-height: min(46rem, 82svh);
   }
 
   .page-hero--servicos::before {
@@ -1540,13 +1565,43 @@
     z-index: 0;
     content: '';
     background:
-      radial-gradient(circle at 88% 18%, rgb(221 0 96 / 10%), transparent 30%),
-      radial-gradient(circle at 8% 82%, rgb(212 122 63 / 8%), transparent 32%);
+      radial-gradient(circle at 88% 18%, rgb(221 0 96 / 12%), transparent 30%),
+      radial-gradient(circle at 8% 82%, rgb(212 122 63 / 10%), transparent 32%);
   }
 
   .page-hero--servicos .container {
     position: relative;
     z-index: 1;
+  }
+
+  .page-hero--servicos__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(16rem, 0.9fr);
+    align-items: center;
+    gap: var(--space-5);
+  }
+
+  .page-hero--servicos__portrait {
+    width: 100%;
+    height: auto;
+    max-width: 24rem;
+    aspect-ratio: 2 / 3;
+    border-radius: var(--radius-medium);
+    object-fit: cover;
+    justify-self: end;
+    box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 28%);
+  }
+
+  .diagnostic-section {
+    background: var(--color-surface-raised);
+  }
+
+  .diagnostic-intro {
+    max-width: 42rem;
+  }
+
+  .section-divider {
+    border-top: 1px solid var(--color-border-strong);
   }
 
   .service-chapters {
@@ -1598,7 +1653,8 @@
 
   .service-diagnostic {
     border-top: 1px solid var(--color-terracotta);
-    border-bottom: 1px solid var(--color-border-strong);
+    background: var(--color-paper);
+    padding-block: var(--space-6);
   }
 
   .service-diagnostic .card-label {
@@ -1607,6 +1663,11 @@
 
   .service-diagnostic h2 {
     max-width: 20ch;
+    color: var(--color-background);
+  }
+
+  .service-diagnostic .lead {
+    color: var(--color-border-strong);
   }
 
   .service-diagnostic__body {
@@ -1617,8 +1678,22 @@
     margin-top: var(--space-4);
   }
 
+  .service-diagnostic .service-diagnostic__body strong {
+    color: var(--color-border-strong);
+  }
+
+  .service-diagnostic .service-diagnostic__body p {
+    color: var(--color-background);
+  }
+
   .service-diagnostic .hero-note {
     margin-top: var(--space-4);
+    border-left-color: var(--color-border-strong);
+    color: var(--color-border-strong);
+  }
+
+  .editorial-interlude-section {
+    background: var(--color-surface-raised);
   }
 
   .editorial-interlude {
@@ -1708,23 +1783,6 @@
 
   .path-sequence p {
     color: var(--color-text-soft);
-  }
-
-  .diagnostic-intro {
-    display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(14rem, 0.7fr);
-    gap: var(--space-5);
-    align-items: center;
-  }
-
-  .diagnostic-intro img {
-    width: 100%;
-    max-width: 22rem;
-    height: auto;
-    aspect-ratio: 2 / 3;
-    border-radius: var(--radius-medium);
-    object-fit: cover;
-    justify-self: end;
   }
 
   .diagnostic-form {
@@ -1818,11 +1876,11 @@
       grid-template-columns: 1fr;
     }
 
-    .diagnostic-intro {
+    .page-hero--servicos__grid {
       grid-template-columns: 1fr;
     }
 
-    .diagnostic-intro img {
+    .page-hero--servicos__portrait {
       max-width: 14rem;
       justify-self: start;
     }
@@ -1939,8 +1997,7 @@
 
   .button--home,
   .paths-section .button,
-  .contact-section .button,
-  .diagnostic-section .button {
+  .contact-section .button {
     min-height: 3rem;
     border-color: var(--color-rose);
     border-radius: 999px;
@@ -1953,9 +2010,7 @@
   .paths-section .button:hover,
   .paths-section .button:focus-visible,
   .contact-section .button:hover,
-  .contact-section .button:focus-visible,
-  .diagnostic-section .button:hover,
-  .diagnostic-section .button:focus-visible {
+  .contact-section .button:focus-visible {
     border-color: #b3004f;
     background: #b3004f;
     color: #fff;

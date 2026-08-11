@@ -239,31 +239,43 @@ export default function ServicesPage() {
       <div className="page-servicos">
         <section className="page-hero page-hero--servicos">
           <SectionConstellation variant="right" />
-          <m.div
-            className="container"
-            variants={introContainerVariants}
-            initial={shouldReduceMotion ? false : 'hidden'}
-            animate="visible"
-          >
-            <m.p className="eyebrow" variants={introItemVariants}>
-              Como posso ajudar
-            </m.p>
-            <m.h1 variants={introItemVariants}>
-              O serviço certo começa pelo <em>problema certo.</em>
-            </m.h1>
-            <m.p className="lead" variants={introItemVariants}>
-              Você não precisa saber qual solução contratar. Comece me contando o que está
-              acontecendo — o caminho vem depois.
-            </m.p>
-            <m.div className="button-group" variants={introItemVariants}>
-              <a className="button" href="#diagnostico-inicial">
-                Começar diagnóstico
-              </a>
-              <a className="button button--secondary" href="#solucoes">
-                Conhecer soluções
-              </a>
+          <div className="container page-hero--servicos__grid">
+            <m.div
+              variants={introContainerVariants}
+              initial={shouldReduceMotion ? false : 'hidden'}
+              animate="visible"
+            >
+              <m.p className="eyebrow" variants={introItemVariants}>
+                Como posso ajudar
+              </m.p>
+              <m.h1 variants={introItemVariants}>
+                O serviço certo começa pelo <em>problema certo.</em>
+              </m.h1>
+              <m.p className="lead" variants={introItemVariants}>
+                Você não precisa saber qual solução contratar. Comece me contando o que está
+                acontecendo — o caminho vem depois.
+              </m.p>
+              <m.div className="button-group" variants={introItemVariants}>
+                <a className="button" href="#diagnostico-inicial">
+                  Começar diagnóstico
+                </a>
+                <a className="button button--secondary" href="#solucoes">
+                  Conhecer soluções
+                </a>
+              </m.div>
             </m.div>
-          </m.div>
+            <m.img
+              className="page-hero--servicos__portrait"
+              src="/assets/renata-diagnostico-inicial.jpg"
+              alt="Renata Araujo segurando um tablet, sorrindo"
+              width="600"
+              height="900"
+              fetchPriority="high"
+              variants={introItemVariants}
+              initial={shouldReduceMotion ? false : 'hidden'}
+              animate="visible"
+            />
+          </div>
         </section>
 
         <section className="diagnostic-section" id="diagnostico-inicial">
@@ -276,15 +288,6 @@ export default function ServicesPage() {
                 problema. A partir disso, consigo avaliar qual caminho faz mais sentido.
               </p>
             </div>
-            <img
-              src="/assets/renata-diagnostico-inicial.jpg"
-              alt="Renata Araujo segurando um tablet, sorrindo"
-              width="600"
-              height="900"
-              loading="lazy"
-              data-reveal
-              style={{ '--reveal-delay': '90ms' }}
-            />
           </div>
 
           <div className="container">
@@ -425,7 +428,7 @@ export default function ServicesPage() {
           </div>
         </section>
 
-        <section id="caminho">
+        <section className="section-divider" id="caminho">
           <div className="container">
             <SectionHeading
               eyebrow="O caminho"
@@ -447,7 +450,7 @@ export default function ServicesPage() {
           </div>
         </section>
 
-        <section id="solucoes">
+        <section className="section-divider" id="solucoes">
           <div className="container">
             <SectionHeading
               eyebrow="Soluções"
@@ -495,7 +498,7 @@ export default function ServicesPage() {
           </div>
         </section>
 
-        <section className="surface-section service-diagnostic" id="diagnostico-estrategico">
+        <section className="service-diagnostic" id="diagnostico-estrategico">
           <div className="container">
             <p className="card-label">{diagnostic.audience}</p>
             <h2>Quando ainda não está claro o que precisa ser construído.</h2>
@@ -520,7 +523,7 @@ export default function ServicesPage() {
           </div>
         </section>
 
-        <section id="para-negocio">
+        <section className="editorial-interlude-section" id="para-negocio">
           <div className="container editorial-interlude">
             <p className="eyebrow">Uma diferença importante</p>
             <h2>
@@ -549,7 +552,7 @@ export default function ServicesPage() {
           </div>
         </section>
 
-        <section className="services-closing">
+        <section className="services-closing section-divider">
           <SectionConstellation variant="left" />
           <m.div
             className="container"
