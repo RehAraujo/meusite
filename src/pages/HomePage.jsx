@@ -276,7 +276,7 @@ export default function HomePage() {
         >
           <m.div className="hero-text" variants={heroContainerVariants}>
             <m.p className="eyebrow hero-kicker" variants={heroItemVariants} data-hero-motion>
-              Design + Tecnologia + Estratégia
+              Estratégia + Design + Tecnologia
             </m.p>
             <m.h1
               className="hero-motion-title"
@@ -316,7 +316,7 @@ export default function HomePage() {
               />
             </m.span>
             <m.p className="hero-statement" variants={heroItemVariants} data-hero-motion>
-              Transformo problemas complexos em soluções digitais bem estruturadas.
+              Compreendo problemas complexos antes de propor soluções bem estruturadas.
             </m.p>
             <m.div className="hero-copy" variants={heroItemVariants} data-hero-motion>
               <p>
@@ -326,8 +326,8 @@ export default function HomePage() {
               </p>
             </m.div>
             <m.div className="button-group" variants={heroItemVariants} data-hero-motion>
-              <ButtonLink to="/servicos" className="button--special">
-                Descubra como posso ajudar
+              <ButtonLink to="/#contato" className="button--special">
+                Agendar uma consulta
               </ButtonLink>
               <ButtonLink to="/clientes" secondary>
                 Conheça minhas construções
