@@ -316,13 +316,12 @@ export default function HomePage() {
               />
             </m.span>
             <m.p className="hero-statement" variants={heroItemVariants} data-hero-motion>
-              Compreendo problemas complexos antes de propor soluções bem estruturadas.
+              Problemas complexos pedem mais do que uma ferramenta.
             </m.p>
             <m.div className="hero-copy" variants={heroItemVariants} data-hero-motion>
               <p>
-                Atuo na interseção entre tecnologia, negócio, processos e experiência do usuário
-                para organizar informações, estruturar necessidades e construir soluções claras,
-                funcionais e executáveis.
+                Eu conecto estratégia, design e tecnologia para transformar necessidades em
+                soluções claras, estruturadas e funcionais.
               </p>
             </m.div>
             <m.div className="button-group" variants={heroItemVariants} data-hero-motion>
@@ -334,9 +333,9 @@ export default function HomePage() {
               </ButtonLink>
             </m.div>
             <m.p className="hero-note" variants={heroItemVariants} data-hero-motion>
-              Gosto de entender o problema antes de escolher a ferramenta. É assim que evito
-              automatizar confusão, desenhar caminhos inúteis ou construir soluções que ninguém
-              consegue manter.
+              Prefiro entender o contexto por inteiro antes de agir. É assim que evito automatizar
+              confusão, desenhar caminhos inúteis ou construir soluções que ninguém consegue
+              manter.
             </m.p>
           </m.div>
           <m.div
