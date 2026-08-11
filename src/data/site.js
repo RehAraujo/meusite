@@ -22,7 +22,7 @@ export const navigation = [
 ];
 
 export const principles = [
-  'Entender antes de executar.',
+  'Consulta antes da proposta.',
   'Estrutura antes da ferramenta.',
   'Pessoas antes dos produtos.',
   'Clareza antes da estética.',

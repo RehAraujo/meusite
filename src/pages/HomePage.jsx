@@ -140,8 +140,9 @@ export default function HomePage() {
             }
           >
             <p>
-              Nem todo mundo chega precisando da mesma coisa. Todos os caminhos começam pela
-              compreensão do problema e do contexto.
+              Nem todo mundo chega precisando da mesma coisa. Por isso, todo projeto começa por uma
+              consulta: antes de propor uma solução, compreendo o contexto, o problema e o que
+              precisa ser construído.
             </p>
           </SectionHeading>
           <div className="card-grid card-grid--three">
@@ -266,13 +267,13 @@ export default function HomePage() {
       <section className="contact-section" id="contato">
         <div className="container contact-grid">
           <div data-reveal>
-            <p className="eyebrow">Contato</p>
+            <p className="eyebrow">Consulta inicial</p>
             <h2>
               Toda construção começa com uma conversa <em>honesta.</em>
             </h2>
             <p>
-              Você não precisa chegar sabendo o nome do serviço ou a solução exata. Conte o contexto
-              e identificaremos o caminho mais coerente.
+              Você não precisa chegar sabendo o nome do serviço ou a solução exata — é para isso que
+              serve essa consulta: entender o contexto e identificar o caminho mais coerente.
             </p>
           </div>
           <form onSubmit={submit} data-reveal>
