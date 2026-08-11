@@ -1683,6 +1683,124 @@
     margin-top: var(--space-4);
   }
 
+  .path-sequence {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-5);
+    padding: 0;
+    list-style: none;
+  }
+
+  .path-sequence li {
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border-strong);
+  }
+
+  .path-sequence .card-index {
+    display: block;
+    margin-bottom: var(--space-2);
+    color: var(--color-terracotta);
+    font: 300 var(--step-1) var(--font-heading);
+    font-style: italic;
+    line-height: 1;
+  }
+
+  .path-sequence p {
+    color: var(--color-text-soft);
+  }
+
+  .diagnostic-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(14rem, 0.7fr);
+    gap: var(--space-5);
+    align-items: center;
+  }
+
+  .diagnostic-intro img {
+    width: 100%;
+    max-width: 22rem;
+    height: auto;
+    aspect-ratio: 2 / 3;
+    border-radius: var(--radius-medium);
+    object-fit: cover;
+    justify-self: end;
+  }
+
+  .diagnostic-form {
+    max-width: 44rem;
+    margin-top: var(--space-5);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 2.6875rem;
+    background: rgb(255 255 255 / 2%);
+    box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 12%);
+  }
+
+  .diagnostic-progress {
+    margin-bottom: var(--space-4);
+  }
+
+  .diagnostic-progress__track {
+    height: 2px;
+    margin-top: var(--space-1);
+    background: var(--color-border);
+  }
+
+  .diagnostic-progress__fill {
+    height: 100%;
+    background: var(--color-rose);
+    transition: width var(--transition-medium);
+  }
+
+  .diagnostic-form__field {
+    margin: 0;
+    border: 0;
+    padding: 0;
+  }
+
+  .diagnostic-form__field legend {
+    margin-bottom: var(--space-2);
+    padding: 0;
+    color: var(--color-text);
+    font: 400 clamp(1.1rem, 1rem + 0.4vw, 1.35rem) var(--font-heading);
+  }
+
+  .diagnostic-form__contact label:first-child {
+    margin-top: 0;
+  }
+
+  .diagnostic-form__nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  .diagnostic-form__nav .button {
+    margin-top: 0;
+  }
+
+  .diagnostic-form__nav .button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .diagnostic-success h3 {
+    margin-top: var(--space-1);
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+  }
+
+  .diagnostic-success p {
+    margin-top: var(--space-2);
+    color: var(--color-text-soft);
+  }
+
+  .diagnostic-success .button-group {
+    margin-top: var(--space-3);
+  }
+
   @media (width <= 42rem) {
     .service-chapter {
       grid-template-columns: 1fr;
@@ -1694,6 +1812,19 @@
     .editorial-interlude__columns {
       grid-template-columns: 1fr;
       gap: var(--space-3);
+    }
+
+    .path-sequence {
+      grid-template-columns: 1fr;
+    }
+
+    .diagnostic-intro {
+      grid-template-columns: 1fr;
+    }
+
+    .diagnostic-intro img {
+      max-width: 14rem;
+      justify-self: start;
     }
   }
 
@@ -1808,7 +1939,8 @@
 
   .button--home,
   .paths-section .button,
-  .contact-section .button {
+  .contact-section .button,
+  .diagnostic-section .button {
     min-height: 3rem;
     border-color: var(--color-rose);
     border-radius: 999px;
@@ -1821,7 +1953,9 @@
   .paths-section .button:hover,
   .paths-section .button:focus-visible,
   .contact-section .button:hover,
-  .contact-section .button:focus-visible {
+  .contact-section .button:focus-visible,
+  .diagnostic-section .button:hover,
+  .diagnostic-section .button:focus-visible {
     border-color: #b3004f;
     background: #b3004f;
     color: #fff;
