@@ -20,7 +20,8 @@ export default function ServicesPage() {
             O serviço certo começa pelo <em>problema certo.</em>
           </h1>
           <p className="lead">
-            Você não precisa escolher uma entrega antes de compreender aquilo que precisa mudar.
+            Você não precisa chegar sabendo qual solução contratar. A consulta começa pelo
+            contexto, pelo problema e pelo que precisa mudar.
           </p>
           <ButtonLink to="/#contato">Agendar uma consulta</ButtonLink>
         </div>
