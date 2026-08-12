@@ -1,5 +1,18 @@
 export const services = [
   {
+    id: 'perfil',
+    audience: 'Para profissionais e negócios',
+    title: 'Análise de Perfil',
+    tagline: 'Seu trabalho pode ser melhor do que a percepção que o seu perfil transmite.',
+    problem:
+      'Quando você produz, divulga ou vende pelas redes, mas não sabe se o seu perfil comunica com clareza quem você é, o que oferece e por que alguém deveria escolher você.',
+    solution:
+      'Faço uma leitura profissional da sua presença digital para identificar problemas de posicionamento, comunicação, percepção e oportunidades de melhoria.',
+    solutionLabel: 'Como trabalho',
+    investment: 'A partir de R$ 490',
+    ctaLabel: 'Quero analisar meu perfil',
+  },
+  {
     id: 'consultoria',
     audience: 'Para pessoas e negócios',
     title: 'Diagnóstico Estratégico',
@@ -9,7 +22,7 @@ export const services = [
     solution:
       'Analiso o contexto, posicionamento, presença digital, experiência, processos e estrutura conforme o caso. A investigação transforma sinais dispersos em prioridades e caminhos de ação.',
     solutionLabel: 'Como trabalho',
-    investment: 'Projetos a partir de R$ 690',
+    investment: 'Investimento definido conforme o escopo.',
     ctaLabel: 'Quero um diagnóstico',
   },
   {

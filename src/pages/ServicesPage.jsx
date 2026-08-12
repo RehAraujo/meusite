@@ -147,6 +147,10 @@ const emptyAnswers = {
 };
 
 const servicePresets = {
+  perfil: {
+    problem: 'Minha marca não comunica meu valor',
+    area: 'Presença digital / conteúdo',
+  },
   consultoria: {
     problem: 'Não sei exatamente — só sei que algo precisa mudar',
     area: 'Mais de uma área',
