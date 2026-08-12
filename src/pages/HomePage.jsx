@@ -248,7 +248,7 @@ export default function HomePage() {
 
   const submit = (event) => {
     event.preventDefault();
-    const message = `Olá, Rê! Vim pelo pré-diagnóstico do site.\n\nMeu nome: ${form.name.trim()}\nCaminho: ${form.interest}\nMomento: ${form.stage}\nPrioridade: ${form.priority}\n\nContexto:\n${form.message.trim()}`;
+    const message = `Olá, Rê! Vim pela consulta inicial do site.\n\nMeu nome: ${form.name.trim()}\nCaminho: ${form.interest}\nMomento: ${form.stage}\nPrioridade: ${form.priority}\n\nContexto:\n${form.message.trim()}`;
     window.open(createWhatsAppUrl(message), '_blank', 'noopener,noreferrer');
   };
 
@@ -276,7 +276,7 @@ export default function HomePage() {
         >
           <m.div className="hero-text" variants={heroContainerVariants}>
             <m.p className="eyebrow hero-kicker" variants={heroItemVariants} data-hero-motion>
-              Design + Tecnologia + Estratégia
+              Estratégia + Design + Tecnologia
             </m.p>
             <m.h1
               className="hero-motion-title"
@@ -316,27 +316,26 @@ export default function HomePage() {
               />
             </m.span>
             <m.p className="hero-statement" variants={heroItemVariants} data-hero-motion>
-              Transformo problemas complexos em soluções digitais bem estruturadas.
+              Problemas complexos pedem mais do que uma ferramenta.
             </m.p>
             <m.div className="hero-copy" variants={heroItemVariants} data-hero-motion>
               <p>
-                Atuo na interseção entre tecnologia, negócio, processos e experiência do usuário
-                para organizar informações, estruturar necessidades e construir soluções claras,
-                funcionais e executáveis.
+                Eu conecto estratégia, design e tecnologia para transformar necessidades em
+                soluções claras, estruturadas e funcionais.
               </p>
             </m.div>
             <m.div className="button-group" variants={heroItemVariants} data-hero-motion>
-              <ButtonLink to="/servicos" className="button--special">
-                Descubra como posso ajudar
+              <ButtonLink to="/#contato" className="button--special">
+                Agendar uma consulta
               </ButtonLink>
               <ButtonLink to="/clientes" secondary>
                 Conheça minhas construções
               </ButtonLink>
             </m.div>
             <m.p className="hero-note" variants={heroItemVariants} data-hero-motion>
-              Gosto de entender o problema antes de escolher a ferramenta. É assim que evito
-              automatizar confusão, desenhar caminhos inúteis ou construir soluções que ninguém
-              consegue manter.
+              Prefiro entender o contexto por inteiro antes de agir. É assim que evito automatizar
+              confusão, desenhar caminhos inúteis ou construir soluções que ninguém consegue
+              manter.
             </m.p>
           </m.div>
           <m.div
@@ -461,8 +460,9 @@ export default function HomePage() {
             }
           >
             <p>
-              Nem todo mundo chega precisando da mesma coisa. Todos os caminhos começam pela
-              compreensão do problema e do contexto.
+              Nem todo mundo chega precisando da mesma coisa. Por isso, todo projeto começa por uma
+              consulta: antes de propor uma solução, compreendo o contexto, o problema e o que
+              precisa ser construído.
             </p>
           </SectionHeading>
           <div className="card-grid card-grid--three">
@@ -574,18 +574,18 @@ export default function HomePage() {
         <SectionConstellation variant="left" />
         <div className="container contact-grid">
           <div data-reveal>
-            <p className="eyebrow">Contato</p>
+            <p className="eyebrow">Consulta inicial</p>
             <h2>
               Toda construção começa com uma conversa <em>honesta.</em>
             </h2>
             <p>
-              Você não precisa chegar sabendo o nome do serviço ou a solução exata. Conte o contexto
-              e identificaremos o caminho mais coerente.
+              Você não precisa chegar sabendo o nome do serviço ou a solução exata — é para isso que
+              serve essa consulta: entender o contexto e identificar o caminho mais coerente.
             </p>
           </div>
           <form className="contact-diagnostic" onSubmit={submit} data-reveal>
             <div className="contact-diagnostic__intro">
-              <p className="eyebrow">Pré-diagnóstico inicial</p>
+              <p className="eyebrow">Antes da consulta</p>
               <h3>Vamos começar pelo contexto.</h3>
               <p>Quatro respostas rápidas ajudam a tornar nossa primeira conversa mais objetiva.</p>
             </div>

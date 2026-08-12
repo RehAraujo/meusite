@@ -22,8 +22,9 @@ export const navigation = [
 
 export const principles = [
   {
-    title: 'Entender',
-    description: 'Antes de executar, investigo o contexto, as pessoas e o problema real.',
+    title: 'Consulta',
+    description:
+      'Antes de propor uma solução, compreendo o contexto, as pessoas, os objetivos e o problema real.',
   },
   {
     title: 'Estruturar',
