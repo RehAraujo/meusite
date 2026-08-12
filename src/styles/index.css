@@ -1716,7 +1716,7 @@
   }
 
   .services-closing h2 {
-    max-width: 18ch;
+    max-width: 34ch;
     font: 400 var(--step-2) / 1.1 var(--font-heading);
   }
 
