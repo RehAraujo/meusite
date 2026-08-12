@@ -147,6 +147,10 @@ const emptyAnswers = {
 };
 
 const servicePresets = {
+  consultoria: {
+    problem: 'Não sei exatamente — só sei que algo precisa mudar',
+    area: 'Mais de uma área',
+  },
   sistemas: { problem: 'Minha operação está desorganizada', area: 'Organização de informações' },
   web: { problem: 'Meu site não representa meu negócio', area: 'Site' },
   identidade: { problem: 'Minha marca não comunica meu valor', area: 'Marca' },
@@ -185,8 +189,6 @@ export default function ServicesPage() {
   });
   useReveal();
   const shouldReduceMotion = useReducedMotion();
-  const coreServices = services.filter((service) => service.id !== 'consultoria');
-  const diagnostic = services.find((service) => service.id === 'consultoria');
 
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState(emptyAnswers);
@@ -464,7 +466,7 @@ export default function ServicesPage() {
               </p>
             </SectionHeading>
             <ol className="service-chapters">
-              {coreServices.map((service, index) => (
+              {services.map((service, index) => (
                 <li
                   className="service-chapter"
                   key={service.id}
@@ -475,49 +477,25 @@ export default function ServicesPage() {
                   <div>
                     <p className="card-label">{service.audience}</p>
                     <h3>{service.title}</h3>
+                    {service.tagline && <p className="service-chapter__tagline">{service.tagline}</p>}
                     <div className="service-chapter__body">
                       <div>
                         <strong>O que resolve</strong>
                         <p>{service.problem}</p>
                       </div>
                       <div>
-                        <strong>Como construímos</strong>
+                        <strong>{service.solutionLabel ?? 'Como construímos'}</strong>
                         <p>{service.solution}</p>
                       </div>
                     </div>
                     <p className="investment">{service.investment}</p>
                     <button type="button" className="button" onClick={() => startDiagnosticFrom(service.id)}>
-                      Esse parece ser meu problema
+                      {service.ctaLabel ?? 'Esse parece ser meu problema'}
                     </button>
                   </div>
                 </li>
               ))}
             </ol>
-          </div>
-        </section>
-
-        <section className="service-diagnostic" id="diagnostico-estrategico">
-          <div className="container">
-            <p className="card-label">{diagnostic.audience}</p>
-            <h2>Quando ainda não está claro o que precisa ser construído.</h2>
-            <p className="lead">
-              Alguns problemas atravessam marca, tecnologia, processos e experiência ao mesmo
-              tempo. Nesses casos, investigar antes de executar evita investir na solução errada.
-            </p>
-            <div className="service-diagnostic__body">
-              <div>
-                <strong>O que resolve</strong>
-                <p>{diagnostic.problem}</p>
-              </div>
-              <div>
-                <strong>Como construímos</strong>
-                <p>{diagnostic.solution}</p>
-              </div>
-            </div>
-            <p className="hero-note">{diagnostic.investment}</p>
-            <a className="button" href="#diagnostico-inicial">
-              Começar pelo diagnóstico inicial
-            </a>
           </div>
         </section>
 
@@ -565,7 +543,9 @@ export default function ServicesPage() {
             <m.h2 variants={introItemVariants}>
               Você não precisa ter a solução.
               <br />
-              Precisa começar pelo problema.
+              Precisa começar
+              <br />
+              pelo problema.
             </m.h2>
             <m.p className="lead" variants={introItemVariants}>
               O diagnóstico inicial me ajuda a entender o contexto antes da nossa conversa — e

@@ -1,5 +1,18 @@
 export const services = [
   {
+    id: 'consultoria',
+    audience: 'Para pessoas e negócios',
+    title: 'Diagnóstico Estratégico',
+    tagline: 'Antes de investir na solução, descubra onde está o problema.',
+    problem:
+      'Quando você percebe que algo não está funcionando, mas ainda não consegue identificar com clareza o que deveria mudar primeiro.',
+    solution:
+      'Analiso o contexto, posicionamento, presença digital, experiência, processos e estrutura conforme o caso. A investigação transforma sinais dispersos em prioridades e caminhos de ação.',
+    solutionLabel: 'Como trabalho',
+    investment: 'Projetos a partir de R$ 690',
+    ctaLabel: 'Quero um diagnóstico',
+  },
+  {
     id: 'sistemas',
     audience: 'Para pessoas e negócios',
     title: 'Sistemas e organização',
@@ -27,16 +40,5 @@ export const services = [
     solution:
       'Investigo posicionamento, diferenciação e linguagem antes de traduzir essa base em direção visual. A identidade nasce do que precisa ser percebido — não apenas do que precisa parecer bonito.',
     investment: 'Projetos a partir de R$ 4.800',
-  },
-  {
-    id: 'consultoria',
-    audience: 'Diagnóstico estratégico',
-    title: 'Clareza antes da solução.',
-    problem:
-      'Quando você sabe que algo precisa mudar, mas ainda não consegue identificar onde está o problema — ou qual investimento deveria vir primeiro.',
-    solution:
-      'Investigo o contexto, conecto os pontos e organizo prioridades para transformar um problema ainda difuso em um caminho de decisão.',
-    investment: 'Escopo definido após a consulta inicial.',
-    ctaLabel: 'Começar pela consulta',
   },
 ];
