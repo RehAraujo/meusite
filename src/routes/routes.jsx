@@ -13,6 +13,9 @@ import ResumePage from '../pages/ResumePage';
 import ServicesPage from '../pages/ServicesPage';
 import ThoughtsPage from '../pages/ThoughtsPage';
 import ToolsPage from '../pages/ToolsPage';
+import DiagnosticIntakePage from '../pages/DiagnosticIntakePage';
+import DiagnosticOrderPage from '../pages/DiagnosticOrderPage';
+import DiagnosticQaPage from '../pages/DiagnosticQaPage';
 
 export const routes = createRoutesFromElements(
   <Route element={<SiteLayout />}>
@@ -30,6 +33,9 @@ export const routes = createRoutesFromElements(
     <Route path="embaixadora" element={<MediaKitPage />} />
     <Route path="guia-alimentar" element={<ProductPage type="guide" />} />
     <Route path="planner-treino" element={<ProductPage type="training" />} />
+    <Route path="diagnostico" element={<DiagnosticIntakePage />} />
+    <Route path="diagnostico/pedido/:orderId" element={<DiagnosticOrderPage />} />
+    <Route path="operacao/diagnosticos" element={<DiagnosticQaPage />} />
     {['processo', 'privacidade', 'termos', 'produtos-digitais', 'acessibilidade'].map((path) => (
       <Route key={path} path={path} element={<ContentPage path={`/${path}`} />} />
     ))}

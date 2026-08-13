@@ -22,6 +22,8 @@ const routes = [
   '/termos',
   '/produtos-digitais',
   '/acessibilidade',
+  '/diagnostico',
+  '/operacao/diagnosticos',
   '/404',
 ];
 
@@ -102,6 +104,14 @@ const metadata = {
     'Acessibilidade | Renata Join',
     'Compromisso contínuo com uma experiência digital mais acessível.',
   ],
+  '/diagnostico': [
+    'Diagnóstico de Presença Digital | Renata Join',
+    'Uma investigação orientada por evidências para entender sua presença digital e decidir o que priorizar.',
+  ],
+  '/operacao/diagnosticos': [
+    'QA de diagnósticos | Renata Join',
+    'Área operacional de revisão do MVP controlado.',
+  ],
   '/404': ['Página não encontrada | Renata Join', 'Esta página não foi encontrada.'],
 };
 
@@ -112,7 +122,7 @@ const createHead = (route) => {
   const [title, description] = metadata[route];
   const canonicalRoute = route === '/career' || route === '/curriculo' ? '/carreira' : route;
   const canonical = `https://renatajoin.com${canonicalRoute === '/' ? '/' : canonicalRoute}`;
-  const noindex = route === '/404';
+  const noindex = route === '/404' || route.startsWith('/operacao/');
   return `
     <title>${title}</title>
     <meta name="description" content="${escapeAttribute(description)}" />

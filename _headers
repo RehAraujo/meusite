@@ -34,6 +34,12 @@
 /curriculo*
   X-Robots-Tag: noindex, nofollow, noarchive
 
+/operacao/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/diagnostico/pedido/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
 /documents/renata-gomes-araujo-curriculo.pdf
   Content-Type: application/pdf
   Content-Disposition: attachment; filename="renata-gomes-araujo-curriculo.pdf"
