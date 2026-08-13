@@ -110,6 +110,19 @@ Código e conteúdo são proprietários de Renata Gomes Araujo. A presença dest
 repositório no GitHub não concede licença de reutilização de marca, textos,
 imagens ou produtos.
 
+## MVP controlado de diagnósticos
+
+O fluxo `/diagnostico` cria pedidos controlados sem pagamento e conduz investigação pública, Sufficiency Gate, Analyzer, scoring determinístico, composição do relatório e revisão humana. A área `/operacao/diagnosticos` é protegida por `QA_SECRET` e não deve ser exposta como navegação pública.
+
+Infraestrutura adicional mínima:
+
+- Cloudflare D1, migration `migrations/0001_controlled_mvp.sql`;
+- Cloudflare Queue `renatajoin-controlled-mvp`;
+- secrets `OPENAI_API_KEY` e `QA_SECRET` no Worker;
+- variável `OPENAI_MODEL`, atualmente `gpt-5-mini`.
+
+Pedidos usam `payment_status=NOT_REQUIRED_CONTROLLED`; nenhum processador financeiro está conectado. A retenção continua provisória e nenhuma exclusão automática irreversível foi ativada.
+
 ## Próximos passos
 
 1. self-host das fontes;

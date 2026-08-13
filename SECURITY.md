@@ -3,8 +3,10 @@
 ## Arquitetura
 
 O projeto é uma aplicação React pré-renderizada na build e publicada como
-ativos estáticos pela Cloudflare. Não existem banco de dados, autenticação,
-cookies de sessão ou segredos necessários no navegador.
+ativos estáticos pela Cloudflare. O MVP controlado acrescenta endpoints no Worker,
+persistência D1, fila e segredos exclusivos do ambiente do Worker. Nenhum segredo
+é enviado ao navegador. O acesso do cliente usa token opaco por pedido; a revisão
+operacional exige `QA_SECRET`.
 
 ## Content Security Policy
 
@@ -42,9 +44,11 @@ Nunca versionar:
 
 ## Formulários
 
-Os formulários não enviam dados a um servidor próprio. Após validação nativa
-do navegador, eles montam uma mensagem codificada e abrem o WhatsApp. Nenhum
-dado é armazenado pelo site.
+Os formulários institucionais continuam abrindo o WhatsApp. O intake em
+`/diagnostico` é a exceção: envia somente identificação mínima, objetivo,
+percepções e identificadores públicos ao Worker. Os endpoints aplicam validação,
+normalização, limite básico por IP e respostas sem cache. Credenciais sociais,
+cookies de terceiros e dados completos de pagamento não são coletados.
 
 ## Comunicação de vulnerabilidades
 
