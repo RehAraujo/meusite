@@ -14,5 +14,16 @@
     ],
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page"
-  }
+  },
+  "d1_databases": [{
+    "binding": "DIAGNOSTICS_DB",
+    "database_name": "renatajoin-controlled-mvp",
+    "database_id": "REPLACE_AFTER_D1_CREATE",
+    "migrations_dir": "migrations"
+  }],
+  "queues": {
+    "producers": [{ "binding": "CONTROLLED_MVP_QUEUE", "queue": "renatajoin-controlled-mvp" }],
+    "consumers": [{ "queue": "renatajoin-controlled-mvp", "max_batch_size": 1, "max_retries": 2 }]
+  },
+  "vars": { "OPENAI_MODEL": "gpt-5-mini" }
 }

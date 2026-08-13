@@ -10,6 +10,7 @@ export default [
     ignores: [
       'dist',
       '.prerender',
+      '.wrangler',
       'public',
       'node_modules',
       '*.html',
@@ -19,6 +20,21 @@ export default [
     ],
   },
   eslint.configs.recommended,
+  {
+    files: ['worker/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2023,
+      globals: {
+        ...globals.serviceworker,
+        AbortSignal: 'readonly',
+        TextEncoder: 'readonly',
+        URL: 'readonly',
+        crypto: 'readonly',
+        fetch: 'readonly',
+      },
+      parserOptions: { sourceType: 'module' },
+    },
+  },
   {
     files: ['src/**/*.{js,jsx}', 'tests/**/*.{js,jsx}'],
     languageOptions: {
