@@ -144,7 +144,7 @@ function QaDetail({ data, note, setNote, act }) {
         <h3>Prioridades</h3>
         <ol>
           {analysis.top_priorities.map((x) => (
-            <li key={x.finding_id}>
+            <li key={x.rank}>
               <strong>{x.title}</strong>
               <p>{x.what_to_change}</p>
             </li>

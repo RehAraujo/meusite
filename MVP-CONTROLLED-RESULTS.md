@@ -70,3 +70,9 @@ A CLI Cloudflare não está autenticada neste ambiente. Antes do preview remoto,
 
 Não aprovar o relatório do run `run.fixture.*` como análise comercial real; ele existe para QA funcional do pipeline.
 
+## Pendências aprovadas — QA de 13 de agosto de 2026
+
+Identificadas na revisão do pedido `order.2303c874-63c8-441b-a162-99bb2d25f0df`. Aprovadas para execução futura; ainda não implementadas.
+
+1. **Calibração do julgamento estratégico sobre conteúdo pessoal/lifestyle.** O prompt do Analyzer (`worker/diagnostics/analyzer.js`, instrução da chamada `MAIN_ANALYSIS`) não orienta o modelo sobre como avaliar conteúdo pessoal coexistindo com posicionamento profissional, e pode tratar variedade/personalidade como incoerência por si só. Antes de calibrar, avaliar se o problema real reportado é ausência de ponte explícita entre identidade, competência, prova, método e oferta — não a presença da personalidade em si.
+2. **Camada de apresentação do cliente separada da visão técnica de QA.** Hoje `GET /api/diagnostics/orders/:id` devolve o objeto `report` completo (inclui `scorecard` bruto com estados como `NOT_SCORED`/`UNEVALUABLE`, IDs de evidência e demais detalhes de pipeline), o mesmo artefato usado pela QA em `/operacao/diagnosticos`. É preciso uma camada de serialização/apresentação para o cliente, adicional e sem alterar o diagnóstico, que mostre apenas o conteúdo estratégico relevante (seções narrativas como leitura executiva, diagnóstico principal, prioridades, autoatendimento e próximo passo) e omita estados internos, IDs e o scorecard bruto.

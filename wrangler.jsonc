@@ -10,6 +10,7 @@
     "directory": "dist",
     "binding": "ASSETS",
     "run_worker_first": [
+      "/api/diagnostics/*",
       "/wrangler.jsonc"
     ],
     "html_handling": "auto-trailing-slash",
