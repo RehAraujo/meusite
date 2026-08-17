@@ -17,6 +17,14 @@ export function criterionScore(criteria) {
     ? null
     : Math.round((evaluable.reduce((sum, x) => sum + x.points, 0) / (evaluable.length * 2)) * 100);
 }
+function scoringState(criteria, score) {
+  if (score != null) return 'SCORED';
+  return criteria.every((criterion) =>
+    criterion.state === 'UNEVALUABLE' && criterion.limitations?.includes('NOT_APPLICABLE.'),
+  )
+    ? 'NOT_APPLICABLE'
+    : 'UNEVALUABLE';
+}
 export function scoreAnalysis(analysis) {
   const dimensionScores = [];
   for (const d of analysis.dimensions)
@@ -26,10 +34,11 @@ export function scoreAnalysis(analysis) {
       dimensionScores.push({
         channel_type: cs.channel_type,
         dimension_key: d.key,
+        state: scoringState(cs.criteria, cs.score),
         score: cs.score,
         weight: WEIGHTS[cs.channel_type][d.key],
         weighted_value:
-          cs.score == null ? 0 : Number((cs.score * WEIGHTS[cs.channel_type][d.key]).toFixed(3)),
+          cs.score == null ? null : Number((cs.score * WEIGHTS[cs.channel_type][d.key]).toFixed(3)),
       });
     }
   const channelScores = analysis.scope.primary_channels.map((channel) => {
@@ -38,7 +47,13 @@ export function scoreAnalysis(analysis) {
       xs.some((x) => x.dimension_key === key && x.score != null),
     );
     const score = complete ? Math.round(xs.reduce((s, x) => s + x.weighted_value, 0)) : null;
-    return { channel_type: channel, score, band: band(score) };
+    const states = xs.map((x) => x.state);
+    const state = score != null
+      ? 'SCORED'
+      : states.every((x) => x === 'NOT_APPLICABLE')
+        ? 'NOT_APPLICABLE'
+        : 'UNEVALUABLE';
+    return { channel_type: channel, state, score, band: band(score) };
   });
   return {
     calculation_version: 'weighted_v1.0',

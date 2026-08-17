@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://renatajoin.com/schemas/presence-v2/report-contract.schema.json",
+  "title": "Presence Report Contract V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "report_id", "analysis_id", "qa_review_id", "publication_status", "scorecard", "sections", "ethical_conversion", "generated_at"],
+  "properties": {
+    "contract_version": {"const": "1.3.0"}, "report_id": {"$ref": "#/$defs/id"}, "analysis_id": {"$ref": "#/$defs/id"}, "qa_review_id": {"$ref": "#/$defs/id"},
+    "publication_status": {"enum": ["DRAFT", "PENDING_HUMAN_REVIEW", "APPROVED_FOR_DELIVERY", "REJECTED", "DELIVERED"]},
+    "scorecard": {"$ref": "#/$defs/scorecard"}, "sections": {"$ref": "#/$defs/sections"}, "ethical_conversion": {"$ref": "#/$defs/ethicalConversion"},
+    "rendering": {"type": "object", "additionalProperties": false, "properties": {"target_format": {"enum": ["WEB", "PDF", "WEB_AND_PDF"]}, "locale": {"const": "pt-BR"}}},
+    "generated_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"},
+    "contentBlock": {"type": "object", "additionalProperties": false, "required": ["title", "body", "source_refs"], "properties": {"title": {"type": "string", "minLength": 1, "maxLength": 300}, "body": {"type": "string", "minLength": 1, "maxLength": 8000}, "source_refs": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id"}}}},
+    "dimensionScore": {"type": "object", "additionalProperties": false, "required": ["channel_type", "dimension_key", "state", "score", "weight", "weighted_value"], "properties": {"channel_type": {"enum": ["INSTAGRAM", "SITE"]}, "dimension_key": {"enum": ["clarity", "positioning", "value_perception", "authority_trust", "content_narrative", "journey", "conversion"]}, "state": {"enum": ["SCORED", "UNEVALUABLE", "NOT_APPLICABLE"]}, "score": {"type": ["integer", "null"], "minimum": 0, "maximum": 100}, "weight": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}, "weighted_value": {"type": ["number", "null"], "minimum": 0, "maximum": 100}}, "allOf": [{"if": {"properties": {"state": {"const": "SCORED"}}, "required": ["state"]}, "then": {"properties": {"score": {"type": "integer"}, "weighted_value": {"type": "number"}}}}, {"if": {"properties": {"state": {"enum": ["UNEVALUABLE", "NOT_APPLICABLE"]}}, "required": ["state"]}, "then": {"properties": {"score": {"type": "null"}, "weighted_value": {"type": "null"}}}}]},
+    "scorecard": {"type": "object", "additionalProperties": false, "required": ["calculation_version", "weight_profile_version", "dimension_scores", "channel_scores", "global_score", "calculated_by", "calculated_at"], "properties": {
+      "calculation_version": {"const": "weighted_v1.0"}, "weight_profile_version": {"type": "string", "minLength": 1, "maxLength": 100}, "dimension_scores": {"type": "array", "minItems": 1, "maxItems": 14, "items": {"$ref": "#/$defs/dimensionScore"}},
+      "channel_scores": {"type": "array", "minItems": 1, "maxItems": 2, "items": {"type": "object", "additionalProperties": false, "required": ["channel_type", "state", "score", "band"], "properties": {"channel_type": {"enum": ["INSTAGRAM", "SITE"]}, "state": {"enum": ["SCORED", "UNEVALUABLE", "NOT_APPLICABLE"]}, "score": {"type": ["integer", "null"], "minimum": 0, "maximum": 100}, "band": {"enum": ["CRITICAL", "FRAGILE", "PARTIAL", "CONSISTENT", "STRONG", "NOT_SCORED"]}}, "allOf": [{"if": {"properties": {"state": {"const": "SCORED"}}, "required": ["state"]}, "then": {"properties": {"score": {"type": "integer"}, "band": {"enum": ["CRITICAL", "FRAGILE", "PARTIAL", "CONSISTENT", "STRONG"]}}}}, {"if": {"properties": {"state": {"enum": ["UNEVALUABLE", "NOT_APPLICABLE"]}}, "required": ["state"]}, "then": {"properties": {"score": {"type": "null"}, "band": {"const": "NOT_SCORED"}}}}]}},
+      "global_score": {"type": ["integer", "null"], "minimum": 0, "maximum": 100}, "calculated_by": {"const": "DETERMINISTIC_SCORING_ENGINE"}, "calculated_at": {"type": "string", "format": "date-time"}
+    }},
+    "sections": {"type": "object", "additionalProperties": false, "required": ["executive_reading", "main_diagnosis", "current_perception", "intention_vs_perception", "what_works", "bottlenecks", "cross_channel_coherence", "top_priorities", "self_service", "do_not_prioritize", "future_ecosystem", "next_step", "limitations"], "properties": {
+      "executive_reading": {"$ref": "#/$defs/contentBlock"}, "main_diagnosis": {"$ref": "#/$defs/contentBlock"}, "current_perception": {"$ref": "#/$defs/contentBlock"}, "intention_vs_perception": {"$ref": "#/$defs/contentBlock"},
+      "what_works": {"$ref": "#/$defs/contentBlock"}, "bottlenecks": {"$ref": "#/$defs/contentBlock"}, "cross_channel_coherence": {"$ref": "#/$defs/contentBlock"}, "top_priorities": {"$ref": "#/$defs/contentBlock"},
+      "quick_wins": {"$ref": "#/$defs/contentBlock"}, "self_service": {"$ref": "#/$defs/contentBlock"}, "do_not_prioritize": {"$ref": "#/$defs/contentBlock"}, "future_ecosystem": {"$ref": "#/$defs/contentBlock"},
+      "next_step": {"$ref": "#/$defs/contentBlock"}, "limitations": {"$ref": "#/$defs/contentBlock"}
+    }},
+    "serviceMatch": {"type": "object", "additionalProperties": false, "required": ["catalog_version", "service_code", "priority_ref", "solution_class", "need_level", "match_reason", "cta_label", "cta_target"], "properties": {"catalog_version": {"const": "service_catalog_v1.0"}, "service_code": {"enum": ["SYSTEMS_AND_ORGANIZATION", "SITES_AND_DIGITAL_EXPERIENCES", "IDENTITY_AND_POSITIONING"]}, "priority_ref": {"$ref": "#/$defs/id"}, "solution_class": {"type": "string", "minLength": 1, "maxLength": 100}, "need_level": {"enum": ["ASSISTED", "SPECIALIST_RECOMMENDED", "STRUCTURAL_PROJECT"]}, "match_reason": {"type": "string", "minLength": 1, "maxLength": 1000}, "cta_label": {"type": "string", "minLength": 1, "maxLength": 150}, "cta_target": {"type": "string", "format": "uri"}}},
+    "ethicalConversion": {"type": "object", "additionalProperties": false, "required": ["conversion_result", "diagnosis_immutable", "self_service_presented", "cta_count", "service_match"], "properties": {
+      "conversion_result": {"enum": ["NO_SERVICE_NEEDED", "OPTIONAL_SERVICE_MATCH"]}, "diagnosis_immutable": {"const": true}, "self_service_presented": {"const": true}, "cta_count": {"type": "integer", "minimum": 0, "maximum": 1}, "service_match": {"anyOf": [{"$ref": "#/$defs/serviceMatch"}, {"type": "null"}]}
+    }, "allOf": [
+      {"if": {"properties": {"conversion_result": {"const": "NO_SERVICE_NEEDED"}}, "required": ["conversion_result"]}, "then": {"properties": {"cta_count": {"const": 0}, "service_match": {"type": "null"}}}},
+      {"if": {"properties": {"conversion_result": {"const": "OPTIONAL_SERVICE_MATCH"}}, "required": ["conversion_result"]}, "then": {"properties": {"cta_count": {"const": 1}, "service_match": {"$ref": "#/$defs/serviceMatch"}}}}
+    ]}
+  }
+}

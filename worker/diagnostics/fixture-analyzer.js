@@ -72,7 +72,7 @@ export function controlledFixture(order, pkg) {
     evidence_refs: refs,
   }));
   return {
-    contract_version: '2.1.0',
+    contract_version: '2.2.0',
     method_version: 'presence_v2.1',
     governance_policy_version: 'scoring_qa_governance_v1.0',
     analysis_id: id('analysis'),
@@ -145,10 +145,9 @@ export function controlledFixture(order, pkg) {
     quick_wins: [
       {
         action: 'Substituir uma linha genérica da bio por público + transformação.',
-        rationale: 'A evidência aponta lacuna de legibilidade na entrada.',
-        evidence_refs: refs,
-        effort: 'LOW',
-        confidence: 'HIGH',
+        finding_reference: findingId,
+        why: 'A evidência aponta lacuna de legibilidade na entrada.',
+        expected_effect: 'Quem chega ao perfil entende a proposta profissional antes de abrir o site.',
       },
     ],
     do_not_prioritize: [

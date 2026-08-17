@@ -70,6 +70,22 @@ A CLI Cloudflare não está autenticada neste ambiente. Antes do preview remoto,
 
 Não aprovar o relatório do run `run.fixture.*` como análise comercial real; ele existe para QA funcional do pipeline.
 
+## Changelog de contratos e operação
+
+### Report Contract V1.3.0 — 13 de agosto de 2026
+
+- `dimension_scores` passa a representar todas as combinações presentes na análise com estado explícito `SCORED`, `UNEVALUABLE` ou `NOT_APPLICABLE`.
+- `score` e `weighted_value` são `null` quando não há cálculo defensável; `UNEVALUABLE` nunca é convertido em zero.
+- `channel_scores` recebe o mesmo estado explícito e usa `NOT_SCORED` sem inferir desempenho ruim.
+- O mínimo artificial de sete registros pontuados foi removido; a cardinalidade deixa de bloquear relatórios com evidência insuficiente.
+- Cross-channel sem índice calculável é explicado editorialmente e não gera `critical_fracture` artificial.
+
+### Quick Wins no MVP
+
+- Quick Wins são conteúdo derivado opcional; a ausência é válida e a seção é omitida.
+- A regeneração LLM específica de Quick Wins foi removida do fluxo operacional do MVP.
+- A infraestrutura genérica de regeneração parcial permanece isolada para eventual uso futuro, sem chamada automática para completar Quick Wins.
+
 ## Pendências aprovadas — QA de 13 de agosto de 2026
 
 Identificadas na revisão do pedido `order.2303c874-63c8-441b-a162-99bb2d25f0df`. Aprovadas para execução futura; ainda não implementadas.

@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json",
+  "title": "Strategic Analysis Contract V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "method_version", "governance_policy_version", "analysis_id", "investigation_id", "analyzer_run_id", "scope", "dimensions", "intention_vs_perception", "findings", "cross_channel_findings", "cross_channel_assessment", "top_priorities", "quick_wins", "do_not_prioritize", "recommended_next_step", "analysis_limitations", "analyzer_completed_at"],
+  "properties": {
+    "contract_version": {"const": "2.2.0"},
+    "method_version": {"const": "presence_v2.1"},
+    "governance_policy_version": {"const": "scoring_qa_governance_v1.0"},
+    "analysis_id": {"$ref": "#/$defs/id"},
+    "investigation_id": {"$ref": "#/$defs/id"},
+    "analyzer_run_id": {"$ref": "#/$defs/id"},
+    "scope": {"$ref": "#/$defs/scope"},
+    "dimensions": {"type": "array", "minItems": 7, "maxItems": 7, "items": {"$ref": "#/$defs/dimension"}},
+    "intention_vs_perception": {"type": "array", "minItems": 1, "maxItems": 3, "items": {"$ref": "#/$defs/intentionPerception"}},
+    "findings": {"type": "array", "minItems": 1, "maxItems": 20, "items": {"$ref": "#/$defs/finding"}},
+    "cross_channel_findings": {"type": "array", "maxItems": 10, "items": {"$ref": "#/$defs/crossChannelFinding"}},
+    "cross_channel_assessment": {"anyOf": [{"$ref": "#/$defs/crossChannelAssessment"}, {"type": "null"}]},
+    "top_priorities": {"type": "array", "minItems": 1, "maxItems": 3, "items": {"$ref": "#/$defs/priority"}},
+    "quick_wins": {"type": "array", "minItems": 0, "maxItems": 3, "items": {"$ref": "#/$defs/quickWin"}},
+    "do_not_prioritize": {"type": "array", "minItems": 1, "maxItems": 3, "items": {"$ref": "#/$defs/doNotPrioritize"}},
+    "recommended_next_step": {"$ref": "#/$defs/recommendedNextStep"},
+    "analysis_limitations": {"type": "array", "items": {"$ref": "#/$defs/limitation"}},
+    "analyzer_completed_at": {"type": "string", "format": "date-time"}
+  },
+  "allOf": [
+    {"if": {"properties": {"scope": {"type": "object", "properties": {"product_code": {"enum": ["INSTAGRAM_DIAGNOSIS", "SITE_DIAGNOSIS", "GOOGLE_BUSINESS_PILOT"]}}, "required": ["product_code"]}}, "required": ["scope"]}, "then": {"properties": {"cross_channel_findings": {"type": "array", "maxItems": 0}, "cross_channel_assessment": {"type": "null"}}}},
+    {"if": {"properties": {"scope": {"type": "object", "properties": {"product_code": {"const": "PRESENCE_DIAGNOSIS_INSTAGRAM_SITE"}}, "required": ["product_code"]}}, "required": ["scope"]}, "then": {"properties": {"cross_channel_findings": {"type": "array", "minItems": 1}, "cross_channel_assessment": {"$ref": "#/$defs/crossChannelAssessment"}}}}
+  ],
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$"},
+    "channelType": {"enum": ["INSTAGRAM", "SITE", "GOOGLE_BUSINESS"]},
+    "dimensionKey": {"enum": ["clarity", "positioning", "value_perception", "authority_trust", "content_narrative", "journey", "conversion"]},
+    "confidence": {"enum": ["LOW", "MEDIUM", "HIGH"]},
+    "impact": {"enum": ["LOW", "MEDIUM", "HIGH"]},
+    "effort": {"enum": ["LOW", "MEDIUM", "HIGH"]},
+    "evidenceRefs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "scope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["product_code", "primary_channels", "property_ids", "strategic_context"],
+      "properties": {
+        "product_code": {"enum": ["INSTAGRAM_DIAGNOSIS", "SITE_DIAGNOSIS", "PRESENCE_DIAGNOSIS_INSTAGRAM_SITE", "GOOGLE_BUSINESS_PILOT"]},
+        "primary_channels": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"$ref": "#/$defs/channelType"}},
+        "property_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "strategic_context": {"type": "object", "additionalProperties": false, "required": ["what_is_sold", "target_audience", "primary_goal", "desired_perceptions"], "properties": {
+          "what_is_sold": {"type": "string", "minLength": 1, "maxLength": 3000},
+          "target_audience": {"type": "string", "minLength": 1, "maxLength": 3000},
+          "primary_goal": {"enum": ["ATTRACT_CLIENTS", "BUILD_AUTHORITY", "SHOWCASE_WORK", "SELL_PRODUCTS", "GENERATE_LEADS", "STRENGTHEN_BRAND", "ORGANIZE_PRESENCE", "ATTRACT_PARTNERSHIPS", "OTHER"]},
+          "primary_goal_other": {"type": ["string", "null"], "maxLength": 500},
+          "desired_perceptions": {"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 100}}
+        }}
+      }
+    },
+    "channelScore": {
+      "type": "object", "additionalProperties": false,
+      "required": ["property_id", "channel_type", "weight_profile_version", "weight", "score", "score_band", "confidence", "confidence_points", "criteria", "evidence_refs", "limitations"],
+      "properties": {
+        "property_id": {"$ref": "#/$defs/id"}, "channel_type": {"$ref": "#/$defs/channelType"},
+        "weight_profile_version": {"enum": ["instagram_weights_v1.0", "site_weights_v1.0", "google_business_pilot_weights_v0.1"]},
+        "weight": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "score": {"type": ["integer", "null"], "minimum": 0, "maximum": 100},
+        "score_band": {"enum": ["CRITICAL", "FRAGILE", "PARTIAL", "CONSISTENT", "STRONG", "NOT_SCORED"]},
+        "confidence": {"$ref": "#/$defs/confidence"}, "confidence_points": {"type": "integer", "minimum": 0, "maximum": 10},
+        "criteria": {"type": "array", "minItems": 5, "maxItems": 5, "items": {"$ref": "#/$defs/scoringCriterion"}},
+        "evidence_refs": {"$ref": "#/$defs/evidenceRefs"}, "limitations": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 1000}}
+      }
+    },
+    "dimension": {
+      "type": "object", "additionalProperties": false,
+      "required": ["key", "confidence", "confidence_points", "summary", "evidence_refs", "channel_scores", "limitations"],
+      "properties": {
+        "key": {"$ref": "#/$defs/dimensionKey"}, "confidence": {"$ref": "#/$defs/confidence"}, "confidence_points": {"type": "integer", "minimum": 0, "maximum": 10},
+        "summary": {"type": "string", "minLength": 1, "maxLength": 2000}, "evidence_refs": {"$ref": "#/$defs/evidenceRefs"},
+        "channel_scores": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/channelScore"}},
+        "limitations": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 1000}}
+      }
+    },
+    "scoringCriterion": {"type": "object", "additionalProperties": false, "required": ["criterion_code", "state", "points", "evidence_refs", "limitations"], "properties": {"criterion_code": {"type": "string", "pattern": "^[a-z][a-z0-9_]{2,80}$"}, "state": {"enum": ["NOT_SUPPORTED", "PARTIAL", "SUPPORTED", "UNEVALUABLE"]}, "points": {"type": ["integer", "null"], "minimum": 0, "maximum": 2}, "evidence_refs": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id"}}, "limitations": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 1000}}}, "allOf": [{"if": {"properties": {"state": {"const": "NOT_SUPPORTED"}}, "required": ["state"]}, "then": {"properties": {"points": {"const": 0}}}}, {"if": {"properties": {"state": {"const": "PARTIAL"}}, "required": ["state"]}, "then": {"properties": {"points": {"const": 1}}}}, {"if": {"properties": {"state": {"const": "SUPPORTED"}}, "required": ["state"]}, "then": {"properties": {"points": {"const": 2}}}}, {"if": {"properties": {"state": {"const": "UNEVALUABLE"}}, "required": ["state"]}, "then": {"properties": {"points": {"type": "null"}}}}]},
+    "intentionPerception": {
+      "type": "object", "additionalProperties": false,
+      "required": ["intention", "classification", "explanation", "evidence_refs", "confidence"],
+      "properties": {"intention": {"type": "string", "minLength": 1, "maxLength": 100}, "classification": {"enum": ["SUPPORTED", "PARTIALLY_SUPPORTED", "NOT_SUPPORTED", "INSUFFICIENT_EVIDENCE"]}, "explanation": {"type": "string", "minLength": 1, "maxLength": 1500}, "evidence_refs": {"$ref": "#/$defs/evidenceRefs"}, "confidence": {"$ref": "#/$defs/confidence"}}
+    },
+    "finding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["finding_id", "title", "diagnosis", "scope_type", "property_ids", "dimension_keys", "evidence_refs", "confidence", "impact", "effort", "priority_timing"],
+      "properties": {
+        "finding_id": {"$ref": "#/$defs/id"}, "title": {"type": "string", "minLength": 1, "maxLength": 300}, "diagnosis": {"type": "string", "minLength": 1, "maxLength": 2500},
+        "scope_type": {"enum": ["CHANNEL", "CROSS_CHANNEL"]}, "property_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+        "dimension_keys": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/dimensionKey"}}, "evidence_refs": {"$ref": "#/$defs/evidenceRefs"},
+        "confidence": {"$ref": "#/$defs/confidence"}, "impact": {"$ref": "#/$defs/impact"}, "effort": {"$ref": "#/$defs/effort"}, "priority_timing": {"enum": ["NOW", "LATER", "DO_NOT_PRIORITIZE"]}
+      }
+    },
+    "crossChannelFinding": {
+      "allOf": [{"$ref": "#/$defs/finding"}, {"type": "object", "properties": {"scope_type": {"const": "CROSS_CHANNEL"}, "property_ids": {"type": "array", "minItems": 2}}, "required": ["scope_type", "property_ids"]}]
+    },
+    "crossChannelAssessment": {"type": "object", "additionalProperties": false, "required": ["method_version", "axes", "index", "band", "critical_fracture", "critical_fracture_reason", "confidence"], "properties": {"method_version": {"const": "cross_channel_v1.0"}, "axes": {"type": "array", "minItems": 7, "maxItems": 7, "items": {"$ref": "#/$defs/crossChannelAxis"}}, "index": {"type": ["integer", "null"], "minimum": 0, "maximum": 100, "multipleOf": 5}, "band": {"enum": ["INCOHERENT", "FRAGMENTED", "PARTIALLY_COHERENT", "COHERENT", "NOT_SCORED"]}, "critical_fracture": {"type": "boolean"}, "critical_fracture_reason": {"type": ["string", "null"], "maxLength": 1500}, "confidence": {"$ref": "#/$defs/confidence"}}},
+    "crossChannelAxis": {"type": "object", "additionalProperties": false, "required": ["axis", "state", "points", "evidence_refs"], "properties": {"axis": {"enum": ["IDENTITY", "AUDIENCE", "POSITIONING", "OFFER", "AUTHORITY_PROOF", "JOURNEY", "CTA_CONVERSION"]}, "state": {"enum": ["CONFLICTING", "PARTIALLY_ALIGNED", "ALIGNED", "UNEVALUABLE"]}, "points": {"type": ["integer", "null"], "minimum": 0, "maximum": 2}, "evidence_refs": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id"}}}},
+    "selfService": {
+      "type": "object", "additionalProperties": false, "required": ["steps", "completion_signal"],
+      "properties": {"steps": {"type": "array", "minItems": 1, "maxItems": 6, "items": {"type": "string", "minLength": 1, "maxLength": 800}}, "completion_signal": {"type": "string", "minLength": 1, "maxLength": 1000}}
+    },
+    "solution": {
+      "type": "object", "additionalProperties": false, "required": ["solution_class", "need_level", "self_service_guidance"],
+      "properties": {"solution_class": {"enum": ["MESSAGING_ADJUSTMENT", "CONTENT_STRUCTURE", "PROOF_DISTRIBUTION", "JOURNEY_ADJUSTMENT", "TECHNICAL_ADJUSTMENT", "POSITIONING_WORK", "OTHER"]}, "need_level": {"enum": ["SELF_SERVICE", "ASSISTED", "SPECIALIST_RECOMMENDED", "STRUCTURAL_PROJECT"]}, "self_service_guidance": {"$ref": "#/$defs/selfService"}}
+    },
+    "priority": {
+      "type": "object", "additionalProperties": false,
+      "required": ["rank", "finding_id", "title", "what_to_change", "why_it_matters", "evidence_refs", "impact", "effort", "confidence", "solution"],
+      "properties": {"rank": {"type": "integer", "minimum": 1, "maximum": 3}, "finding_id": {"$ref": "#/$defs/id"}, "title": {"type": "string", "minLength": 1, "maxLength": 300}, "what_to_change": {"type": "string", "minLength": 1, "maxLength": 1800}, "why_it_matters": {"type": "string", "minLength": 1, "maxLength": 1800}, "evidence_refs": {"$ref": "#/$defs/evidenceRefs"}, "impact": {"$ref": "#/$defs/impact"}, "effort": {"$ref": "#/$defs/effort"}, "confidence": {"$ref": "#/$defs/confidence"}, "solution": {"$ref": "#/$defs/solution"}, "dependencies": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/id"}}}
+    },
+    "quickWin": {"type": "object", "additionalProperties": false, "required": ["action", "finding_reference", "why", "expected_effect"], "properties": {"action": {"type": "string", "minLength": 1, "maxLength": 1000}, "finding_reference": {"$ref": "#/$defs/id"}, "why": {"type": "string", "minLength": 1, "maxLength": 1000}, "expected_effect": {"type": "string", "minLength": 1, "maxLength": 1000}}},
+    "doNotPrioritize": {"type": "object", "additionalProperties": false, "required": ["item", "reason", "evidence_refs"], "properties": {"item": {"type": "string", "minLength": 1, "maxLength": 500}, "reason": {"type": "string", "minLength": 1, "maxLength": 1200}, "evidence_refs": {"$ref": "#/$defs/evidenceRefs"}}},
+    "recommendedNextStep": {"type": "object", "additionalProperties": false, "required": ["recommendation_type", "action", "rationale", "confidence"], "properties": {"recommendation_type": {"enum": ["SELF_IMPLEMENTATION", "ASSISTED_IMPLEMENTATION", "SPECIALIST_RECOMMENDED", "STRUCTURAL_PROJECT", "NO_SERVICE_NEEDED"]}, "action": {"type": "string", "minLength": 1, "maxLength": 1500}, "rationale": {"type": "string", "minLength": 1, "maxLength": 1500}, "confidence": {"$ref": "#/$defs/confidence"}}},
+    "limitation": {"type": "object", "additionalProperties": false, "required": ["description", "affected_dimensions", "effect_on_conclusions"], "properties": {"description": {"type": "string", "minLength": 1, "maxLength": 1200}, "affected_dimensions": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/dimensionKey"}}, "effect_on_conclusions": {"type": "string", "minLength": 1, "maxLength": 1200}}}
+  }
+}

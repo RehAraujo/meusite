@@ -1,0 +1,12 @@
+{
+  "approved_experiments": [
+    {"condition":"FULL","global_mean":61.9,"global_min":57.95,"global_max":64,"recommendation":"SELF_IMPLEMENTATION"},
+    {"condition":"REDUCED","global_mean":65.07,"global_min":64.25,"global_max":65.55,"recommendation":"SELF_IMPLEMENTATION"},
+    {"condition":"MINIMUM","global_mean":64.73,"global_min":64.1,"global_max":65.3,"recommendation":"SELF_IMPLEMENTATION"},
+    {"condition":"AUTONOMOUS","global_mean":63.8,"global_min":63.5,"global_max":64.35,"recommendation":"SELF_IMPLEMENTATION"}
+  ],
+  "e2e_cases": [
+    {"case":"first_real_e2e","expected":"REPROCESSING","defects":["INVALID_ENUM","MISSING_LIMITATION","INVALID_QUICK_WIN"]},
+    {"case":"rejected_current","expected":"REPROCESSING","defects":["UNKNOWN_SCORED_AS_ZERO","UNGROUNDED_SCOPE","UNSUPPORTED_ASSISTANCE","UNSUPPORTED_CRITICAL_FRACTURE"]}
+  ]
+}

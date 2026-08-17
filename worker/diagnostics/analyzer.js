@@ -1,344 +1,201 @@
-import { DIMENSIONS, WEIGHTS } from './constants.js';
-import { id, now } from './utils.js';
+import { CROSS_CHANNEL_AXES, WEIGHTS } from './constants.js';
+import {
+  ANALYZER_GENERATION_CONTRACT_VERSION, analyzerGenerationSchema, collectAnalysisLimitations,
+  quickWinGenerationSchema, validateGenerationStructure, validateQuickWins,
+} from './contracts.js';
 import { controlledFixture } from './fixture-analyzer.js';
+import { id, now } from './utils.js';
 
-const criterionSchema = {
-  type: 'object',
-  additionalProperties: false,
-  required: ['criterion_code', 'state', 'points', 'evidence_refs', 'limitations'],
-  properties: {
-    criterion_code: { type: 'string' },
-    state: { type: 'string', enum: ['NOT_SUPPORTED', 'PARTIAL', 'SUPPORTED', 'UNEVALUABLE'] },
-    points: { type: ['integer', 'null'] },
-    evidence_refs: { type: 'array', items: { type: 'string' } },
-    limitations: { type: 'array', items: { type: 'string' } },
-  },
-};
-const outputSchema = {
-  type: 'object',
-  additionalProperties: false,
-  required: [
-    'dimension_assessments',
-    'findings',
-    'priorities',
-    'quick_wins',
-    'do_not_prioritize',
-    'intention_vs_perception',
-    'recommended_next_step',
-    'cross_channel',
-  ],
-  properties: {
-    dimension_assessments: {
-      type: 'array',
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['key', 'summary', 'confidence', 'confidence_points', 'channels'],
-        properties: {
-          key: { type: 'string', enum: DIMENSIONS },
-          summary: { type: 'string' },
-          confidence: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH'] },
-          confidence_points: { type: 'integer' },
-          channels: {
-            type: 'array',
-            items: {
-              type: 'object',
-              additionalProperties: false,
-              required: [
-                'channel_type',
-                'confidence',
-                'confidence_points',
-                'criteria',
-                'evidence_refs',
-                'limitations',
-              ],
-              properties: {
-                channel_type: { type: 'string', enum: ['INSTAGRAM', 'SITE'] },
-                confidence: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH'] },
-                confidence_points: { type: 'integer' },
-                criteria: { type: 'array', minItems: 5, maxItems: 5, items: criterionSchema },
-                evidence_refs: { type: 'array', items: { type: 'string' } },
-                limitations: { type: 'array', items: { type: 'string' } },
-              },
-            },
-          },
-        },
-      },
-    },
-    findings: {
-      type: 'array',
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: [
-          'title',
-          'diagnosis',
-          'scope_type',
-          'property_ids',
-          'dimension_keys',
-          'evidence_refs',
-          'confidence',
-          'impact',
-          'effort',
-        ],
-        properties: {
-          title: { type: 'string' },
-          diagnosis: { type: 'string' },
-          scope_type: { type: 'string', enum: ['CHANNEL', 'CROSS_CHANNEL'] },
-          property_ids: { type: 'array', items: { type: 'string' } },
-          dimension_keys: { type: 'array', items: { type: 'string' } },
-          evidence_refs: { type: 'array', items: { type: 'string' } },
-          confidence: { type: 'string' },
-          impact: { type: 'string' },
-          effort: { type: 'string' },
-        },
-      },
-    },
-    priorities: {
-      type: 'array',
-      maxItems: 3,
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: [
-          'title',
-          'what_to_change',
-          'why_it_matters',
-          'evidence_refs',
-          'impact',
-          'effort',
-          'confidence',
-          'solution_class',
-          'need_level',
-          'steps',
-          'completion_signal',
-        ],
-        properties: {
-          title: { type: 'string' },
-          what_to_change: { type: 'string' },
-          why_it_matters: { type: 'string' },
-          evidence_refs: { type: 'array', items: { type: 'string' } },
-          impact: { type: 'string' },
-          effort: { type: 'string' },
-          confidence: { type: 'string' },
-          solution_class: { type: 'string' },
-          need_level: { type: 'string' },
-          steps: { type: 'array', items: { type: 'string' } },
-          completion_signal: { type: 'string' },
-        },
-      },
-    },
-    quick_wins: { type: 'array', items: { type: 'string' } },
-    do_not_prioritize: { type: 'array', items: { type: 'string' } },
-    intention_vs_perception: {
-      type: 'array',
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['intention', 'classification', 'explanation', 'evidence_refs', 'confidence'],
-        properties: {
-          intention: { type: 'string' },
-          classification: { type: 'string' },
-          explanation: { type: 'string' },
-          evidence_refs: { type: 'array', items: { type: 'string' } },
-          confidence: { type: 'string' },
-        },
-      },
-    },
-    recommended_next_step: {
-      type: 'object',
-      additionalProperties: false,
-      required: ['recommendation_type', 'action', 'rationale', 'confidence'],
-      properties: {
-        recommendation_type: {
-          type: 'string',
-          enum: [
-            'SELF_IMPLEMENTATION',
-            'ASSISTED_IMPLEMENTATION',
-            'SPECIALIST_RECOMMENDED',
-            'STRUCTURAL_PROJECT',
-            'NO_SERVICE_NEEDED',
-          ],
-        },
-        action: { type: 'string' },
-        rationale: { type: 'string' },
-        confidence: { type: 'string' },
-      },
-    },
-    cross_channel: {
-      type: ['object', 'null'],
-      additionalProperties: false,
-      required: ['axes', 'critical_fracture', 'reason'],
-      properties: {
-        axes: {
-          type: 'array',
-          items: {
-            type: 'object',
-            additionalProperties: false,
-            required: ['axis', 'state', 'points', 'evidence_refs'],
-            properties: {
-              axis: { type: 'string' },
-              state: { type: 'string' },
-              points: { type: ['integer', 'null'] },
-              evidence_refs: { type: 'array', items: { type: 'string' } },
-            },
-          },
-        },
-        critical_fracture: { type: 'boolean' },
-        reason: { type: ['string', 'null'] },
-      },
-    },
-  },
-};
-
-function extractText(response) {
-  return (
-    response.output_text ||
-    response.output?.flatMap((x) => x.content || []).find((x) => x.type === 'output_text')?.text
-  );
+const confidencePoints = { LOW: 3, MEDIUM: 6, HIGH: 9 };
+const criterionPoints = { NOT_SUPPORTED: 0, PARTIAL: 1, SUPPORTED: 2, UNEVALUABLE: null };
+export const PARTIAL_BUDGET = Object.freeze({ max_input_tokens: 6000, max_output_tokens: 4000, max_attempts: 2,
+  input_usd_per_million: 0.25, output_usd_per_million: 2, cap_usd: 0.03 });
+export function partialWorstCaseCost(config = PARTIAL_BUDGET) {
+  return Number((config.max_attempts * ((config.max_input_tokens * config.input_usd_per_million + config.max_output_tokens * config.output_usd_per_million) / 1_000_000)).toFixed(8));
 }
-export async function analyze(env, order, pkg) {
-  if (env.ANALYZER_MODE === 'CONTROLLED_FIXTURE') return controlledFixture(order, pkg);
-  const compact = {
-    context: { goal: order.primary_goal, desired_perceptions: order.desired_perceptions },
-    properties: pkg.properties,
-    evidence: pkg.evidence,
-    limitations: pkg.investigation_limitations,
-  };
-  const res = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
+const extractText = (response) => response.output_text || response.output?.flatMap((x) => x.content || []).find((x) => x.type === 'output_text')?.text;
+const safeError = async (response, requestId) => {
+  const failure = await response.json().catch(() => ({}));
+  return new Error(`Analyzer indisponível (${response.status}; code ${failure.error?.code || failure.error?.type || 'unknown_error'}; param ${failure.error?.param || 'n/a'}; request ${requestId || 'n/a'}): ${String(failure.error?.message || '').replace(/sk-[A-Za-z0-9_-]+/g, '[REDACTED]').slice(0, 1000)}`);
+};
+function usageOf(body, requestId, stage) {
+  if (!body.usage) return { stage, model: body.model || null, availability: 'USAGE_UNAVAILABLE', request_id: requestId };
+  return { stage, model: body.model, availability: 'AVAILABLE', input_tokens: body.usage?.input_tokens || 0,
+    cached_input_tokens: body.usage?.input_tokens_details?.cached_tokens || 0,
+    output_tokens: body.usage?.output_tokens || 0, reasoning_tokens: body.usage?.output_tokens_details?.reasoning_tokens || 0,
+    total_tokens: body.usage?.total_tokens || 0, request_id: requestId };
+}
+export class TechnicalResponseError extends Error {
+  constructor(code, message, usage, retryable = false) { super(message); this.name='TechnicalResponseError'; this.code=code; this.usages=[usage]; this.retryable=retryable; }
+}
+export function parseStructuredResponse(body, requestId, stage) {
+  const usage = usageOf(body, requestId, stage);
+  if (body.status === 'incomplete') {
+    const reason = body.incomplete_details?.reason;
+    throw new TechnicalResponseError(reason === 'max_output_tokens' ? 'TOKEN_LIMIT' : 'PROVIDER_OUTPUT_TRUNCATED', `Resposta incompleta: ${reason || 'unknown'}`, usage, true);
+  }
+  const refusal = body.output?.flatMap((x)=>x.content||[]).find((x)=>x.type==='refusal');
+  if (refusal) throw new TechnicalResponseError('PROVIDER_REFUSAL', 'Provider recusou a geração estruturada.', usage, false);
+  const text = extractText(body);
+  if (!text) throw new TechnicalResponseError('UNKNOWN_TRANSPORT_FAILURE', 'Resposta completa sem output estruturado.', usage, true);
+  try { return { value: JSON.parse(text), usage }; }
+  catch { throw new TechnicalResponseError('PARSER_ERROR', 'Resposta marcada como completa contém JSON inválido.', usage, false); }
+}
+async function callStructuredOnce(env, schema, name, instructions, input, stage) {
+  let response;
+  try { response = await fetch('https://api.openai.com/v1/responses', { method: 'POST',
     headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: env.OPENAI_MODEL || 'gpt-5-mini',
-      instructions:
-        'Você é o Strategic Analyzer. Use somente evidências fornecidas. Ausência ou NOT_ACCESSIBLE reduz confidence e nunca prova ausência. Não faça inferências psicológicas. Produza exatamente 7 dimensões e 5 critérios observáveis por canal aplicável. Critério: NOT_SUPPORTED=0, PARTIAL=1, SUPPORTED=2, UNEVALUABLE=null. Priorize ação específica e self-service. Não calcule scores. Não crie oferta. Escreva em pt-BR.',
-      input: JSON.stringify(compact),
-      text: {
-        format: {
-          type: 'json_schema',
-          name: 'strategic_analysis',
-          strict: true,
-          schema: outputSchema,
-        },
-      },
-    }),
-  });
-  if (!res.ok) throw new Error(`Analyzer indisponível (${res.status}).`);
-  const raw = JSON.parse(extractText(await res.json()));
-  const findings = raw.findings.map((x) => ({
-    ...x,
-    finding_id: id('finding'),
-    priority_timing: 'NOW',
-  }));
-  const refByTitle = new Map(findings.map((x) => [x.title, x.finding_id]));
-  const dimensions = raw.dimension_assessments.map((d) => ({
-    key: d.key,
-    confidence: d.confidence,
-    confidence_points: d.confidence_points,
-    summary: d.summary,
-    evidence_refs: [...new Set(d.channels.flatMap((x) => x.evidence_refs))],
-    channel_scores: d.channels.map((cs) => ({
-      ...cs,
-      property_id: pkg.properties.find((p) => p.channel_type === cs.channel_type)?.property_id,
-      weight_profile_version: `${cs.channel_type.toLowerCase()}_weights_v1.0`,
-      weight: WEIGHTS[cs.channel_type][d.key],
-      score: null,
-      score_band: 'NOT_SCORED',
-    })),
-    limitations: [...new Set(d.channels.flatMap((x) => x.limitations))],
-  }));
-  const priorities = raw.priorities.map((x, i) => ({
-    rank: i + 1,
-    finding_id: refByTitle.get(x.title) || findings[0]?.finding_id,
-    title: x.title,
-    what_to_change: x.what_to_change,
-    why_it_matters: x.why_it_matters,
-    evidence_refs: x.evidence_refs,
-    impact: x.impact,
-    effort: x.effort,
-    confidence: x.confidence,
-    solution: {
-      solution_class: x.solution_class,
-      need_level: x.need_level,
-      self_service_guidance: { steps: x.steps, completion_signal: x.completion_signal },
-    },
-    dependencies: [],
-  }));
-  return {
-    contract_version: '2.1.0',
-    method_version: 'presence_v2.1',
-    governance_policy_version: 'scoring_qa_governance_v1.0',
-    analysis_id: id('analysis'),
-    investigation_id: pkg.investigation_id,
-    analyzer_run_id: id('run'),
-    scope: {
-      product_code: order.product_type,
-      primary_channels: order.channels,
-      property_ids: pkg.properties.map((x) => x.property_id),
-      strategic_context: {
-        what_is_sold: 'Não informado no intake mínimo.',
-        target_audience: 'Não informado no intake mínimo.',
-        primary_goal: order.primary_goal,
-        primary_goal_other: null,
-        desired_perceptions: order.desired_perceptions,
-      },
-    },
-    dimensions,
-    intention_vs_perception: raw.intention_vs_perception,
-    findings,
-    cross_channel_findings: findings.filter((x) => x.scope_type === 'CROSS_CHANNEL'),
-    cross_channel_assessment: buildCross(raw.cross_channel),
-    top_priorities: priorities,
-    quick_wins: raw.quick_wins.map((action) => ({
-      action,
-      rationale: 'Ação de baixo esforço derivada das evidências.',
-      evidence_refs: pkg.evidence
-        .filter((x) => x.availability === 'FOUND')
-        .map((x) => x.evidence_id),
-      effort: 'LOW',
-      confidence: 'MEDIUM',
-    })),
-    do_not_prioritize: raw.do_not_prioritize.map((item) => ({
-      item,
-      reason: 'Não há evidência suficiente para priorizar este investimento agora.',
-      evidence_refs: pkg.evidence
-        .filter((x) => x.availability === 'FOUND')
-        .map((x) => x.evidence_id),
-    })),
-    recommended_next_step: raw.recommended_next_step,
-    analysis_limitations: pkg.investigation_limitations.map((x) => ({
-      description: x.description,
-      affected_dimensions: DIMENSIONS,
-      effect_on_conclusions: 'Reduz confidence; não reduz score automaticamente.',
-    })),
-    analyzer_completed_at: now(),
-  };
+    signal: AbortSignal.timeout(60000),
+    body: JSON.stringify({ model: env.OPENAI_MODEL || 'gpt-5-mini', instructions, input: JSON.stringify(input),
+      max_output_tokens: stage === 'MAIN_ANALYSIS' ? 12000 : PARTIAL_BUDGET.max_output_tokens,
+      text: { format: { type: 'json_schema', name, strict: true, schema } } }) }); }
+  catch (error) { throw new TechnicalResponseError(error.name === 'TimeoutError' ? 'TIMEOUT' : 'UNKNOWN_TRANSPORT_FAILURE', 'Falha de transporte antes da resposta completa.', { stage, availability:'USAGE_UNAVAILABLE', request_id:null }, true); }
+  const requestId = response.headers.get('x-request-id');
+  if (!response.ok) throw await safeError(response, requestId);
+  const body = await response.json();
+  return parseStructuredResponse(body, requestId, stage);
 }
-function buildCross(value) {
-  if (!value) return null;
-  const evaluable = value.axes.filter((x) => x.points != null);
-  const index =
-    evaluable.length >= 5
-      ? Math.round(
-          ((evaluable.reduce((s, x) => s + x.points, 0) / (evaluable.length * 2)) * 100) / 5,
-        ) * 5
-      : null;
-  return {
-    method_version: 'cross_channel_v1.0',
-    axes: value.axes,
-    index,
-    band:
-      index == null
-        ? 'NOT_SCORED'
-        : index < 25
-          ? 'INCOHERENT'
-          : index < 50
-            ? 'FRAGMENTED'
-            : index < 75
-              ? 'PARTIALLY_COHERENT'
-              : 'COHERENT',
-    critical_fracture: value.critical_fracture,
-    critical_fracture_reason: value.reason,
-    confidence: evaluable.length >= 6 ? 'HIGH' : 'MEDIUM',
-  };
+async function callStructured(env, schema, name, instructions, input, stage) {
+  if (stage === 'PARTIAL_REGENERATION' && partialWorstCaseCost() > PARTIAL_BUDGET.cap_usd)
+    throw new TechnicalResponseError('COST_CAP_EXCEEDED', `Worst-case ${partialWorstCaseCost()} excede teto ${PARTIAL_BUDGET.cap_usd}.`, { stage, availability:'USAGE_UNAVAILABLE', request_id:null }, false);
+  const usages=[];
+  for (let attempt=0; attempt<2; attempt++) try {
+    const result=await callStructuredOnce(env,schema,name,instructions,input,stage); result.technicalRetryCount=attempt; result.priorUsages=usages; return result;
+  } catch(error) {
+    usages.push(...(error.usages||[]));
+    if (!(error instanceof TechnicalResponseError) || !error.retryable || attempt===1) { error.usages=usages; throw error; }
+  }
+}
+
+export async function regenerateQuickWins(env, generation, order, pkg) {
+  const compatibleGeneration = structuredClone(generation);
+  compatibleGeneration.quick_wins = [];
+  validateGenerationStructure(compatibleGeneration, pkg);
+  const input = buildGenerationInput(order, pkg);
+  const partial = await callStructured(env, quickWinGenerationSchema, 'quick_win_regeneration_v1_2',
+    'Regere somente Quick Wins em pt-BR. Preserve integralmente findings, prioridades e todos os demais componentes. Cada item contém apenas action, priority_index, why e expected_effect. Return only Quick Wins strongly supported by evidence. Do not fill the list to reach a target count. An empty list is valid. Never introduce arbitrary quantities, frequencies, counts, timelines, tools or platforms unless they are supported by evidence or deterministic rules. Também não invente formatos, arquivos, número de etapas ou volume. Na ausência de suporte, use linguagem não quantitativa. Não alegue ausência de algo confirmado em verified_existing_elements.',
+    { priorities: compatibleGeneration.priorities.map((x, index) => ({ index, title: x.title, what_to_change: x.what_to_change, finding_index: x.finding_index })),
+      findings: compatibleGeneration.findings.map((x, index) => ({ index, title: x.title, diagnosis: x.diagnosis, evidence_indexes: x.evidence_indexes })),
+      evidence: input.evidence, verified_existing_elements: input.verified_existing_elements }, 'PARTIAL_REGENERATION');
+  try {
+    validateQuickWins(partial.value.quick_wins, compatibleGeneration, pkg);
+    const revised = compatibleGeneration; revised.quick_wins = partial.value.quick_wins;
+    validateGenerationStructure(revised, pkg);
+    return { generation: revised, usages: [...(partial.priorUsages || []), partial.usage], technicalRetryCount: partial.technicalRetryCount };
+  } catch (error) { error.usages = [...(partial.priorUsages || []), partial.usage]; throw error; }
+}
+
+export async function generateAnalysis(env, order, pkg, lifecycle = {}) {
+  if (env.ANALYZER_MODE === 'CONTROLLED_FIXTURE') return { analysis: controlledFixture(order, pkg), usages: [] };
+  const input = buildGenerationInput(order, pkg);
+  const main = await callStructured(env, analyzerGenerationSchema, ANALYZER_GENERATION_CONTRACT_VERSION,
+    'Interprete estrategicamente apenas o necessário. Os arrays de propriedades e evidências são indexados a partir de zero: devolva somente índices válidos. Não invente IDs, pontos, scores, códigos, limitações, estados do pipeline, CTA ou service match. Produza 7 dimensões, 3 prioridades e um finding CROSS_CHANNEL. Ausência não observável por limitação de acesso é UNEVALUABLE, nunca NOT_SUPPORTED. Não prescreva ferramenta, arquivo, quantidade, escopo ou prazo específico sem evidência; exemplos devem ser explicitamente opcionais. Assistência só é cabível diante de impedimento técnico/estrutural comprovado; o padrão é SELF_IMPLEMENTATION. Cada Quick Win aponta apenas para priority_index 0, 1 ou 2, propõe ação específica e não instrui criar/adicionar algo listado em verified_existing_elements; se o problema for qualidade, visibilidade, coerência ou funcionamento, nomeie esse problema. Escreva em pt-BR.', input, 'MAIN_ANALYSIS');
+  let generation;
+  // MVP: Quick Wins are optional derived content. Never trigger a dedicated LLM regeneration.
+  // Until a safe deterministic derivation exists, the conservative result is an empty list.
+  main.value.quick_wins = [];
+  try { generation = validateGenerationStructure(main.value, pkg); }
+  catch (error) { error.usages = [main.usage]; throw error; }
+  await lifecycle.persistValidGeneration?.({ generation: structuredClone(generation), usage: main.usage,
+    contract_version: ANALYZER_GENERATION_CONTRACT_VERSION, component: 'MAIN_ANALYSIS', parent_generation_id: null });
+  return { analysis: assembleAnalysisV2(generation, order, pkg), usages: [main.usage] };
+}
+
+export const analyze = generateAnalysis;
+export function assembleAnalysisV2(generation, order, pkg) {
+  validateGenerationStructure(generation, pkg); validateQuickWins(generation.quick_wins, generation, pkg);
+  const findings = generation.findings.map((proposal) => ({
+    finding_id: id('finding'), title: proposal.title, diagnosis: calibratedLanguage(proposal.diagnosis, proposal.confidence), scope_type: proposal.scope_type,
+    property_ids: proposal.property_indexes.map((index) => pkg.properties[index].property_id), dimension_keys: proposal.dimension_keys,
+    evidence_refs: proposal.evidence_indexes.map((index) => pkg.evidence[index].evidence_id), confidence: proposal.confidence,
+    impact: proposal.impact, effort: proposal.effort, priority_timing: 'NOW',
+  }));
+  const priorities = generation.priorities.map((proposal, rank) => {
+    const finding = findings[proposal.finding_index];
+    return { rank: rank + 1, finding_id: finding.finding_id, title: proposal.title, what_to_change: proposal.what_to_change,
+      why_it_matters: proposal.why_it_matters, evidence_refs: finding.evidence_refs, impact: proposal.impact, effort: proposal.effort,
+      confidence: proposal.confidence, solution: { solution_class: proposal.solution_class, need_level: proposal.need_level,
+        self_service_guidance: { steps: proposal.steps, completion_signal: proposal.completion_signal } }, dependencies: [] };
+  });
+  const dimensions = generation.dimension_assessments.map((proposal) => ({
+    key: proposal.key, confidence: proposal.confidence, confidence_points: confidencePoints[proposal.confidence], summary: proposal.summary,
+    evidence_refs: [...new Set(proposal.channels.flatMap((x) => x.evidence_indexes.map((index) => pkg.evidence[index].evidence_id)))],
+    channel_scores: proposal.channels.map((channel) => {
+      const property = pkg.properties[channel.channel_index];
+      return { property_id: property.property_id, channel_type: property.channel_type,
+        weight_profile_version: `${property.channel_type.toLowerCase()}_weights_v1.0`, weight: WEIGHTS[property.channel_type][proposal.key],
+        score: null, score_band: 'NOT_SCORED', confidence: channel.confidence, confidence_points: confidencePoints[channel.confidence],
+        criteria: channel.criteria.map((criterion, index) => assembleCriterion(criterion, index, proposal.key, property, pkg)),
+        evidence_refs: channel.evidence_indexes.map((index) => pkg.evidence[index].evidence_id), limitations: [] };
+    }), limitations: [],
+  }));
+  return { contract_version: '2.2.0', method_version: 'presence_v2.1', governance_policy_version: 'scoring_qa_governance_v1.0',
+    analysis_id: id('analysis'), investigation_id: pkg.investigation_id, analyzer_run_id: id('run'),
+    scope: { product_code: order.product_type, primary_channels: order.channels, property_ids: pkg.properties.map((x) => x.property_id),
+      strategic_context: { what_is_sold: 'Não informado no intake mínimo.', target_audience: 'Não informado no intake mínimo.',
+        primary_goal: order.primary_goal, primary_goal_other: null, desired_perceptions: order.desired_perceptions } },
+    dimensions,
+    intention_vs_perception: generation.intention_vs_perception.map(({ evidence_indexes, ...rest }) => ({ ...rest, evidence_refs: evidence_indexes.map((i) => pkg.evidence[i].evidence_id) })),
+    findings, cross_channel_findings: findings.filter((x) => x.scope_type === 'CROSS_CHANNEL'),
+    cross_channel_assessment: assembleCross(generation.cross_channel, pkg), top_priorities: priorities,
+    quick_wins: generation.quick_wins.map((quick) => { const priority = priorities[quick.priority_index]; return { action: quick.action,
+      finding_reference: priority.finding_id, why: quick.why, expected_effect: quick.expected_effect }; }),
+    do_not_prioritize: generation.do_not_prioritize.map((x) => ({ item: x.item, reason: x.reason, evidence_refs: x.evidence_indexes.map((i) => pkg.evidence[i].evidence_id) })),
+    recommended_next_step: calibrateRecommendation(generation), analysis_limitations: collectAnalysisLimitations(pkg), analyzer_completed_at: now() };
+}
+function assembleCross(value, pkg) {
+  if (pkg.analysis_scope.primary_channels.length < 2) return null;
+  const points = { CONFLICTING: 0, PARTIALLY_ALIGNED: 1, ALIGNED: 2, UNEVALUABLE: null };
+  const byAxis = new Map(value.axes.map((x) => [x.axis, x]));
+  const axes = CROSS_CHANNEL_AXES.map((name) => { const x = byAxis.get(name); return { axis: name, state: x.state, points: points[x.state], evidence_refs: x.evidence_indexes.map((i) => pkg.evidence[i].evidence_id) }; });
+  const evaluable = axes.filter((x) => x.points != null), index = evaluable.length >= 5 ? Math.round(((evaluable.reduce((s,x) => s+x.points,0)/(evaluable.length*2))*100)/5)*5 : null;
+  const critical = deterministicCriticalFracture(axes, pkg);
+  return { method_version: 'cross_channel_v1.0', axes, index, band: index == null ? 'NOT_SCORED' : index < 25 ? 'INCOHERENT' : index < 50 ? 'FRAGMENTED' : index < 75 ? 'PARTIALLY_COHERENT' : 'COHERENT',
+    critical_fracture: critical, critical_fracture_reason: critical ? value.reason : null,
+    confidence: evaluable.length >= 6 ? 'HIGH' : evaluable.length >= 4 ? 'MEDIUM' : 'LOW' };
+}
+export const assembleCrossChannel = assembleCross;
+export function buildGenerationInput(order, pkg) {
+  return { context: { goal: order.primary_goal, desired_perceptions: order.desired_perceptions },
+    properties: pkg.properties.map((x, index) => ({ index, channel_type: x.channel_type, canonical_identifier: x.canonical_identifier })),
+    evidence: pkg.evidence.map((x, index) => ({ index, property_index: pkg.properties.findIndex((p) => p.property_id === x.property_id), channel_type: x.channel_type,
+      availability: x.availability, evidence_type: x.evidence_type, content: x.content, limitations: x.limitations })),
+    verified_existing_elements: verifiedExistingElements(pkg) };
+}
+function verifiedExistingElements(pkg) {
+  const result = [];
+  pkg.evidence.forEach((evidence, evidenceIndex) => {
+    const text = JSON.stringify(evidence.content || {}), urls = text.match(/(?:https?:\/\/)?(?:www\.)?[a-z0-9-]+\.[a-z]{2,}(?:\/[A-Za-z0-9_./?=&%-]*)?/gi) || [];
+    for (const value of urls) result.push({ evidence_index: evidenceIndex, element: 'PUBLIC_LINK', value });
+  }); return result;
+}
+
+export function assembleCriterion(criterion, index, dimensionKey, property, pkg) {
+  const evidence = criterion.evidence_indexes.map((i) => pkg.evidence[i]).filter(Boolean);
+  const accessLimited = evidence.some((item) => item.availability !== 'FOUND' || (item.limitations || []).some((x) => /não (?:está|estar|foi|foram|pode)|inacess|indispon|limitad/i.test(x)));
+  const evidenceClass = criterion.state === 'SUPPORTED' || criterion.state === 'PARTIAL'
+    ? 'POSITIVE_EVIDENCE'
+    : criterion.state === 'UNEVALUABLE' || accessLimited
+      ? 'UNKNOWN_DUE_TO_ACCESS'
+      : evidence.length ? 'NEGATIVE_EVIDENCE' : 'NOT_APPLICABLE';
+  const state = evidenceClass === 'UNKNOWN_DUE_TO_ACCESS' || evidenceClass === 'NOT_APPLICABLE' ? 'UNEVALUABLE' : criterion.state;
+  return { criterion_code: `${dimensionKey}_${property.channel_type.toLowerCase()}_${index + 1}`,
+    state, points: criterionPoints[state], evidence_refs: evidence.map((x) => x.evidence_id),
+    limitations: evidenceClass === 'UNKNOWN_DUE_TO_ACCESS' ? ['UNKNOWN_DUE_TO_ACCESS: evidência pública insuficiente para conclusão negativa.'] : evidenceClass === 'NOT_APPLICABLE' ? ['NOT_APPLICABLE.'] : [] };
+}
+export function deterministicCriticalFracture(axes, pkg) {
+  const material = new Set(['OFFER','AUTHORITY_PROOF','JOURNEY','CTA_CONVERSION','IDENTITY']);
+  const accessLimitedRefs = new Set(pkg.evidence.filter((x) => x.availability !== 'FOUND' || x.limitations?.length).map((x) => x.evidence_id));
+  return axes.some((axis) => axis.state === 'CONFLICTING' && material.has(axis.axis) && axis.evidence_refs.some((ref) => !accessLimitedRefs.has(ref)));
+}
+function calibrateRecommendation(generation) {
+  const proposal = generation.recommended_next_step;
+  const needsAssistance = generation.priorities.some((x) => x.effort === 'HIGH' && (x.solution_class === 'TECHNICAL_ADJUSTMENT' || x.need_level === 'STRUCTURAL_PROJECT'));
+  const type = ['ASSISTED_IMPLEMENTATION','SPECIALIST_RECOMMENDED','STRUCTURAL_PROJECT'].includes(proposal.recommendation_type) && !needsAssistance ? 'SELF_IMPLEMENTATION' : proposal.recommendation_type;
+  return { ...proposal, recommendation_type: type, action: proposal.action, rationale: calibratedLanguage(proposal.rationale, proposal.confidence) };
+}
+function calibratedLanguage(text, confidence) {
+  const clean = String(text).replace(/^(A análise indica|Há sinais consistentes de|As evidências públicas disponíveis sugerem|Não foi possível verificar com segurança)[:.]?\s*/i, '');
+  const lead = confidence === 'HIGH' ? 'A análise indica' : confidence === 'MEDIUM' ? 'Há sinais consistentes de' : 'Não foi possível verificar com segurança; as evidências públicas disponíveis sugerem';
+  return `${lead}: ${clean.charAt(0).toLocaleLowerCase('pt-BR')}${clean.slice(1)}`;
 }

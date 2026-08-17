@@ -1,20 +1,17 @@
 import { id, now } from './utils.js';
-const block = (title, body, refs = []) => ({ title, body, source_refs: refs });
+const block = (title, body, refs = []) => ({ title, body, source_refs: [...new Set(refs)] });
 export function composeReport(analysis, scorecard) {
   const refs = analysis.findings.map((x) => x.finding_id);
   const priorities = analysis.top_priorities
     .map((x) => `${x.rank}. ${x.title}: ${x.what_to_change}`)
     .join('\n');
-  const quick = analysis.quick_wins.map((x) => `• ${x.action}`).join('\n');
+  const quick = analysis.quick_wins.map((x) => `• ${x.action}\n  ${x.why}\n  Efeito esperado: ${x.expected_effect}`).join('\n');
   const self = analysis.top_priorities
     .flatMap((x) => x.solution.self_service_guidance.steps)
     .map((x) => `• ${x}`)
     .join('\n');
-  const noService =
-    analysis.recommended_next_step.recommendation_type === 'NO_SERVICE_NEEDED' ||
-    analysis.top_priorities.every((x) => x.solution.need_level === 'SELF_SERVICE');
   return {
-    contract_version: '1.1.0',
+    contract_version: '1.3.0',
     report_id: id('report'),
     analysis_id: analysis.analysis_id,
     qa_review_id: id('qa'),
@@ -62,8 +59,10 @@ export function composeReport(analysis, scorecard) {
       ),
       cross_channel_coherence: block(
         'Coerência entre canais',
-        analysis.cross_channel_assessment
-          ? `Índice ${analysis.cross_channel_assessment.index ?? 'não calculável'}. ${analysis.cross_channel_assessment.critical_fracture_reason || 'Sem fratura crítica identificada.'}`
+        analysis.cross_channel_assessment?.index != null
+          ? `Índice ${analysis.cross_channel_assessment.index}. ${analysis.cross_channel_assessment.critical_fracture ? analysis.cross_channel_assessment.critical_fracture_reason : 'Nenhuma fratura crítica foi calculada.'}`
+          : analysis.cross_channel_assessment
+            ? 'A coerência entre canais não recebeu score porque a evidência acessível não permite um cálculo defensável. Isso não representa desempenho ruim.'
           : 'Não aplicável a este produto.',
         refs,
       ),
@@ -72,11 +71,7 @@ export function composeReport(analysis, scorecard) {
         priorities,
         analysis.top_priorities.flatMap((x) => x.evidence_refs),
       ),
-      quick_wins: block(
-        'Quick Wins',
-        quick,
-        analysis.quick_wins.flatMap((x) => x.evidence_refs),
-      ),
+      ...(analysis.quick_wins.length ? { quick_wins: block('Quick Wins', quick, analysis.quick_wins.map((x) => x.finding_reference)) } : {}),
       self_service: block(
         'Como melhorar sozinho',
         self,
@@ -103,7 +98,7 @@ export function composeReport(analysis, scorecard) {
       ),
     },
     ethical_conversion: {
-      conversion_result: noService ? 'NO_SERVICE_NEEDED' : 'NO_SERVICE_NEEDED',
+      conversion_result: 'NO_SERVICE_NEEDED',
       diagnosis_immutable: true,
       self_service_presented: true,
       cta_count: 0,
