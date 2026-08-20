@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://renatajoin.com/schemas/presence-v2/analysis-contract-v2.3.schema.json",
+  "$comment": "EXPERIMENTAL — Strategic Core Sprint 1. Requires strategic_insights. Not registered or consumed by contracts.js, analyzer.js or handler.js. The live analysis-contract-v2.schema.json (2.2.0) stays untouched; dual-accept in the main validator happens only during the future Strategic Analyzer integration. Reuses the live schema's $defs by $ref (no structural duplication) plus the canonical strategic-insight-v1 schema.",
+  "title": "Strategic Analysis Contract V2.3 (experimental)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "method_version", "governance_policy_version", "analysis_id", "investigation_id", "analyzer_run_id", "scope", "dimensions", "intention_vs_perception", "findings", "cross_channel_findings", "cross_channel_assessment", "top_priorities", "quick_wins", "do_not_prioritize", "recommended_next_step", "analysis_limitations", "analyzer_completed_at", "strategic_insights"],
+  "properties": {
+    "contract_version": {"const": "2.3.0"},
+    "method_version": {"const": "presence_v2.1"},
+    "governance_policy_version": {"const": "scoring_qa_governance_v1.0"},
+    "analysis_id": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/id"},
+    "investigation_id": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/id"},
+    "analyzer_run_id": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/id"},
+    "scope": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/scope"},
+    "dimensions": {"type": "array", "minItems": 7, "maxItems": 7, "items": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/dimension"}},
+    "intention_vs_perception": {"type": "array", "minItems": 1, "maxItems": 3, "items": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/intentionPerception"}},
+    "findings": {"type": "array", "minItems": 1, "maxItems": 20, "items": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/finding"}},
+    "cross_channel_findings": {"type": "array", "maxItems": 10, "items": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/crossChannelFinding"}},
+    "cross_channel_assessment": {"anyOf": [{"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/crossChannelAssessment"}, {"type": "null"}]},
+    "top_priorities": {"type": "array", "minItems": 1, "maxItems": 3, "items": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/priority"}},
+    "quick_wins": {"type": "array", "minItems": 0, "maxItems": 3, "items": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/quickWin"}},
+    "do_not_prioritize": {"type": "array", "minItems": 1, "maxItems": 3, "items": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/doNotPrioritize"}},
+    "recommended_next_step": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/recommendedNextStep"},
+    "analysis_limitations": {"type": "array", "items": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/limitation"}},
+    "analyzer_completed_at": {"type": "string", "format": "date-time"},
+    "strategic_insights": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "https://renatajoin.com/schemas/presence-v2/strategic-insight-v1.schema.json"}
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"scope": {"type": "object", "properties": {"product_code": {"enum": ["INSTAGRAM_DIAGNOSIS", "SITE_DIAGNOSIS", "GOOGLE_BUSINESS_PILOT"]}}, "required": ["product_code"]}}, "required": ["scope"]}, "then": {"properties": {"cross_channel_findings": {"type": "array", "maxItems": 0}, "cross_channel_assessment": {"type": "null"}}}},
+    {"if": {"properties": {"scope": {"type": "object", "properties": {"product_code": {"const": "PRESENCE_DIAGNOSIS_INSTAGRAM_SITE"}}, "required": ["product_code"]}}, "required": ["scope"]}, "then": {"properties": {"cross_channel_findings": {"type": "array", "minItems": 1}, "cross_channel_assessment": {"$ref": "https://renatajoin.com/schemas/presence-v2/analysis-contract.schema.json#/$defs/crossChannelAssessment"}}}}
+  ]
+}

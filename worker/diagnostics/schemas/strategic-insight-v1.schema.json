@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://renatajoin.com/schemas/presence-v2/strategic-insight-v1.schema.json",
+  "$comment": "EXPERIMENTAL — Strategic Core Sprint 1. Canonical StrategicInsight model. Not registered or consumed by contracts.js, analyzer.js or handler.js yet. Fields tied to capabilities that do not exist yet (Functional Role Assessment, Contradiction Engine, Hidden Asset Detector, Strategic Reasoning) are declared but intentionally left out of `required`: their absence must read as \"not evaluated\", never as \"evaluated, nothing found\".",
+  "title": "Strategic Insight V1 (experimental)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "insight_id",
+    "type",
+    "title",
+    "summary",
+    "source_finding_refs",
+    "evidence_refs",
+    "confidence",
+    "validation_required",
+    "derivation_method"
+  ],
+  "properties": {
+    "insight_id": { "$ref": "#/$defs/id" },
+    "type": {
+      "enum": ["STRENGTH", "GAP", "FRICTION", "CONTRADICTION", "HIDDEN_ASSET", "RISK", "OPPORTUNITY", "EVIDENCE_GAP"]
+    },
+    "title": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 2500 },
+    "source_finding_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" },
+      "description": "N:1 by design: one or more findings/signals this insight consolidates. A legacy adapter may populate exactly one ref per insight; that is a lift strategy, not a modeling constraint."
+    },
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" },
+      "description": "Direct evidentiary basis for this insight's own claim."
+    },
+    "confidence": { "enum": ["LOW", "MEDIUM", "HIGH"] },
+    "validation_required": {
+      "type": "boolean",
+      "description": "Whether this insight needs human/QA validation before being surfaced. Always computable, not a placeholder."
+    },
+    "derivation_method": {
+      "enum": ["LEGACY_FINDING_LIFT", "STRATEGIC_ANALYZER"],
+      "description": "Explicit provenance of the insight, so no consumer can mistake a mechanical lift for a full strategic assessment."
+    },
+    "objective_relation": {
+      "enum": ["SUPPORTS_OBJECTIVE", "UNDERMINES_OBJECTIVE", "NEUTRAL_TO_OBJECTIVE", "OBJECTIVE_UNCLEAR"],
+      "description": "Relation of this insight to the client's stated primary_goal/desired_perceptions. Optional: present only when actually judged."
+    },
+    "evidence_strength": {
+      "enum": ["DIRECT", "STRONG_DERIVED", "INFERENTIAL", "HYPOTHESIS"],
+      "description": "Epistemic strength of the reasoning chain behind this insight. Independent from evidence_state (availability/applicability)."
+    },
+    "evidence_state": {
+      "enum": ["POSITIVE_EVIDENCE", "NEGATIVE_EVIDENCE", "UNKNOWN_DUE_TO_ACCESS", "NOT_APPLICABLE"],
+      "description": "Availability/applicability of the underlying evidence. Distinct from evidence_strength (epistemic strength)."
+    },
+    "alternative_explanations": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 1000 },
+      "description": "Reserved for Strategic Reasoning. Present only when that capability actually ran."
+    },
+    "contradictory_evidence_refs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/id" },
+      "description": "Evidence that weakens or contests this insight's own claim. Not the mechanism for representing CONTRADICTION-type insights, which instead consolidate conflicting findings via source_finding_refs."
+    },
+    "functional_role": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "description": "Reserved slot for Functional Role Assessment. Free-text placeholder until that capability defines its own representation."
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{2,127}$" }
+  }
+}
