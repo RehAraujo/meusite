@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { projects } from '../data/projects';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { useReveal } from '../hooks/useReveal';
@@ -88,6 +89,11 @@ export default function ProjectsPage() {
                   <p className="card-label">{project.context}</p>
                   <h2>{project.name}</h2>
                   <p className="lead">{project.challenge}</p>
+                  {project.casePath && (
+                    <Link className="project-case-link" to={project.casePath}>
+                      Ver projeto →
+                    </Link>
+                  )}
                   <button
                     type="button"
                     className="accordion-trigger"
@@ -97,7 +103,10 @@ export default function ProjectsPage() {
                   >
                     {isOpen ? 'Fechar' : 'Conheça a construção'}
                   </button>
-                  <div className="accordion-panel" style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}>
+                  <div
+                    className="accordion-panel"
+                    style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
+                  >
                     <div className="accordion-panel__inner" id={`project-panel-${slug}`}>
                       <strong>Como atuei</strong>
                       <p>{project.decision}</p>

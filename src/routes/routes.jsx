@@ -12,6 +12,7 @@ import ProductPage from '../pages/ProductPage';
 import ResumePage from '../pages/ResumePage';
 import ServicesPage from '../pages/ServicesPage';
 import ThoughtsPage from '../pages/ThoughtsPage';
+import TedTecCasePage from '../pages/TedTecCasePage';
 import ToolsPage from '../pages/ToolsPage';
 
 export const routes = createRoutesFromElements(
@@ -21,6 +22,7 @@ export const routes = createRoutesFromElements(
     <Route path="servicos" element={<ServicesPage />} />
     <Route path="negocios" element={<BusinessPage />} />
     <Route path="clientes" element={<ProjectsPage />} />
+    <Route path="clientes/ted-tec" element={<TedTecCasePage />} />
     <Route path="pensamentos" element={<ThoughtsPage />} />
     <Route path="ferramentas" element={<ToolsPage />} />
     <Route path="carreira" element={<CareerPage />} />

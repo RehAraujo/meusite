@@ -8,6 +8,7 @@ const routes = [
   '/servicos',
   '/negocios',
   '/clientes',
+  '/clientes/ted-tec',
   '/pensamentos',
   '/ferramentas',
   '/carreira',
@@ -45,6 +46,10 @@ const metadata = {
   '/clientes': [
     'Construções | Renata Join',
     'Projetos organizados pelo desafio, pelo raciocínio e pelas soluções construídas.',
+  ],
+  '/clientes/ted-tec': [
+    'TED TEC — Da identidade à experiência digital | Renata Join',
+    'Case TED TEC: identidade visual, estratégia, UX/UI, desenvolvimento WordPress, motion e integração de avaliações do Google.',
   ],
   '/pensamentos': [
     'Pensamentos | Renata Join',

@@ -10,10 +10,10 @@ import {
   useTransform,
 } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { FeaturedProjectCard } from '../components/home/FeaturedProjectCard';
 import { ButtonLink } from '../components/ui/ButtonLink';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { heroIndicators, paths, principles, processSteps } from '../data/site';
-import { projects } from '../data/projects';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { useReveal } from '../hooks/useReveal';
 import { createWhatsAppUrl } from '../utils/whatsapp';
@@ -320,8 +320,8 @@ export default function HomePage() {
             </m.p>
             <m.div className="hero-copy" variants={heroItemVariants} data-hero-motion>
               <p>
-                Eu conecto estratégia, design e tecnologia para transformar necessidades em
-                soluções claras, estruturadas e funcionais.
+                Eu conecto estratégia, design e tecnologia para transformar necessidades em soluções
+                claras, estruturadas e funcionais.
               </p>
             </m.div>
             <m.div className="button-group" variants={heroItemVariants} data-hero-motion>
@@ -334,8 +334,7 @@ export default function HomePage() {
             </m.div>
             <m.p className="hero-note" variants={heroItemVariants} data-hero-motion>
               Prefiro entender o contexto por inteiro antes de agir. É assim que evito automatizar
-              confusão, desenhar caminhos inúteis ou construir soluções que ninguém consegue
-              manter.
+              confusão, desenhar caminhos inúteis ou construir soluções que ninguém consegue manter.
             </m.p>
           </m.div>
           <m.div
@@ -488,35 +487,38 @@ export default function HomePage() {
       <section className="surface-section featured-section constellation-section">
         <SectionConstellation variant="left" />
         <div className="container">
-          <SectionHeading
-            eyebrow="Construções em destaque"
-            title={
-              <>
-                Não apresento apenas entregas. Apresento <em>construções.</em>
-              </>
-            }
-          >
-            <p>
-              O que importa é o problema, o raciocínio e as soluções escolhidas para cada contexto.
-            </p>
-          </SectionHeading>
-          <div className="card-grid featured-project-grid">
-            {projects.slice(0, 2).map((project, index) => (
-              <article
-                className="project-card project-card--preview"
-                key={project.name}
-                data-reveal
-                style={{ '--reveal-delay': `${index * 70}ms` }}
-              >
-                <p className="card-label">{project.context}</p>
-                <h3>{project.name}</h3>
-                <p>{project.challenge}</p>
-                <Link to="/clientes">Conheça a construção →</Link>
-              </article>
-            ))}
+          <div className="featured-section__heading" data-reveal>
+            <div>
+              <p className="eyebrow">Portfólio</p>
+              <h2>Construções em destaque</h2>
+            </div>
+            <p>Alguns recortes de projetos que conectam estratégia, design e tecnologia.</p>
+          </div>
+          <div className="featured-project-grid" data-reveal>
+            <FeaturedProjectCard
+              name="TED TEC"
+              category="Branding · UX/UI · Desenvolvimento"
+              image="/assets/tedtec-case-hero.png"
+              imageAlt="Hero final do site TED TEC com notebook em visualização técnica"
+              href="/clientes/ted-tec"
+              status="Case completo"
+              backLabel="Ver projeto"
+            />
+            <FeaturedProjectCard
+              name="ASLU"
+              category="Identidade · Experiência"
+              status="Em breve"
+              backLabel="Case em construção"
+            />
+            <FeaturedProjectCard
+              name="Potência Solar"
+              category="Estratégia · Sistemas"
+              status="Em breve"
+              backLabel="Case em construção"
+            />
           </div>
           <Link className="section-action" to="/clientes">
-            Ver todas as construções <span aria-hidden="true">→</span>
+            Ver mais projetos <span aria-hidden="true">→</span>
           </Link>
         </div>
       </section>
