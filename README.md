@@ -119,7 +119,8 @@ Infraestrutura adicional mínima:
 - Cloudflare D1, migration `migrations/0001_controlled_mvp.sql`;
 - Cloudflare Queue `renatajoin-controlled-mvp`;
 - secrets `OPENAI_API_KEY` e `QA_SECRET` no Worker;
-- variável `OPENAI_MODEL`, atualmente `gpt-5-mini`.
+- variável `OPENAI_MODEL`, atualmente `gpt-5-mini`;
+- variável opcional `STRATEGIC_CORE`: `ON` liga a Espinha de Integração do Strategic Core (Analysis Contract 2.3.0 com `strategic_insights` determinísticos, sem chamada LLM adicional); ausente/qualquer outro valor mantém o pipeline em 2.2.0.
 
 Pedidos usam `payment_status=NOT_REQUIRED_CONTROLLED`; nenhum processador financeiro está conectado. A retenção continua provisória e nenhuma exclusão automática irreversível foi ativada.
 

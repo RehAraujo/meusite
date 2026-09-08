@@ -3,6 +3,7 @@ import { analyze, assembleAnalysisV2 } from './analyzer.js';
 import { investigate, sufficiencyGate } from './investigation.js';
 import { composeReport } from './report.js';
 import { scoreAnalysis } from './scoring.js';
+import { applyStrategicCore } from './strategic-core.js';
 import { audit, transition } from './state.js';
 import {
   ContractValidationError,
@@ -287,7 +288,7 @@ export async function processOrder(env, orderId) {
     if (reusableAnalysis && reusableAnalysis.investigation_id === pkg.investigation_id && !humanRequestedReprocessing) {
       validateAnalysisSemantics(reusableAnalysis, pkg);
       await audit(env, orderId, 'SYSTEM', 'ANALYSIS_REUSED', 'ANALYSIS', 'Analysis V2 já validada reutilizada após falha exclusiva do Composer.');
-      await finishValidatedAnalysis(env, order, orderId, reusableAnalysis);
+      await finishValidatedAnalysis(env, order, orderId, reusableAnalysis, pkg);
       return;
     }
     const { analysis, usages } = await analyze(env, order, pkg, {
@@ -296,8 +297,7 @@ export async function processOrder(env, orderId) {
     for (const usage of usages) await saveUsage(env, orderId, analysis.analyzer_run_id, usage);
     validateAnalysisSemantics(analysis, pkg);
     await audit(env, orderId, 'VALIDATION_ENGINE', 'VALIDATED', 'ANALYSIS', 'Schema e invariantes semânticas válidos.');
-    await saveArtifact(env, orderId, 'ANALYSIS', analysis);
-    await finishValidatedAnalysis(env, order, orderId, analysis);
+    await finishValidatedAnalysis(env, order, orderId, analysis, pkg);
   } catch (error) {
     for (const usage of error.usages || []) await saveUsage(env, orderId, null, usage);
     if (error.apiUsage) await saveUsage(env, orderId, null, error.apiUsage);
@@ -326,8 +326,7 @@ export async function processPersistedGenerationWithoutQuickWins(env, orderId) {
     const analysis = assembleAnalysisV2(generation, order, pkg);
     validateAnalysisSemantics(analysis, pkg);
     await audit(env, orderId, 'VALIDATION_ENGINE', 'VALIDATED', 'ANALYSIS', 'Analysis V2 válida com zero Quick Wins e sem chamada LLM.');
-    await saveArtifact(env, orderId, 'ANALYSIS', analysis);
-    await finishValidatedAnalysis(env, order, orderId, analysis);
+    await finishValidatedAnalysis(env, order, orderId, analysis, pkg);
   } catch (error) {
     const validationFailure = error instanceof ContractValidationError;
     await audit(env, orderId, validationFailure ? 'VALIDATION_ENGINE' : 'SYSTEM', validationFailure ? 'VALIDATION_FAILED' : 'REJECTED', validationFailure ? error.stage : 'ANALYSIS', error.message);
@@ -345,7 +344,7 @@ export async function processValidatedAnalysisOffline(env, orderId) {
   try {
     validateAnalysisSemantics(analysis, pkg);
     await audit(env, orderId, 'VALIDATION_ENGINE', 'VALIDATED', 'ANALYSIS', 'Analysis V2 persistida validada para recomposição offline.');
-    await finishValidatedAnalysis(env, order, orderId, analysis);
+    await finishValidatedAnalysis(env, order, orderId, analysis, pkg);
   } catch (error) {
     const validationFailure = error instanceof ContractValidationError;
     await audit(env, orderId, validationFailure ? 'VALIDATION_ENGINE' : 'SYSTEM', validationFailure ? 'VALIDATION_FAILED' : 'REJECTED', validationFailure ? error.stage : 'ANALYSIS', error.message);
@@ -353,9 +352,33 @@ export async function processValidatedAnalysisOffline(env, orderId) {
   }
 }
 
-async function finishValidatedAnalysis(env, order, orderId, analysis) {
+// Single funnel for a validated analysis: Strategic Core enrichment (flag-gated) + the sole
+// ANALYSIS artifact write, then scoring and report composition — both left untouched. With
+// STRATEGIC_CORE off, finalAnalysis === analysis and nothing else changes.
+async function finishValidatedAnalysis(env, order, orderId, analysis, pkg) {
+    const strategicCoreEnabled = env.STRATEGIC_CORE === 'ON';
+    const { analysis: finalAnalysis, reasoning } = applyStrategicCore(analysis, order, pkg, { enabled: strategicCoreEnabled });
+    if (strategicCoreEnabled) {
+      validateAnalysisSemantics(finalAnalysis, pkg);
+      await audit(env, orderId, 'VALIDATION_ENGINE', 'VALIDATED', 'ANALYSIS', 'Strategic Core V2.3 aplicado; schema 2.3.0 e invariantes de strategic_insights válidos.');
+    }
+    await saveArtifact(env, orderId, 'ANALYSIS', finalAnalysis);
+    if (strategicCoreEnabled) {
+      const escalatedCount = finalAnalysis.strategic_insights.filter((x) => x.self_critique?.escalate).length;
+      await saveArtifact(env, orderId, 'STRATEGIC_REASONING', {
+        strategic_reasoning_id: id('strategic_reasoning'),
+        analysis_id: finalAnalysis.analysis_id,
+        ...reasoning,
+      });
+      await audit(env, orderId, 'SYSTEM', 'STRATEGIC_CORE_APPLIED', 'ANALYSIS', 'Strategic Core V2.3 aplicado ao pipeline vivo.', {
+        insight_count: finalAnalysis.strategic_insights.length,
+        candidate_count: reasoning.insight_candidates.length,
+        capability_state: reasoning.capability_state,
+        escalated_count: escalatedCount,
+      });
+    }
     await transition(env, order, 'SCORING', 'Scoring determinístico iniciado.');
-    const scorecard = scoreAnalysis(analysis);
+    const scorecard = scoreAnalysis(finalAnalysis);
     await audit(
       env,
       orderId,
@@ -365,8 +388,8 @@ async function finishValidatedAnalysis(env, order, orderId, analysis) {
       'Scores calculados fora do LLM.',
     );
     await transition(env, order, 'COMPOSING_REPORT', 'Composição do relatório iniciada.');
-    const report = composeReport(analysis, scorecard);
-    validateReport(report, analysis);
+    const report = composeReport(finalAnalysis, scorecard);
+    validateReport(report, finalAnalysis);
     await audit(env, orderId, 'VALIDATION_ENGINE', 'VALIDATED', 'REPORT', 'Schema e regras de negócio válidos.');
     await saveArtifact(env, orderId, 'REPORT', report);
     await transition(env, order, 'PENDING_HUMAN_REVIEW', 'Relatório aguarda QA humana.');

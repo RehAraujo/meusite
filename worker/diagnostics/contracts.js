@@ -5,6 +5,7 @@ import {
 } from './constants.js';
 import analysisContractSchema from './schemas/analysis-contract-v2.schema.json';
 import reportContractSchema from './schemas/report-contract-v1.schema.json';
+import { validateStrategicAnalysisV23 } from './strategic-analysis-contract.js';
 
 const ajv = new Ajv2020({ allErrors: true, strict: true });
 addFormats(ajv);
@@ -196,7 +197,15 @@ export function collectAnalysisLimitations(pkg) {
 
 export function validateAnalysisSemantics(analysis, pkg) {
   const errors = [], evidenceIds = new Set(pkg.evidence.map((x) => x.evidence_id));
-  if (!analysisContractValidator(analysis)) errors.push(...analysisContractValidator.errors.map((x) => `${x.instancePath || '/'} ${x.message}`));
+  // Dual-accept 2.2.0 / 2.3.0. The 2.3.0 branch delegates schema + strategic_insights validation
+  // to the experimental validator and folds its errors into this stage, so the failure surfaces as
+  // the same ContractValidationError('ANALYSIS_SEMANTICS') the live pipeline already routes on.
+  if (analysis.contract_version === '2.3.0') {
+    try { validateStrategicAnalysisV23(analysis); }
+    catch (error) { errors.push(...(error.errors || [error.message])); }
+  } else if (!analysisContractValidator(analysis)) {
+    errors.push(...analysisContractValidator.errors.map((x) => `${x.instancePath || '/'} ${x.message}`));
+  }
   for (const [i, priority] of analysis.top_priorities.entries()) {
     if (!analysis.findings.some((x) => x.finding_id === priority.finding_id)) errors.push(`top_priorities[${i}] finding_id inválido`);
     for (const ref of priority.evidence_refs) if (!evidenceIds.has(ref)) errors.push(`top_priorities[${i}] evidence_ref inválida`);
