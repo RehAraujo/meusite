@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://renatajoin.com/schemas/presence-v2/strategic-insight-v1.schema.json",
-  "$comment": "EXPERIMENTAL — Strategic Core Sprint 1. Canonical StrategicInsight model. Not registered or consumed by contracts.js, analyzer.js or handler.js yet. Fields tied to capabilities that do not exist yet (Functional Role Assessment, Contradiction Engine, Hidden Asset Detector, Strategic Reasoning) are declared but intentionally left out of `required`: their absence must read as \"not evaluated\", never as \"evaluated, nothing found\".",
+  "$comment": "EXPERIMENTAL — Strategic Core Sprint 1 + Sprint 2 (Strategic Reasoning). Canonical StrategicInsight model. Not registered or consumed by contracts.js, analyzer.js or handler.js yet. functional_role_assessment, hidden_asset_assessment, audience_classification and self_critique are Sprint 2 shapes, still intentionally left out of `required`: their absence must read as \"not evaluated\", never as \"evaluated, nothing found\". Semantic cross-field invariants (e.g. ACTUAL_FRICTION requiring rupture_evidence_refs, hidden asset existence/utilization consistency) live in validateStrategicInsights (strategic-insight.js), not in this schema — see that function for the full list.",
   "title": "Strategic Insight V1 (experimental)",
   "type": "object",
   "additionalProperties": false,
@@ -69,11 +69,103 @@
       "items": { "$ref": "#/$defs/id" },
       "description": "Evidence that weakens or contests this insight's own claim. Not the mechanism for representing CONTRADICTION-type insights, which instead consolidate conflicting findings via source_finding_refs."
     },
-    "functional_role": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 500,
-      "description": "Reserved slot for Functional Role Assessment. Free-text placeholder until that capability defines its own representation."
+    "functional_role_assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "chain_stage", "rupture_evidence_refs"],
+      "properties": {
+        "role": {
+          "enum": ["STRATEGIC_ASSET", "FUNCTIONALLY_USEFUL", "NEUTRAL", "CONTEXT_DEPENDENT", "ACTUAL_FRICTION", "UNEVALUABLE"]
+        },
+        "chain_stage": {
+          "anyOf": [
+            { "enum": ["IDENTITY", "COMPETENCE", "PROOF", "METHOD", "OFFER", "JOURNEY", "CONVERSION"] },
+            { "type": "null" }
+          ],
+          "description": "Null when candidate chain stages disagreed and attribution to a single stage was not forced (see Sprint 2 plan)."
+        },
+        "rupture_evidence_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" },
+          "description": "Non-empty only when role is ACTUAL_FRICTION; see validateStrategicInsights for the enforced invariant."
+        },
+        "rationale": { "type": "string", "minLength": 1, "maxLength": 500 }
+      },
+      "description": "Functional Role model (Sprint 2). 'Difference is not deficiency': a deviation only becomes ACTUAL_FRICTION when a demonstrable chain rupture backs it, never by default."
+    },
+    "hidden_asset_category": {
+      "enum": [
+        "EXPERTISE", "METHOD", "OPERATIONAL_PROOF", "HISTORY", "NETWORK", "COMMUNITY",
+        "LANGUAGE", "AESTHETIC", "REPUTATION", "INTELLECTUAL_PROPERTY", "DISTRIBUTION", "PRIVILEGED_ACCESS"
+      ]
+    },
+    "hidden_asset_assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset_existence", "strategic_utilization"],
+      "properties": {
+        "asset_existence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "evidence_refs"],
+          "properties": {
+            "state": { "enum": ["POSITIVE_EVIDENCE", "UNKNOWN_DUE_TO_ACCESS"] },
+            "evidence_refs": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
+          },
+          "description": "The only two states assessHiddenAsset can produce: existence is a pure membership check against known evidence ids, never a criteria-derived signal."
+        },
+        "strategic_utilization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level", "utilized_chain_stages", "evidence_refs"],
+          "properties": {
+            "level": { "enum": ["ABSENT", "LIMITED", "DISCONNECTED", "INTEGRATED"] },
+            "utilized_chain_stages": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "enum": ["IDENTITY", "COMPETENCE", "PROOF", "METHOD", "OFFER", "JOURNEY", "CONVERSION"] }
+            },
+            "evidence_refs": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/id" } }
+          },
+          "description": "Whether the asset is actually propagated into other chain stages, not just recognized where first credited. Independent from asset_existence."
+        }
+      },
+      "description": "Hidden Asset model (Sprint 2). asset_existence and strategic_utilization are deliberately separate: an asset already credited by a SUPPORTED criterion can still be a hidden asset if under-utilized. See validateStrategicInsights for the enforced existence/utilization invariant."
+    },
+    "audience_classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["categories", "evidence_refs", "confidence"],
+      "properties": {
+        "categories": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["VANITY_AUDIENCE", "SOCIAL_AUDIENCE", "RELEVANT_AUDIENCE", "AUTHORITY_AUDIENCE", "COMMERCIAL_AUDIENCE", "STRATEGIC_NETWORK"] },
+          "description": "Cardinality N: the same evidence/relationship can serve more than one audience function at once. No hierarchy — COMMERCIAL_AUDIENCE is not privileged over the rest."
+        },
+        "evidence_refs": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/id" } },
+        "confidence": { "enum": ["LOW", "MEDIUM", "HIGH"] }
+      },
+      "description": "Audience Quality / Strategic Network model (Sprint 2). No audience/follower metrics are ever collected; classification is text-mention-based only."
+    },
+    "self_critique": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["escalate", "reasons"],
+      "properties": {
+        "escalate": { "type": "boolean" },
+        "reasons": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["NO_FUNCTIONAL_ROLE_ASSESSMENT", "NO_ALTERNATIVE_EXPLANATION_CONSIDERED", "NO_ADVERSE_EVIDENCE_CHECKED", "OBJECTIVE_NOT_CONSIDERED", "CORRELATION_WITHOUT_ALTERNATIVE"]
+          },
+          "description": "escalate=false requires reasons=[]; see validateStrategicInsights for the enforced invariant."
+        }
+      },
+      "description": "Strategic Self-Critique model (Sprint 2). Consults capability_execution_state (internal to strategic-analyzer.js, never serialized) rather than output-field presence/absence — not represented here."
     }
   },
   "$defs": {

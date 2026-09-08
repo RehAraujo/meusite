@@ -92,6 +92,22 @@ export function legacyLiftTypes() {
   return LEGACY_LIFT_TYPES;
 }
 
+// Sprint 2 — turns a StrategicInsightCandidate (strategic-analyzer.js: detectContradictionCandidates
+// / detectHiddenAssetCandidates, already decorated by runStrategicReasoning) plus externally
+// authored text into a canonical StrategicInsight. `authoring` may ONLY contain title/summary —
+// every epistemic field (type, evidence_refs, source_finding_refs, confidence, assessments, ...)
+// is carried over from the candidate unchanged. Does not itself call validateStrategicInsights:
+// the caller (runStrategicReasoning) validates the whole assembled insights[] set in one gate,
+// covering decorated baseInsights and promoted candidates alike.
+export function finalizeInsightCandidate(candidate, authoring) {
+  const allowed = new Set(['title', 'summary']);
+  const unexpected = Object.keys(authoring || {}).filter((key) => !allowed.has(key));
+  if (unexpected.length) throw new Error(`candidateAuthoring só pode conter title/summary, recebeu: ${unexpected.join(', ')}`);
+  const { title, summary } = authoring || {};
+  if (!title || !summary) throw new Error('candidateAuthoring exige title e summary');
+  return { ...candidate, insight_id: id('strategic_insight'), title, summary };
+}
+
 // Schema + semantic validation. Deliberately does NOT enforce a disjointness invariant between
 // contradictory_evidence_refs and evidence_refs, and does NOT couple `type` to the presence of any
 // optional field (see Sprint 1 review: those couplings do not match how CONTRADICTION/HIDDEN_ASSET
@@ -108,9 +124,38 @@ export function validateStrategicInsights(insights, analysis) {
     const sourceEvidence = new Set((insight.source_finding_refs || [])
       .flatMap((ref) => (analysis.findings || []).find((f) => f.finding_id === ref)?.evidence_refs || []));
     for (const ref of insight.evidence_refs || []) if (!sourceEvidence.has(ref)) errors.push(`strategic_insights[${i}] evidence_refs fora da base evidencial dos findings de origem: ${ref}`);
+    const allEvidence = new Set((analysis.findings || []).flatMap((f) => f.evidence_refs || []));
     if (insight.contradictory_evidence_refs) {
-      const allEvidence = new Set((analysis.findings || []).flatMap((f) => f.evidence_refs || []));
       for (const ref of insight.contradictory_evidence_refs) if (!allEvidence.has(ref)) errors.push(`strategic_insights[${i}] contradictory_evidence_refs referencia evidência inexistente: ${ref}`);
+    }
+    // Functional Role model (Sprint 2): ACTUAL_FRICTION requires a demonstrable rupture — never a
+    // default classification. rupture_evidence_refs is drawn from the source finding's own
+    // evidence (see strategic-analyzer.js assessFunctionalRole), so it is checked against
+    // sourceEvidence exactly like evidence_refs above.
+    if (insight.functional_role_assessment) {
+      const { role, rupture_evidence_refs } = insight.functional_role_assessment;
+      if (role === 'ACTUAL_FRICTION' && !(rupture_evidence_refs || []).length) {
+        errors.push(`strategic_insights[${i}] functional_role_assessment.role ACTUAL_FRICTION exige rupture_evidence_refs não vazio`);
+      }
+      for (const ref of rupture_evidence_refs || []) if (!sourceEvidence.has(ref)) errors.push(`strategic_insights[${i}] functional_role_assessment.rupture_evidence_refs fora da base evidencial dos findings de origem: ${ref}`);
+    }
+    // Hidden Asset model (Sprint 2): existence and utilization are independent evaluations
+    // (assessHiddenAsset, strategic-analyzer.js) — no invariant here couples this to `type`.
+    // evidence_refs inside hidden_asset_assessment are deliberately NOT checked against
+    // sourceEvidence/allEvidence: a hidden asset's evidence may never be cited by any finding
+    // (that is precisely what makes it hidden). Existence is validated upstream, against the
+    // investigation's full evidence set, which this function does not have access to.
+    if (insight.hidden_asset_assessment) {
+      const { asset_existence, strategic_utilization } = insight.hidden_asset_assessment;
+      if (asset_existence?.state !== 'POSITIVE_EVIDENCE') errors.push(`strategic_insights[${i}] hidden_asset_assessment.asset_existence.state precisa ser POSITIVE_EVIDENCE`);
+      if (strategic_utilization?.level === 'INTEGRATED') errors.push(`strategic_insights[${i}] hidden_asset_assessment.strategic_utilization.level não pode ser INTEGRATED`);
+    }
+    if (insight.audience_classification) {
+      for (const ref of insight.audience_classification.evidence_refs || []) if (!allEvidence.has(ref)) errors.push(`strategic_insights[${i}] audience_classification.evidence_refs referencia evidência inexistente: ${ref}`);
+    }
+    if (insight.self_critique) {
+      const { escalate, reasons } = insight.self_critique;
+      if (escalate === false && (reasons || []).length) errors.push(`strategic_insights[${i}] self_critique.escalate=false exige reasons=[]`);
     }
   }
   if (errors.length) throw new StrategicInsightValidationError(errors);

@@ -211,10 +211,10 @@ describe('legacy adapter: honestidade sobre capacidades ainda não implementadas
     for (const insight of insights) expect(legacyLiftTypes()).toContain(insight.type);
     expect(insights.map((x) => x.type)).not.toEqual(expect.arrayContaining(['CONTRADICTION', 'HIDDEN_ASSET']));
   });
-  it('omite objective_relation, evidence_strength, alternative_explanations, contradictory_evidence_refs, functional_role e audience_role_ref', () => {
+  it('omite objective_relation, evidence_strength, alternative_explanations, contradictory_evidence_refs, functional_role_assessment, hidden_asset_assessment, audience_classification, self_critique e audience_role_ref', () => {
     const insights = liftFindingsToStrategicInsights(analysisFixture());
     for (const insight of insights) {
-      for (const field of ['objective_relation', 'evidence_strength', 'alternative_explanations', 'contradictory_evidence_refs', 'functional_role', 'audience_role_ref']) {
+      for (const field of ['objective_relation', 'evidence_strength', 'alternative_explanations', 'contradictory_evidence_refs', 'functional_role_assessment', 'hidden_asset_assessment', 'audience_classification', 'self_critique', 'audience_role_ref']) {
         expect(field in insight).toBe(false);
       }
     }
@@ -222,6 +222,115 @@ describe('legacy adapter: honestidade sobre capacidades ainda não implementadas
   it('resultado do lift valida contra o schema canônico', () => {
     const analysis = analysisFixture();
     expect(() => validateStrategicInsights(liftFindingsToStrategicInsights(analysis), analysis)).not.toThrow();
+  });
+});
+
+describe('Sprint 2 — functional_role_assessment: ACTUAL_FRICTION exige ruptura demonstrável', () => {
+  const analysis = { findings: [{ finding_id: 'finding.1', evidence_refs: ['ev.1', 'ev.2'] }] };
+  const baseInsight = (overrides = {}) => ({
+    insight_id: 'strategic_insight.1', type: 'FRICTION', title: 'T', summary: 'S',
+    source_finding_refs: ['finding.1'], evidence_refs: ['ev.1'], confidence: 'MEDIUM',
+    validation_required: true, derivation_method: 'STRATEGIC_ANALYZER', ...overrides,
+  });
+
+  it('rejeita ACTUAL_FRICTION com rupture_evidence_refs vazio', () => {
+    const insight = baseInsight({ functional_role_assessment: { role: 'ACTUAL_FRICTION', chain_stage: 'IDENTITY', rupture_evidence_refs: [] } });
+    expect(() => validateStrategicInsights([insight], analysis)).toThrow(/rupture_evidence_refs não vazio/);
+  });
+  it('aceita ACTUAL_FRICTION com rupture_evidence_refs não vazio e dentro da base evidencial', () => {
+    const insight = baseInsight({ functional_role_assessment: { role: 'ACTUAL_FRICTION', chain_stage: 'IDENTITY', rupture_evidence_refs: ['ev.2'] } });
+    expect(() => validateStrategicInsights([insight], analysis)).not.toThrow();
+  });
+  it('rejeita rupture_evidence_refs fora da base evidencial dos findings de origem', () => {
+    const insight = baseInsight({ functional_role_assessment: { role: 'ACTUAL_FRICTION', chain_stage: 'IDENTITY', rupture_evidence_refs: ['ev.fora'] } });
+    expect(() => validateStrategicInsights([insight], analysis)).toThrow(/rupture_evidence_refs fora da base evidencial/);
+  });
+  it('aceita role != ACTUAL_FRICTION com rupture_evidence_refs vazio', () => {
+    const insight = baseInsight({ type: 'GAP', functional_role_assessment: { role: 'NEUTRAL', chain_stage: 'IDENTITY', rupture_evidence_refs: [] } });
+    expect(() => validateStrategicInsights([insight], analysis)).not.toThrow();
+  });
+  it('schema rejeita o campo legado functional_role (substituído por functional_role_assessment)', () => {
+    const insight = baseInsight({ type: 'GAP', functional_role: 'texto livre' });
+    expect(() => validateStrategicInsights([insight], analysis)).toThrow(StrategicInsightValidationError);
+  });
+});
+
+describe('Sprint 2 — hidden_asset_assessment: existência × utilização independentes', () => {
+  const analysis = { findings: [{ finding_id: 'finding.1', evidence_refs: ['ev.1'] }] };
+  const baseInsight = (overrides = {}) => ({
+    insight_id: 'strategic_insight.1', type: 'HIDDEN_ASSET', title: 'T', summary: 'S',
+    source_finding_refs: ['finding.1'], evidence_refs: ['ev.1'], confidence: 'MEDIUM',
+    validation_required: false, derivation_method: 'STRATEGIC_ANALYZER', ...overrides,
+  });
+  const assessment = (state, level) => ({
+    asset_existence: { state, evidence_refs: ['ev.hidden'] },
+    strategic_utilization: { level, utilized_chain_stages: level === 'ABSENT' ? [] : ['PROOF'], evidence_refs: ['ev.hidden'] },
+  });
+
+  it('rejeita asset_existence.state UNKNOWN_DUE_TO_ACCESS', () => {
+    const insight = baseInsight({ hidden_asset_assessment: assessment('UNKNOWN_DUE_TO_ACCESS', 'ABSENT') });
+    expect(() => validateStrategicInsights([insight], analysis)).toThrow(/asset_existence\.state precisa ser POSITIVE_EVIDENCE/);
+  });
+  it('rejeita strategic_utilization.level INTEGRATED mesmo com existência POSITIVE_EVIDENCE', () => {
+    const insight = baseInsight({ hidden_asset_assessment: assessment('POSITIVE_EVIDENCE', 'INTEGRATED') });
+    expect(() => validateStrategicInsights([insight], analysis)).toThrow(/level não pode ser INTEGRATED/);
+  });
+  it.each(['ABSENT', 'LIMITED', 'DISCONNECTED'])('aceita POSITIVE_EVIDENCE + %s', (level) => {
+    const insight = baseInsight({ hidden_asset_assessment: assessment('POSITIVE_EVIDENCE', level) });
+    expect(() => validateStrategicInsights([insight], analysis)).not.toThrow();
+  });
+  it('não exige que hidden_asset_assessment.evidence_refs pertençam à base evidencial dos findings — hidden assets podem nunca ter sido citados por nenhum finding', () => {
+    const insight = baseInsight({ hidden_asset_assessment: assessment('POSITIVE_EVIDENCE', 'ABSENT') });
+    expect(insight.hidden_asset_assessment.asset_existence.evidence_refs).toEqual(['ev.hidden']);
+    expect(() => validateStrategicInsights([insight], analysis)).not.toThrow();
+  });
+});
+
+describe('Sprint 2 — audience_classification: cardinalidade N, sem hierarquia entre categorias', () => {
+  const analysis = { findings: [{ finding_id: 'finding.1', evidence_refs: ['ev.1', 'ev.2'] }] };
+  const baseInsight = (overrides = {}) => ({
+    insight_id: 'strategic_insight.1', type: 'STRENGTH', title: 'T', summary: 'S',
+    source_finding_refs: ['finding.1'], evidence_refs: ['ev.1'], confidence: 'MEDIUM',
+    validation_required: false, derivation_method: 'STRATEGIC_ANALYZER', ...overrides,
+  });
+
+  it('aceita múltiplas categorias simultâneas para a mesma evidência', () => {
+    const insight = baseInsight({ audience_classification: { categories: ['AUTHORITY_AUDIENCE', 'RELEVANT_AUDIENCE', 'STRATEGIC_NETWORK'], evidence_refs: ['ev.2'], confidence: 'MEDIUM' } });
+    expect(() => validateStrategicInsights([insight], analysis)).not.toThrow();
+  });
+  it('rejeita categories vazio (schema minItems 1)', () => {
+    const insight = baseInsight({ audience_classification: { categories: [], evidence_refs: ['ev.2'], confidence: 'MEDIUM' } });
+    expect(() => validateStrategicInsights([insight], analysis)).toThrow(StrategicInsightValidationError);
+  });
+  it('rejeita categories duplicadas (schema uniqueItems)', () => {
+    const insight = baseInsight({ audience_classification: { categories: ['VANITY_AUDIENCE', 'VANITY_AUDIENCE'], evidence_refs: ['ev.2'], confidence: 'LOW' } });
+    expect(() => validateStrategicInsights([insight], analysis)).toThrow(StrategicInsightValidationError);
+  });
+  it('rejeita evidence_refs apontando para evidência inexistente na análise', () => {
+    const insight = baseInsight({ audience_classification: { categories: ['SOCIAL_AUDIENCE'], evidence_refs: ['ev.inexistente'], confidence: 'LOW' } });
+    expect(() => validateStrategicInsights([insight], analysis)).toThrow(/audience_classification\.evidence_refs referencia evidência inexistente/);
+  });
+});
+
+describe('Sprint 2 — self_critique: escalate=false exige reasons=[]', () => {
+  const analysis = { findings: [{ finding_id: 'finding.1', evidence_refs: ['ev.1'] }] };
+  const baseInsight = (overrides = {}) => ({
+    insight_id: 'strategic_insight.1', type: 'STRENGTH', title: 'T', summary: 'S',
+    source_finding_refs: ['finding.1'], evidence_refs: ['ev.1'], confidence: 'HIGH',
+    validation_required: false, derivation_method: 'STRATEGIC_ANALYZER', ...overrides,
+  });
+
+  it('rejeita escalate=false com reasons não vazio', () => {
+    const insight = baseInsight({ self_critique: { escalate: false, reasons: ['NO_ADVERSE_EVIDENCE_CHECKED'] } });
+    expect(() => validateStrategicInsights([insight], analysis)).toThrow(/self_critique\.escalate=false exige reasons=\[\]/);
+  });
+  it('aceita escalate=false com reasons vazio', () => {
+    const insight = baseInsight({ self_critique: { escalate: false, reasons: [] } });
+    expect(() => validateStrategicInsights([insight], analysis)).not.toThrow();
+  });
+  it('aceita escalate=true com reasons não vazio', () => {
+    const insight = baseInsight({ self_critique: { escalate: true, reasons: ['NO_ADVERSE_EVIDENCE_CHECKED'] } });
+    expect(() => validateStrategicInsights([insight], analysis)).not.toThrow();
   });
 });
 
