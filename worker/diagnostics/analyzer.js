@@ -26,9 +26,38 @@ export function strategicSignalsWorstCaseCost(config = STRATEGIC_SIGNALS_BUDGET)
   return Number((config.max_attempts * ((config.max_input_tokens * config.input_usd_per_million + config.max_output_tokens * config.output_usd_per_million) / 1_000_000)).toFixed(8));
 }
 const extractText = (response) => response.output_text || response.output?.flatMap((x) => x.content || []).find((x) => x.type === 'output_text')?.text;
-const safeError = async (response, requestId) => {
+// Bounded backoff for a transient HTTP 429. Retry-After (seconds) wins when present, capped so a
+// pathological value can never stall the pipeline; otherwise a short fixed wait. One retry only —
+// the existing callStructured loop already caps total attempts at 2.
+export const RATE_LIMIT_BACKOFF_MS = 1000;
+export const RATE_LIMIT_BACKOFF_CAP_MS = 10000;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
+const parseRetryAfterMs = (response) => {
+  const raw = response.headers.get('retry-after');
+  if (raw == null) return null;
+  const seconds = Number(raw);
+  if (!Number.isFinite(seconds) || seconds < 0) return null;
+  return Math.min(Math.round(seconds * 1000), RATE_LIMIT_BACKOFF_CAP_MS);
+};
+// A non-OK HTTP response becomes a TechnicalResponseError. HTTP 429 is retryable (code
+// RATE_LIMITED) and carries the safe 429 metadata; every other status stays non-retryable. The
+// usage entry is USAGE_UNAVAILABLE with the real request_id — a rate-limited attempt records that
+// it happened, never any consumed tokens.
+const safeError = async (response, requestId, stage) => {
   const failure = await response.json().catch(() => ({}));
-  return new Error(`Analyzer indisponível (${response.status}; code ${failure.error?.code || failure.error?.type || 'unknown_error'}; param ${failure.error?.param || 'n/a'}; request ${requestId || 'n/a'}): ${String(failure.error?.message || '').replace(/sk-[A-Za-z0-9_-]+/g, '[REDACTED]').slice(0, 1000)}`);
+  const providerType = failure.error?.type || failure.error?.code || 'unknown_error';
+  const rateLimited = response.status === 429;
+  const error = new TechnicalResponseError(
+    rateLimited ? 'RATE_LIMITED' : 'PROVIDER_HTTP_ERROR',
+    `Analyzer indisponível (${response.status}; code ${providerType}; param ${failure.error?.param || 'n/a'}; request ${requestId || 'n/a'}): ${String(failure.error?.message || '').replace(/sk-[A-Za-z0-9_-]+/g, '[REDACTED]').slice(0, 1000)}`,
+    { stage, availability: 'USAGE_UNAVAILABLE', request_id: requestId },
+    rateLimited,
+  );
+  error.status = response.status;
+  error.providerType = providerType;
+  error.request_id = requestId || null;
+  error.retryAfterMs = rateLimited ? parseRetryAfterMs(response) : null;
+  return error;
 };
 function usageOf(body, requestId, stage) {
   if (!body.usage) return { stage, model: body.model || null, availability: 'USAGE_UNAVAILABLE', request_id: requestId };
@@ -63,7 +92,7 @@ async function callStructuredOnce(env, schema, name, instructions, input, stage)
       text: { format: { type: 'json_schema', name, strict: true, schema } } }) }); }
   catch (error) { throw new TechnicalResponseError(error.name === 'TimeoutError' ? 'TIMEOUT' : 'UNKNOWN_TRANSPORT_FAILURE', 'Falha de transporte antes da resposta completa.', { stage, availability:'USAGE_UNAVAILABLE', request_id:null }, true); }
   const requestId = response.headers.get('x-request-id');
-  if (!response.ok) throw await safeError(response, requestId);
+  if (!response.ok) throw await safeError(response, requestId, stage);
   const body = await response.json();
   return parseStructuredResponse(body, requestId, stage);
 }
@@ -78,6 +107,10 @@ async function callStructured(env, schema, name, instructions, input, stage) {
   } catch(error) {
     usages.push(...(error.usages||[]));
     if (!(error instanceof TechnicalResponseError) || !error.retryable || attempt===1) { error.usages=usages; throw error; }
+    // Reached only for a retryable error on the first attempt. A 429 waits Retry-After (capped) or
+    // the short fixed backoff before the single remaining attempt; other retryable errors keep
+    // their existing zero-delay retry so the happy path is untouched.
+    if (error.code === 'RATE_LIMITED') await sleep(error.retryAfterMs ?? RATE_LIMIT_BACKOFF_MS);
   }
 }
 
@@ -127,7 +160,7 @@ export async function generateAnalysis(env, order, pkg, lifecycle = {}) {
 // Runs only with STRATEGIC_CORE=ON and STRATEGIC_SIGNALS=ON. Returns a discriminated result:
 //   { status: 'GENERATED', bundle, dropped, derived_at, contract_version, usage, technicalRetryCount, usages }
 //   { status: 'SKIPPED', reason, usages: [] }
-//   { status: 'FAILED', reason, error_code, usages }
+//   { status: 'FAILED', reason, error_code, error_status, error_type, usages }
 // `usages` always carries whatever the OpenAI call produced (success or failed attempts) so the
 // handler records STRATEGIC_SIGNALS stage cost/retry regardless of outcome.
 export async function generateStrategicSignals(env, order, pkg, analysis, lifecycle = {}, parentGenerationId = null) {
@@ -139,7 +172,14 @@ export async function generateStrategicSignals(env, order, pkg, analysis, lifecy
     call = await callStructured(env, strategicSignalsSchema, STRATEGIC_SIGNALS_CONTRACT_VERSION,
       STRATEGIC_SIGNALS_INSTRUCTIONS, input, 'STRATEGIC_SIGNALS');
   } catch (error) {
-    return { status: 'FAILED', reason: error.code || 'STRATEGIC_SIGNALS_CALL_FAILED', error_code: error.code || null, usages: error.usages || [] };
+    return {
+      status: 'FAILED',
+      reason: error.code || 'STRATEGIC_SIGNALS_CALL_FAILED',
+      error_code: error.code || null,
+      error_status: error.status ?? null,
+      error_type: error.providerType ?? null,
+      usages: error.usages || [],
+    };
   }
   const usages = [...(call.priorUsages || []), call.usage];
   try { validateStrategicSignalsStructure(call.value); }

@@ -402,7 +402,8 @@ async function recordStrategicSignals(env, orderId, analysis, strategicSignals) 
   if (strategicSignals.status === 'FAILED') {
     await audit(env, orderId, 'SYSTEM', 'STRATEGIC_SIGNALS_SKIPPED', 'STRATEGIC_SIGNALS',
       `Segunda chamada de Strategic Signals falhou sem afetar a análise MAIN: ${strategicSignals.reason}.`,
-      { reason: strategicSignals.reason, error_code: strategicSignals.error_code || null });
+      { reason: strategicSignals.reason, error_code: strategicSignals.error_code || null,
+        error_status: strategicSignals.error_status ?? null, error_type: strategicSignals.error_type ?? null });
     return;
   }
   await saveArtifact(env, orderId, 'STRATEGIC_SIGNALS', {

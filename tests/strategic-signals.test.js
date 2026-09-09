@@ -8,6 +8,7 @@ import {
 } from '../worker/diagnostics/strategic-signals.js';
 import { createCandidateKey } from '../worker/diagnostics/strategic-analyzer.js';
 import {
+  RATE_LIMIT_BACKOFF_MS,
   STRATEGIC_SIGNALS_BUDGET,
   generateAnalysis,
   generateStrategicSignals,
@@ -250,6 +251,105 @@ describe('generateStrategicSignals :: segunda chamada isolada', () => {
       expect(result.status).toBe('FAILED');
       expect(result.reason).toBe('STRATEGIC_SIGNALS_SCHEMA_INVALID');
     } finally { globalThis.fetch = previous; }
+  });
+});
+
+describe('generateStrategicSignals :: retry de HTTP 429', () => {
+  const env = { STRATEGIC_CORE: 'ON', STRATEGIC_SIGNALS: 'ON', OPENAI_API_KEY: 'test' };
+  const okBody = () => JSON.stringify({
+    model: 'gpt-5-mini',
+    output_text: JSON.stringify(fullRaw()),
+    usage: { input_tokens: 100, output_tokens: 40, total_tokens: 140 },
+  });
+  const rateLimited = (retryAfter, id = 'req_429') => new Response(
+    JSON.stringify({ error: { type: 'rate_limit_exceeded', message: 'Rate limit reached' } }),
+    { status: 429, headers: retryAfter == null ? { 'x-request-id': id } : { 'retry-after': String(retryAfter), 'x-request-id': id } },
+  );
+  const run = () => generateStrategicSignals(env, order, pkgStub(), analysisStub(), {}, null);
+  const withFetch = async (fn, body) => {
+    const previous = globalThis.fetch;
+    globalThis.fetch = fn;
+    try { return await body(); } finally { globalThis.fetch = previous; }
+  };
+
+  it('429 → retry → sucesso: duas chamadas, GENERATED, technicalRetryCount 1', async () => {
+    let calls = 0;
+    await withFetch(async () => { calls += 1; return calls === 1 ? rateLimited(0) : new Response(okBody(), { status: 200, headers: { 'x-request-id': 'req_ok' } }); }, async () => {
+      const result = await run();
+      expect(calls).toBe(2);
+      expect(result.status).toBe('GENERATED');
+      expect(result.technicalRetryCount).toBe(1);
+    });
+  });
+
+  it('429 → retry → 429 → FAILED(RATE_LIMITED), exatamente duas tentativas, degradação preservada', async () => {
+    let calls = 0;
+    await withFetch(async () => { calls += 1; return rateLimited(0, `req_429_${calls}`); }, async () => {
+      const result = await run();
+      expect(calls).toBe(2);
+      expect(result.status).toBe('FAILED');
+      expect(result.reason).toBe('RATE_LIMITED');
+      expect(result.error_code).toBe('RATE_LIMITED');
+      expect(result.error_status).toBe(429);
+      expect(result.error_type).toBe('rate_limit_exceeded');
+      expect(result.usages).toHaveLength(2);
+      expect(result.usages.every((u) => u.availability === 'USAGE_UNAVAILABLE')).toBe(true);
+    });
+  });
+
+  it('nunca faz uma terceira tentativa mesmo com 429 contínuo', async () => {
+    let calls = 0;
+    await withFetch(async () => { calls += 1; return rateLimited(0, `r${calls}`); }, async () => {
+      await run();
+      expect(calls).toBe(2);
+    });
+  });
+
+  it('respeita Retry-After quando o header existe', async () => {
+    let calls = 0;
+    await withFetch(async () => { calls += 1; return calls === 1 ? rateLimited(1) : new Response(okBody(), { status: 200, headers: { 'x-request-id': 'r2' } }); }, async () => {
+      const t0 = Date.now();
+      const result = await run();
+      const elapsed = Date.now() - t0;
+      expect(result.status).toBe('GENERATED');
+      expect(elapsed).toBeGreaterThanOrEqual(950);
+      expect(elapsed).toBeLessThan(3000);
+    });
+  }, 8000);
+
+  it('usa o backoff fixo curto quando não há Retry-After', async () => {
+    let calls = 0;
+    await withFetch(async () => { calls += 1; return calls === 1 ? rateLimited(null) : new Response(okBody(), { status: 200, headers: { 'x-request-id': 'r2' } }); }, async () => {
+      const t0 = Date.now();
+      const result = await run();
+      const elapsed = Date.now() - t0;
+      expect(result.status).toBe('GENERATED');
+      expect(elapsed).toBeGreaterThanOrEqual(RATE_LIMIT_BACKOFF_MS - 100);
+      expect(elapsed).toBeLessThan(RATE_LIMIT_BACKOFF_MS + 2500);
+    });
+  }, 8000);
+
+  it('erro HTTP não-retryable (500) não retenta', async () => {
+    let calls = 0;
+    await withFetch(async () => { calls += 1; return new Response(JSON.stringify({ error: { type: 'server_error', message: 'boom' } }), { status: 500, headers: { 'x-request-id': 'r500' } }); }, async () => {
+      const result = await run();
+      expect(calls).toBe(1);
+      expect(result.status).toBe('FAILED');
+      expect(result.reason).toBe('PROVIDER_HTTP_ERROR');
+      expect(result.error_status).toBe(500);
+    });
+  });
+
+  it('happy path: uma única chamada, sem retry e sem espera', async () => {
+    let calls = 0;
+    await withFetch(async () => { calls += 1; return new Response(okBody(), { status: 200, headers: { 'x-request-id': 'rok' } }); }, async () => {
+      const t0 = Date.now();
+      const result = await run();
+      expect(calls).toBe(1);
+      expect(result.status).toBe('GENERATED');
+      expect(result.technicalRetryCount).toBe(0);
+      expect(Date.now() - t0).toBeLessThan(500);
+    });
   });
 });
 
