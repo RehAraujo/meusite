@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   STRATEGIC_SIGNALS_CONTRACT_VERSION,
   buildStrategicSignalsInput,
@@ -10,6 +10,7 @@ import { createCandidateKey } from '../worker/diagnostics/strategic-analyzer.js'
 import {
   RATE_LIMIT_BACKOFF_MS,
   STRATEGIC_SIGNALS_BUDGET,
+  callTimeoutMs,
   generateAnalysis,
   generateStrategicSignals,
   strategicSignalsWorstCaseCost,
@@ -446,5 +447,98 @@ describe('generateAnalysis :: pipeline com as duas chamadas', () => {
       expect(() => validateAnalysisSemantics(failed.analysis, evidencePackage())).not.toThrow();
       expect(failed.usages.some((u) => u.stage === 'STRATEGIC_SIGNALS')).toBe(true);
     } finally { globalThis.fetch = previous; }
+  });
+
+  // ---- Micro-gate 6D.4: per-stage fetch timeout + priorUsages observability ----
+  const timeoutError = () => { const e = new Error('The operation timed out'); e.name = 'TimeoutError'; return e; };
+  const mainOkResponse = (id = 'req.main.ok') => new Response(
+    JSON.stringify({ model: 'gpt-5-mini', output_text: JSON.stringify(mainGeneration()), usage: { input_tokens: 900, output_tokens: 700, total_tokens: 1600 } }),
+    { status: 200, headers: { 'x-request-id': id } },
+  );
+  const sigOkResponse = () => new Response(
+    JSON.stringify({ model: 'gpt-5-mini', output_text: JSON.stringify(signalsRaw()), usage: { input_tokens: 400, output_tokens: 250, total_tokens: 650 } }),
+    { status: 200, headers: { 'x-request-id': 'req.sig.ok' } },
+  );
+  const isMain = (init) => JSON.parse(init.body).text.format.name === ANALYZER_GENERATION_CONTRACT_VERSION;
+  const withMainSequence = async (mainResponders, body) => {
+    const previous = globalThis.fetch;
+    let mainCalls = 0;
+    globalThis.fetch = async (_url, init) => {
+      if (isMain(init)) {
+        const responder = mainResponders[Math.min(mainCalls, mainResponders.length - 1)];
+        mainCalls += 1;
+        return responder();
+      }
+      return sigOkResponse();
+    };
+    try { return await body(() => mainCalls); } finally { globalThis.fetch = previous; }
+  };
+
+  it('callTimeoutMs: MAIN_ANALYSIS = 180000; STRATEGIC_SIGNALS e PARTIAL_REGENERATION = 60000', () => {
+    expect(callTimeoutMs('MAIN_ANALYSIS')).toBe(180_000);
+    expect(callTimeoutMs('STRATEGIC_SIGNALS')).toBe(60_000);
+    expect(callTimeoutMs('PARTIAL_REGENERATION')).toBe(60_000);
+    expect(callTimeoutMs('anything-else')).toBe(60_000);
+  });
+
+  it('AbortSignal.timeout recebe 180000 para MAIN e 60000 para STRATEGIC_SIGNALS (MAIN não abortado prematuramente)', async () => {
+    const spy = vi.spyOn(AbortSignal, 'timeout');
+    await withMainSequence([mainOkResponse], async () => {
+      await generateAnalysis(env, presenceOrder, evidencePackage(), {});
+    });
+    const values = spy.mock.calls.map((c) => c[0]);
+    expect(values).toContain(180_000);
+    expect(values).toContain(60_000);
+    expect(values.filter((v) => v === 60_000).every(() => true)).toBe(true);
+    // MAIN was never armed with the old 60 s abort
+    expect(spy.mock.calls[0][0]).toBe(180_000);
+    spy.mockRestore();
+  });
+
+  it('MAIN timeout → retry → sucesso: registra as duas tentativas (timeout USAGE_UNAVAILABLE + sucesso real)', async () => {
+    await withMainSequence([() => { throw timeoutError(); }, () => mainOkResponse('req.main.retry')], async (calls) => {
+      const result = await generateAnalysis(env, presenceOrder, evidencePackage(), {});
+      expect(calls()).toBe(2);
+      const mainUsages = result.usages.filter((u) => u.stage === 'MAIN_ANALYSIS');
+      expect(mainUsages).toHaveLength(2);
+      expect(mainUsages[0]).toMatchObject({ availability: 'USAGE_UNAVAILABLE', request_id: null });
+      expect(mainUsages[0].total_tokens).toBeUndefined();
+      expect(mainUsages[1]).toMatchObject({ availability: 'AVAILABLE', request_id: 'req.main.retry' });
+      expect(result.analysis.contract_version).toBe('2.2.0');
+    });
+  });
+
+  it('MAIN timeout ×2 → falha controlada: rejeita, duas tentativas, ambas USAGE_UNAVAILABLE, nunca uma terceira', async () => {
+    await withMainSequence([() => { throw timeoutError(); }], async (calls) => {
+      let thrown;
+      try { await generateAnalysis(env, presenceOrder, evidencePackage(), {}); } catch (error) { thrown = error; }
+      expect(thrown).toBeInstanceOf(Error);
+      expect(calls()).toBe(2);
+      const mainUsages = (thrown.usages || []).filter((u) => u.stage === 'MAIN_ANALYSIS');
+      expect(mainUsages).toHaveLength(2);
+      expect(mainUsages.every((u) => u.availability === 'USAGE_UNAVAILABLE' && u.request_id === null)).toBe(true);
+    });
+  });
+
+  it('happy path inalterado: uma única chamada MAIN, uma única linha de usage real', async () => {
+    await withMainSequence([mainOkResponse], async (calls) => {
+      const result = await generateAnalysis(env, presenceOrder, evidencePackage(), {});
+      expect(calls()).toBe(1);
+      const mainUsages = result.usages.filter((u) => u.stage === 'MAIN_ANALYSIS');
+      expect(mainUsages).toHaveLength(1);
+      expect(mainUsages[0]).toMatchObject({ availability: 'AVAILABLE', request_id: 'req.main.ok' });
+    });
+  });
+
+  it('o retry de HTTP 429 (220657d) continua funcionando pelo estágio MAIN', async () => {
+    const rl = () => new Response(JSON.stringify({ error: { type: 'rate_limit_exceeded', message: 'slow down' } }), { status: 429, headers: { 'retry-after': '0', 'x-request-id': 'req.main.429' } });
+    await withMainSequence([rl, () => mainOkResponse('req.main.after429')], async (calls) => {
+      const result = await generateAnalysis(env, presenceOrder, evidencePackage(), {});
+      expect(calls()).toBe(2);
+      const mainUsages = result.usages.filter((u) => u.stage === 'MAIN_ANALYSIS');
+      expect(mainUsages).toHaveLength(2);
+      expect(mainUsages[0].availability).toBe('USAGE_UNAVAILABLE');
+      expect(mainUsages[1]).toMatchObject({ availability: 'AVAILABLE', request_id: 'req.main.after429' });
+    });
   });
 });

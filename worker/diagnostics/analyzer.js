@@ -26,6 +26,11 @@ export function strategicSignalsWorstCaseCost(config = STRATEGIC_SIGNALS_BUDGET)
   return Number((config.max_attempts * ((config.max_input_tokens * config.input_usd_per_million + config.max_output_tokens * config.output_usd_per_million) / 1_000_000)).toFixed(8));
 }
 const extractText = (response) => response.output_text || response.output?.flatMap((x) => x.content || []).find((x) => x.type === 'output_text')?.text;
+// Per-stage fetch timeout. The gpt-5-mini MAIN_ANALYSIS reasoning call (max_output_tokens 12000)
+// routinely runs past 60 s; a real staging E2E timed it out on both attempts. MAIN_ANALYSIS gets
+// 180 s (no lower Workers/Queue-consumer wall-clock limit applies on the paid plan — I/O wait is
+// not CPU time). STRATEGIC_SIGNALS and PARTIAL_REGENERATION keep the tighter 60 s.
+export const callTimeoutMs = (stage) => (stage === 'MAIN_ANALYSIS' ? 180_000 : 60_000);
 // Bounded backoff for a transient HTTP 429. Retry-After (seconds) wins when present, capped so a
 // pathological value can never stall the pipeline; otherwise a short fixed wait. One retry only —
 // the existing callStructured loop already caps total attempts at 2.
@@ -86,7 +91,7 @@ async function callStructuredOnce(env, schema, name, instructions, input, stage)
   let response;
   try { response = await fetch('https://api.openai.com/v1/responses', { method: 'POST',
     headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-    signal: AbortSignal.timeout(60000),
+    signal: AbortSignal.timeout(callTimeoutMs(stage)),
     body: JSON.stringify({ model: env.OPENAI_MODEL || 'gpt-5-mini', instructions, input: JSON.stringify(input),
       max_output_tokens: stage === 'MAIN_ANALYSIS' ? 12000 : stage === 'STRATEGIC_SIGNALS' ? STRATEGIC_SIGNALS_BUDGET.max_output_tokens : PARTIAL_BUDGET.max_output_tokens,
       text: { format: { type: 'json_schema', name, strict: true, schema } } }) }); }
@@ -146,15 +151,19 @@ export async function generateAnalysis(env, order, pkg, lifecycle = {}) {
   // MVP: Quick Wins are optional derived content. Never trigger a dedicated LLM regeneration.
   // Until a safe deterministic derivation exists, the conservative result is an empty list.
   main.value.quick_wins = [];
+  // main.priorUsages carries earlier failed attempts (e.g. a timeout that was then retried
+  // successfully). Keep them: a USAGE_UNAVAILABLE row honestly records an attempt with no
+  // response — request_id / tokens / cost stay null, never fabricated.
+  const mainUsages = [...(main.priorUsages || []), main.usage];
   try { generation = validateGenerationStructure(main.value, pkg); }
-  catch (error) { error.usages = [main.usage]; throw error; }
+  catch (error) { error.usages = mainUsages; throw error; }
   const mainPersisted = await lifecycle.persistValidGeneration?.({ generation: structuredClone(generation), usage: main.usage,
     contract_version: ANALYZER_GENERATION_CONTRACT_VERSION, component: 'MAIN_ANALYSIS', parent_generation_id: null });
   const analysis = assembleAnalysisV2(generation, order, pkg);
   // Second, dedicated structured call. Isolated on purpose: a failure here never invalidates the
   // MAIN analysis above — it only degrades the Strategic Core to NOT_EXECUTED downstream.
   const strategicSignals = await generateStrategicSignals(env, order, pkg, analysis, lifecycle, mainPersisted?.generation_id || null);
-  return { analysis, usages: [main.usage, ...strategicSignals.usages], strategicSignals };
+  return { analysis, usages: [...mainUsages, ...strategicSignals.usages], strategicSignals };
 }
 
 // Runs only with STRATEGIC_CORE=ON and STRATEGIC_SIGNALS=ON. Returns a discriminated result:
