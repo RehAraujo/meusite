@@ -145,7 +145,9 @@ export async function handleDiagnostics(request, env, url) {
     if (!authorized(request, order.access_token))
       return json({ message: 'Acesso não autorizado.' }, 401);
     if (orderMatch[2] && request.method === 'POST') {
-      env.CONTROLLED_MVP_QUEUE?.send({ order_id: order.order_id });
+      // Await the enqueue: an un-awaited send is cancelled at isolate teardown (no ctx.waitUntil
+      // here), so the message never reaches the consumer and the order stalls at CREATED.
+      await env.CONTROLLED_MVP_QUEUE?.send({ order_id: order.order_id });
       return json({ status: 'QUEUED' }, 202);
     }
     // Client-facing: the raw REPORT artifact (scorecard, ids, enums, source_refs) is NEVER
@@ -259,7 +261,8 @@ export async function handleDiagnostics(request, env, url) {
         'QA solicitou reprocessamento.',
         'HUMAN_REVIEWER',
       );
-      env.CONTROLLED_MVP_QUEUE?.send({ order_id: orderId });
+      // Same reason as /process: the enqueue must be awaited or the reprocessing message is lost.
+      await env.CONTROLLED_MVP_QUEUE?.send({ order_id: orderId });
     } else
       await audit(
         env,
