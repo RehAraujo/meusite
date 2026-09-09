@@ -123,7 +123,7 @@ export const STRATEGIC_SIGNALS_INSTRUCTIONS = [
   'Nenhum array precisa ser preenchido: devolva vazio quando não houver base defensável.',
   'Não invente evidências, relações, categorias, hipóteses ou texto. Não produza CTA, recomendação comercial, preço ou prazo.',
   'objective_relations: para cada finding relevante, a relação com o objetivo declarado do cliente.',
-  'functional_role_conflicts: apenas quando o desvio observado no finding contradiz explicitamente uma percepção desejada declarada; conflicts_with_desired_perception deve ser true.',
+  'functional_role_conflicts: apenas quando o desvio observado no finding contradiz explicitamente uma percepção desejada declarada E há evidência de ruptura concreta na jornada; conflicts_with_desired_perception deve ser true. Variedade, personalidade ou lifestyle não são conflito por si sós.',
   'alternative_explanations: hipóteses concorrentes plausíveis e textualmente distintas do diagnóstico do finding.',
   'hidden_assets: ativos reais evidenciados porém subaproveitados; evidence_indexes deve conter evidência pertencente aos findings de origem citados.',
   'audience: tipo de audiência ou rede sugerido por menção textual pública, sem métricas de seguidores; self_declared=true quando a evidência é autoral do próprio dono.',

@@ -4,6 +4,8 @@ import { investigate, sufficiencyGate } from './investigation.js';
 import { composeReport } from './report.js';
 import { scoreAnalysis } from './scoring.js';
 import { applyStrategicCore } from './strategic-core.js';
+import { toClientReport } from './client-report.js';
+import { deriveQaFlags } from './qa-flags.js';
 import { audit, transition } from './state.js';
 import {
   ContractValidationError,
@@ -146,7 +148,22 @@ export async function handleDiagnostics(request, env, url) {
       env.CONTROLLED_MVP_QUEUE?.send({ order_id: order.order_id });
       return json({ status: 'QUEUED' }, 202);
     }
-    const report = await artifact(env, order.order_id, 'REPORT');
+    // Client-facing: the raw REPORT artifact (scorecard, ids, enums, source_refs) is NEVER
+    // returned here. Once delivered, it is run through the deterministic client serializer.
+    const delivered = ['APPROVED', 'DELIVERED'].includes(order.status);
+    let clientReport = null;
+    if (delivered) {
+      const report = await artifact(env, order.order_id, 'REPORT');
+      const analysis = await artifact(env, order.order_id, 'ANALYSIS');
+      if (report && analysis) {
+        const result = toClientReport(report, analysis);
+        clientReport = result.report;
+        if (result.suppressed) {
+          await audit(env, order.order_id, 'SYSTEM', 'CLIENT_REPORT_STRATEGIC_LAYER_SUPPRESSED', 'REPORT',
+            result.reason || 'Camada estratégica do relatório do cliente suprimida por segurança.', { reason: result.reason });
+        }
+      }
+    }
     return json({
       order_id: order.order_id,
       status: order.status,
@@ -157,7 +174,7 @@ export async function handleDiagnostics(request, env, url) {
             ? 'Análise aprovada.'
             : 'Estamos investigando e organizando as evidências.',
       product_label: PRODUCTS[order.product_type].label,
-      report: ['APPROVED', 'DELIVERED'].includes(order.status) ? report : null,
+      client_report: clientReport,
     });
   }
   if (path === '/qa' || path.startsWith('/qa/')) {
@@ -183,6 +200,8 @@ export async function handleDiagnostics(request, env, url) {
       )
         .bind(order.customer_id)
         .first();
+      const analysis = await artifact(env, orderId, 'ANALYSIS');
+      const strategicReasoning = await artifact(env, orderId, 'STRATEGIC_REASONING');
       return json({
         order: {
           ...order,
@@ -191,10 +210,13 @@ export async function handleDiagnostics(request, env, url) {
           product_label: PRODUCTS[order.product_type].label,
         },
         evidence_package: await artifact(env, orderId, 'EVIDENCE_PACKAGE'),
-        analysis: await artifact(env, orderId, 'ANALYSIS'),
+        analysis,
         report: await artifact(env, orderId, 'REPORT'),
         qa_review: await artifact(env, orderId, 'QA_REVIEW'),
         api_usage: await artifacts(env, orderId, 'API_USAGE'),
+        // QA-only: strategic reasoning + derived flags. Never returned on the client route.
+        strategic_reasoning: strategicReasoning,
+        qa_flags: deriveQaFlags(analysis, strategicReasoning),
       });
     }
     const body = await request.json(),
@@ -220,8 +242,15 @@ export async function handleDiagnostics(request, env, url) {
         updated_at: now(),
       };
     await saveArtifact(env, orderId, 'QA_REVIEW', review);
-    if (body.action === 'APPROVE')
+    if (body.action === 'APPROVE') {
+      const flags = deriveQaFlags(await artifact(env, orderId, 'ANALYSIS'), await artifact(env, orderId, 'STRATEGIC_REASONING'));
+      await audit(env, orderId, 'HUMAN_REVIEWER', 'STRATEGIC_CONTEXT_AT_APPROVAL', 'QA_REVIEW', 'Contexto estratégico no momento da aprovação.', {
+        escalated_insights: flags.escalated.length,
+        client_facing_insights: flags.client_facing_insights.length,
+        pending_candidates: flags.pending_candidates.length,
+      });
       await transition(env, order, 'APPROVED', 'QA humana aprovou a entrega.', 'HUMAN_REVIEWER');
+    }
     else if (body.action === 'REQUEST_REPROCESSING') {
       await transition(
         env,

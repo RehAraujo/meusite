@@ -12,7 +12,7 @@ import {
   validateGenerationStructure,
   validateReport,
 } from '../worker/diagnostics/contracts.js';
-import { assembleAnalysisV2, assembleCriterion, assembleCrossChannel, deterministicCriticalFracture, parseStructuredResponse, PARTIAL_BUDGET, partialWorstCaseCost, regenerateQuickWins, STRATEGIC_SIGNALS_BUDGET, strategicSignalsWorstCaseCost } from '../worker/diagnostics/analyzer.js';
+import { assembleAnalysisV2, assembleCriterion, assembleCrossChannel, deterministicCriticalFracture, MAIN_ANALYSIS_INSTRUCTIONS, parseStructuredResponse, PARTIAL_BUDGET, partialWorstCaseCost, regenerateQuickWins, STRATEGIC_SIGNALS_BUDGET, strategicSignalsWorstCaseCost } from '../worker/diagnostics/analyzer.js';
 
 const criteria = (points) =>
   points.map((value, index) => ({
@@ -360,6 +360,13 @@ describe('falhas técnicas de Structured Outputs', () => {
     expect(strategicSignalsWorstCaseCost()).toBe(0.014);
     expect(STRATEGIC_SIGNALS_BUDGET).toMatchObject({ max_output_tokens:3000, max_attempts:2, cap_usd:0.02 });
     expect(strategicSignalsWorstCaseCost()).toBeLessThan(STRATEGIC_SIGNALS_BUDGET.cap_usd);
+  });
+  it('o prompt MAIN_ANALYSIS carrega a calibração do Sprint 5 (diferença não é deficiência, ponte, proporcionalidade)', () => {
+    expect(MAIN_ANALYSIS_INSTRUCTIONS).toMatch(/Diferença não é deficiência/);
+    expect(MAIN_ANALYSIS_INSTRUCTIONS).toMatch(/variedade, personalidade, presença de vida pessoal ou tom informal não são incoerência/);
+    expect(MAIN_ANALYSIS_INSTRUCTIONS).toMatch(/Ponte, não presença/);
+    expect(MAIN_ANALYSIS_INSTRUCTIONS).toMatch(/recomendação deve ser proporcional ao problema/);
+    expect(MAIN_ANALYSIS_INSTRUCTIONS).toMatch(/o padrão é SELF_IMPLEMENTATION/);
   });
   const usage={input_tokens:10,output_tokens:20,total_tokens:30};
   it('classifica JSON truncado marcado como completo como PARSER_ERROR', () => {

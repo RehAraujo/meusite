@@ -21,6 +21,8 @@ vi.mock('../worker/diagnostics/strategic-analyzer.js', async (importOriginal) =>
   };
 });
 const { applyStrategicCore } = await import('../worker/diagnostics/strategic-core.js');
+const { toClientReport, findInternalTokens, validateClientReport } = await import('../worker/diagnostics/client-report.js');
+const { deriveQaFlags } = await import('../worker/diagnostics/qa-flags.js');
 
 const evidencePackage = () => ({
   investigation_id: 'inv.1',
@@ -377,5 +379,34 @@ describe('Sprint 4 — E2E de fixture: bundle resolvido dos 6 tipos, MAIN/scorec
 
     expect(on.reasoning.strategic_signals.dropped).toEqual([{ path: 'audience[1]', reason: 'EVIDENCE_OUTSIDE_ANALYSIS' }]);
     expect(on.reasoning.strategic_signals.derived_at).toBe('2026-09-08T00:00:00.000Z');
+  });
+});
+
+describe('Sprint 5 — E2E: Strategic Core → Report → Client Report', () => {
+  // Full chain without D1/OpenAI: fixture analysis -> applyStrategicCore(2.3.0) -> composeReport
+  // (1.3.0) -> toClientReport (client_report_v1_0) + deriveQaFlags (QA-only).
+  it('a fixture atravessa o Strategic Core e o serializer produzindo client_report limpo, e QA recebe flags', () => {
+    const pkg = { ...evidencePackage(), investigation_limitations: [] };
+    pkg.evidence = pkg.evidence.map((e) => ({ ...e, limitations: [] }));
+    const base = controlledFixture(order, pkg);
+    const { analysis: enriched, reasoning } = applyStrategicCore(structuredClone(base), order, pkg, { enabled: true });
+    expect(enriched.contract_version).toBe('2.3.0');
+
+    const report = composeReport(structuredClone(enriched), scoreAnalysis(structuredClone(enriched)));
+    expect(report.contract_version).toBe('1.3.0');
+
+    const client = toClientReport(report, enriched);
+    expect(client.suppressed).toBe(false);
+    expect(() => validateClientReport(client.report)).not.toThrow();
+    expect(findInternalTokens(JSON.stringify(client.report))).toEqual([]);
+    // internal artifacts untouched by the serializer
+    expect(report.contract_version).toBe('1.3.0');
+    expect(enriched.contract_version).toBe('2.3.0');
+    expect('scorecard' in client.report).toBe(false);
+
+    const flags = deriveQaFlags(enriched, { ...reasoning, insight_candidates: reasoning.insight_candidates });
+    expect(flags).toHaveProperty('escalated');
+    expect(flags).toHaveProperty('client_facing_insights');
+    expect(Array.isArray(flags.capability_summary.ran)).toBe(true);
   });
 });

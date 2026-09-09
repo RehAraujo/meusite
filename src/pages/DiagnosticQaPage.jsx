@@ -99,7 +99,7 @@ export default function DiagnosticQaPage() {
 }
 
 function QaDetail({ data, note, setNote, act }) {
-  const { order, evidence_package: evidence, analysis, report } = data;
+  const { order, evidence_package: evidence, analysis, report, qa_flags: qaFlags } = data;
   return (
     <div className="qa-detail">
       <p className="eyebrow">{order.product_label}</p>
@@ -151,6 +151,35 @@ function QaDetail({ data, note, setNote, act }) {
           ))}
         </ol>
       </section>
+      {qaFlags && (
+        <section>
+          <h3>Sinais estratégicos (QA)</h3>
+          <p>
+            Vão ao cliente: {qaFlags.client_facing_insights.length} insight(s)
+            {qaFlags.client_facing_insights.length > 0
+              ? ` — ${qaFlags.client_facing_insights.join('; ')}`
+              : ''}
+            .
+          </p>
+          {qaFlags.escalated.length > 0 && (
+            <ul>
+              {qaFlags.escalated.map((flag, index) => (
+                <li key={index}>
+                  <strong>{flag.insight_title}</strong>
+                  {flag.validation_required ? ' · exige validação' : ''}
+                  {flag.reasons.length ? `: ${flag.reasons.join(' ')}` : ''}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p>
+            Capacidades que rodaram: {qaFlags.capability_summary.ran.join(', ') || '—'}. Não
+            rodaram: {qaFlags.capability_summary.not_run.join(', ') || '—'}. Sinais descartados:{' '}
+            {qaFlags.signals_dropped_count}. Candidatos pendentes:{' '}
+            {qaFlags.pending_candidates.length}.
+          </p>
+        </section>
+      )}
       <section>
         <h3>Conversão ética</h3>
         <p>{report.ethical_conversion.conversion_result}</p>
