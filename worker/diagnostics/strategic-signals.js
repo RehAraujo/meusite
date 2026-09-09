@@ -86,7 +86,10 @@ export const strategicSignalsSchema = {
         required: ['source_finding_indexes', 'categories', 'evidence_indexes', 'confidence', 'self_declared'],
         properties: {
           source_finding_indexes: indexArray(20),
-          categories: { type: 'array', minItems: 1, maxItems: 6, uniqueItems: true, items: enumString(AUDIENCE_CATEGORIES) },
+          // `uniqueItems` is rejected by OpenAI Structured Outputs (HTTP 400). Dedup is enforced
+          // downstream by resolveStrategicSignals (`[...new Set(item.categories)]`), so dropping the
+          // keyword here changes nothing operationally.
+          categories: { type: 'array', minItems: 1, maxItems: 6, items: enumString(AUDIENCE_CATEGORIES) },
           evidence_indexes: indexArray(40),
           confidence: enumString(CONFIDENCE),
           self_declared: { type: 'boolean' },

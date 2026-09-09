@@ -4,6 +4,7 @@ import {
   buildStrategicSignalsInput,
   feedStrategicSignals,
   resolveStrategicSignals,
+  strategicSignalsSchema,
   validateStrategicSignalsStructure,
 } from '../worker/diagnostics/strategic-signals.js';
 import { createCandidateKey } from '../worker/diagnostics/strategic-analyzer.js';
@@ -74,6 +75,51 @@ describe('strategic_signals_v1_0 :: schema Ajv', () => {
   });
   it('é uma versão de contrato distinta e explícita', () => {
     expect(STRATEGIC_SIGNALS_CONTRACT_VERSION).toBe('strategic_signals_v1_0');
+  });
+});
+
+describe('strategic_signals_v1_0 :: compatível com OpenAI Structured Outputs (micro-gate 6D.6)', () => {
+  // Keywords that OpenAI's json_schema strict mode rejects with HTTP 400 invalid_request_error.
+  const INCOMPATIBLE = [
+    'uniqueItems', 'patternProperties', 'propertyNames', 'minProperties', 'maxProperties',
+    'dependentRequired', 'dependentSchemas', 'if', 'then', 'else', 'not', 'oneOf', 'allOf',
+    'contains', 'minContains', 'maxContains', 'unevaluatedProperties', 'unevaluatedItems',
+  ];
+  const collectKeys = (node, out = new Set()) => {
+    if (node && typeof node === 'object') {
+      if (!Array.isArray(node)) for (const k of Object.keys(node)) out.add(k);
+      for (const v of Array.isArray(node) ? node : Object.values(node)) collectKeys(v, out);
+    }
+    return out;
+  };
+
+  it('não contém uniqueItems nem qualquer outro keyword incompatível com Structured Outputs', () => {
+    const keys = collectKeys(strategicSignalsSchema);
+    const offenders = INCOMPATIBLE.filter((k) => keys.has(k));
+    expect(offenders).toEqual([]);
+    expect(JSON.stringify(strategicSignalsSchema)).not.toContain('"uniqueItems"');
+  });
+
+  it('todo objeto lista todas as suas properties em required (exigência do strict mode)', () => {
+    const check = (node) => {
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'object' && node.properties) {
+        expect([...(node.required || [])].sort()).toEqual(Object.keys(node.properties).sort());
+      }
+      for (const v of Object.values(node)) check(v);
+    };
+    check(strategicSignalsSchema);
+  });
+
+  it('a deduplicação de categories continua garantida por resolveStrategicSignals (semântica preservada sem uniqueItems)', () => {
+    const analysis = { findings: [{ finding_id: 'finding.a', evidence_refs: ['ev.site'] }] };
+    const pkg = { evidence: [{ evidence_id: 'ev.site' }] };
+    const raw = {
+      ...emptyRaw(),
+      audience: [{ source_finding_indexes: [0], categories: ['AUTHORITY_AUDIENCE', 'AUTHORITY_AUDIENCE', 'RELEVANT_AUDIENCE'], evidence_indexes: [0], confidence: 'MEDIUM', self_declared: false }],
+    };
+    const { bundle } = resolveStrategicSignals(raw, { analysis, pkg });
+    expect(bundle.audience[0].categories).toEqual(['AUTHORITY_AUDIENCE', 'RELEVANT_AUDIENCE']);
   });
 });
 
