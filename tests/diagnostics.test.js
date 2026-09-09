@@ -12,7 +12,7 @@ import {
   validateGenerationStructure,
   validateReport,
 } from '../worker/diagnostics/contracts.js';
-import { assembleAnalysisV2, assembleCriterion, assembleCrossChannel, deterministicCriticalFracture, parseStructuredResponse, PARTIAL_BUDGET, partialWorstCaseCost, regenerateQuickWins } from '../worker/diagnostics/analyzer.js';
+import { assembleAnalysisV2, assembleCriterion, assembleCrossChannel, deterministicCriticalFracture, parseStructuredResponse, PARTIAL_BUDGET, partialWorstCaseCost, regenerateQuickWins, STRATEGIC_SIGNALS_BUDGET, strategicSignalsWorstCaseCost } from '../worker/diagnostics/analyzer.js';
 
 const criteria = (points) =>
   points.map((value, index) => ({
@@ -356,6 +356,11 @@ describe('groundedness e regressão diagnóstica', () => {
 describe('falhas técnicas de Structured Outputs', () => {
   it('garante programaticamente o pior caso sob o teto da rodada', () => expect(partialWorstCaseCost()).toBe(0.019));
   it('usa output budget suficiente e igual ao gate financeiro', () => expect(PARTIAL_BUDGET).toMatchObject({ max_output_tokens:4000, max_attempts:2, cap_usd:0.03 }));
+  it('a segunda chamada Strategic Signals tem teto, retry e worst-case próprios sob 0.02', () => {
+    expect(strategicSignalsWorstCaseCost()).toBe(0.014);
+    expect(STRATEGIC_SIGNALS_BUDGET).toMatchObject({ max_output_tokens:3000, max_attempts:2, cap_usd:0.02 });
+    expect(strategicSignalsWorstCaseCost()).toBeLessThan(STRATEGIC_SIGNALS_BUDGET.cap_usd);
+  });
   const usage={input_tokens:10,output_tokens:20,total_tokens:30};
   it('classifica JSON truncado marcado como completo como PARSER_ERROR', () => {
     expect(()=>parseStructuredResponse({status:'completed',output_text:'{"quick_wins":[',usage},'req.1','PARTIAL_REGENERATION')).toThrow(expect.objectContaining({code:'PARSER_ERROR',retryable:false}));

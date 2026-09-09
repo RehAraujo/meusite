@@ -55,7 +55,8 @@ export async function persistGenerationVersion(env, orderId, entry) {
   const generationId = id('generation');
   const payload = { generation_id: generationId, order_id: orderId,
     version: (previous?.version || 0) + 1, parent_generation_id: entry.parent_generation_id,
-    contract_version: entry.contract_version, schema_name: entry.component === 'MAIN_ANALYSIS' ? entry.contract_version : 'quick_win_regeneration_v1_0',
+    contract_version: entry.contract_version,
+    schema_name: entry.component === 'MAIN_ANALYSIS' || entry.component === 'STRATEGIC_SIGNALS' ? entry.contract_version : 'quick_win_regeneration_v1_0',
     component: entry.component, request_id: entry.usage.request_id, generation: entry.generation, created_at: now() };
   await saveArtifact(env, orderId, 'ANALYSIS_GENERATION', payload);
   await audit(env, orderId, 'SYSTEM', 'GENERATION_OUTPUT_PERSISTED', 'ANALYSIS_GENERATION', 'Generation Output válido persistido antes do Assembler.', {
@@ -291,13 +292,14 @@ export async function processOrder(env, orderId) {
       await finishValidatedAnalysis(env, order, orderId, reusableAnalysis, pkg);
       return;
     }
-    const { analysis, usages } = await analyze(env, order, pkg, {
+    const { analysis, usages, strategicSignals } = await analyze(env, order, pkg, {
       persistValidGeneration: (entry) => persistGenerationVersion(env, orderId, entry),
     });
     for (const usage of usages) await saveUsage(env, orderId, analysis.analyzer_run_id, usage);
     validateAnalysisSemantics(analysis, pkg);
     await audit(env, orderId, 'VALIDATION_ENGINE', 'VALIDATED', 'ANALYSIS', 'Schema e invariantes semânticas válidos.');
-    await finishValidatedAnalysis(env, order, orderId, analysis, pkg);
+    await recordStrategicSignals(env, orderId, analysis, strategicSignals);
+    await finishValidatedAnalysis(env, order, orderId, analysis, pkg, strategicSignals);
   } catch (error) {
     for (const usage of error.usages || []) await saveUsage(env, orderId, null, usage);
     if (error.apiUsage) await saveUsage(env, orderId, null, error.apiUsage);
@@ -352,12 +354,57 @@ export async function processValidatedAnalysisOffline(env, orderId) {
   }
 }
 
+// Persists the resolved second-call bundle (Sprint 4) and its audit trail. The raw generation of
+// the second call is already versioned via persistValidGeneration inside analyze(); here we only
+// add the STRATEGIC_SIGNALS artifact (resolved bundle + dropped[] + derived_at) and the
+// STRATEGIC_SIGNALS_GENERATED / STRATEGIC_SIGNALS_SKIPPED(reason) audit events. A skip while the
+// Strategic Core itself is off is silent — it matches the pre-Sprint-4 (Sprint 3) trail exactly.
+async function recordStrategicSignals(env, orderId, analysis, strategicSignals) {
+  if (!strategicSignals || strategicSignals.status === 'SKIPPED') {
+    if (strategicSignals && strategicSignals.reason !== 'STRATEGIC_CORE_OFF') {
+      await audit(env, orderId, 'SYSTEM', 'STRATEGIC_SIGNALS_SKIPPED', 'STRATEGIC_SIGNALS',
+        `Segunda chamada de Strategic Signals não executada: ${strategicSignals.reason}.`, { reason: strategicSignals.reason });
+    }
+    return;
+  }
+  if (strategicSignals.status === 'FAILED') {
+    await audit(env, orderId, 'SYSTEM', 'STRATEGIC_SIGNALS_SKIPPED', 'STRATEGIC_SIGNALS',
+      `Segunda chamada de Strategic Signals falhou sem afetar a análise MAIN: ${strategicSignals.reason}.`,
+      { reason: strategicSignals.reason, error_code: strategicSignals.error_code || null });
+    return;
+  }
+  await saveArtifact(env, orderId, 'STRATEGIC_SIGNALS', {
+    strategic_signals_id: id('strategic_signals'),
+    analysis_id: analysis.analysis_id,
+    contract_version: strategicSignals.contract_version,
+    bundle: strategicSignals.bundle,
+    dropped: strategicSignals.dropped,
+    technical_retry_count: strategicSignals.technicalRetryCount ?? null,
+    derived_at: strategicSignals.derived_at,
+  });
+  await audit(env, orderId, 'SYSTEM', 'STRATEGIC_SIGNALS_GENERATED', 'STRATEGIC_SIGNALS',
+    'Segunda chamada estruturada de Strategic Signals resolvida em bundle de IDs.', {
+      contract_version: strategicSignals.contract_version,
+      objective_relations: strategicSignals.bundle.objective_relations.length,
+      functional_role_conflicts: strategicSignals.bundle.functional_role_conflicts.length,
+      alternative_explanations: strategicSignals.bundle.alternative_explanations.length,
+      hidden_assets: strategicSignals.bundle.hidden_assets.length,
+      audience: strategicSignals.bundle.audience.length,
+      candidate_authoring: strategicSignals.bundle.candidate_authoring.length,
+      dropped_count: strategicSignals.dropped.length,
+    });
+}
+
 // Single funnel for a validated analysis: Strategic Core enrichment (flag-gated) + the sole
 // ANALYSIS artifact write, then scoring and report composition — both left untouched. With
-// STRATEGIC_CORE off, finalAnalysis === analysis and nothing else changes.
-async function finishValidatedAnalysis(env, order, orderId, analysis, pkg) {
+// STRATEGIC_CORE off, finalAnalysis === analysis and nothing else changes. strategicSignals is the
+// discriminated result from analyze(); only a GENERATED one feeds the Strategic Core.
+async function finishValidatedAnalysis(env, order, orderId, analysis, pkg, strategicSignals = null) {
     const strategicCoreEnabled = env.STRATEGIC_CORE === 'ON';
-    const { analysis: finalAnalysis, reasoning } = applyStrategicCore(analysis, order, pkg, { enabled: strategicCoreEnabled });
+    const signalsBundle = strategicSignals?.status === 'GENERATED'
+      ? { bundle: strategicSignals.bundle, dropped: strategicSignals.dropped, derived_at: strategicSignals.derived_at }
+      : null;
+    const { analysis: finalAnalysis, reasoning } = applyStrategicCore(analysis, order, pkg, { enabled: strategicCoreEnabled, strategicSignals: signalsBundle });
     if (strategicCoreEnabled) {
       validateAnalysisSemantics(finalAnalysis, pkg);
       await audit(env, orderId, 'VALIDATION_ENGINE', 'VALIDATED', 'ANALYSIS', 'Strategic Core V2.3 aplicado; schema 2.3.0 e invariantes de strategic_insights válidos.');

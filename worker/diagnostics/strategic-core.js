@@ -22,23 +22,53 @@
 import { now } from './utils.js';
 import { liftFindingsToStrategicInsights } from './strategic-insight.js';
 import { runStrategicReasoning } from './strategic-analyzer.js';
+import { feedStrategicSignals } from './strategic-signals.js';
 
 // enabled=false -> returns the input analysis untouched and reasoning:null, so the live pipeline
 // stays byte-identical to its pre-Sprint-3 behaviour whenever STRATEGIC_CORE is not 'ON'.
-export function applyStrategicCore(analysis, order, pkg, { enabled } = {}) {
+//
+// strategicSignals (Sprint 4) is the resolved second-call bundle: { bundle, dropped, derived_at }
+// or null/undefined. When absent, behaviour is byte-identical to Sprint 3 (no `strategic_signals`
+// key on `reasoning`). When present, its bundle feeds the capabilities runStrategicReasoning
+// otherwise leaves NOT_EXECUTED — and the objective relation is applied ONLY to an in-memory copy
+// of the analysis used for reasoning, never written back into analysis.findings[].
+export function applyStrategicCore(analysis, order, pkg, { enabled, strategicSignals } = {}) {
   if (!enabled) return { analysis, reasoning: null };
   const baseInsights = liftFindingsToStrategicInsights(analysis);
   const knownEvidenceIds = (pkg?.evidence || []).map((evidence) => evidence.evidence_id);
-  const { insights, candidates, analysis_level_capability_state } = runStrategicReasoning(analysis, order, {
+
+  const fed = strategicSignals?.bundle ? feedStrategicSignals(strategicSignals.bundle, { analysis }) : null;
+  const reasoningAnalysis = fed?.objectiveRelationByFindingId?.size
+    ? {
+        ...analysis,
+        findings: (analysis.findings || []).map((finding) => (
+          fed.objectiveRelationByFindingId.has(finding.finding_id)
+            ? { ...finding, objective_relation: fed.objectiveRelationByFindingId.get(finding.finding_id) }
+            : finding
+        )),
+      }
+    : analysis;
+
+  const { insights, candidates, analysis_level_capability_state } = runStrategicReasoning(reasoningAnalysis, order, {
     baseInsights,
     knownEvidenceIds,
+    hiddenAssetSignals: fed?.hiddenAssetSignals || [],
+    functionalRoleSignals: fed?.functionalRoleSignals || {},
+    alternativeExplanationTexts: fed?.alternativeExplanationTexts || {},
+    audienceSignals: fed?.audienceSignals || [],
+    candidateAuthoring: fed?.candidateAuthoring || {},
   });
+
+  const reasoning = {
+    capability_state: analysis_level_capability_state,
+    insight_candidates: candidates,
+    derived_at: now(),
+  };
+  if (strategicSignals) {
+    reasoning.strategic_signals = { dropped: strategicSignals.dropped || [], derived_at: strategicSignals.derived_at || null };
+  }
   return {
     analysis: { ...analysis, contract_version: '2.3.0', strategic_insights: insights },
-    reasoning: {
-      capability_state: analysis_level_capability_state,
-      insight_candidates: candidates,
-      derived_at: now(),
-    },
+    reasoning,
   };
 }

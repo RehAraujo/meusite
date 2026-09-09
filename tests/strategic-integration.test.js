@@ -64,7 +64,9 @@ const contradictionAnalysis = () => ({
 });
 
 const stripVolatile = (scorecard) => { const copy = { ...scorecard }; delete copy.calculated_at; return copy; };
-const reportShape = (report) => ({ sections: report.sections, ethical_conversion: report.ethical_conversion, rendering: report.rendering, scorecard: report.scorecard });
+// scorecard.calculated_at is a wall-clock ISO string: two independent scoreAnalysis() calls can
+// land on different milliseconds, so strip it here just like stripVolatile does for direct compares.
+const reportShape = (report) => ({ sections: report.sections, ethical_conversion: report.ethical_conversion, rendering: report.rendering, scorecard: stripVolatile(report.scorecard) });
 
 describe('Sprint 3 — Integration Spine :: applyStrategicCore', () => {
   // AC1 — flag OFF preserva o comportamento legado
@@ -236,5 +238,144 @@ describe('Sprint 3 — E2E de fixture (equivalente a ANALYZER_MODE=CONTROLLED_FI
     const reportOn = composeReport(structuredClone(final), scorecardOn);
     expect(reportShape(reportOn)).toEqual(reportShape(reportOff));
     expect(() => validateReport(reportOn, final)).not.toThrow();
+  });
+});
+
+describe('Sprint 4 — Strategic Signals :: applyStrategicCore alimentado pela segunda chamada', () => {
+  const resolvedSignals = (findingId, evidenceId, over = {}) => ({
+    bundle: {
+      objective_relations: [{ finding_id: findingId, relation: 'SUPPORTS_OBJECTIVE' }],
+      functional_role_conflicts: [{ finding_id: findingId }],
+      alternative_explanations: [{ finding_id: findingId, explanations: ['Hipótese concorrente plausível.'] }],
+      hidden_assets: [{ category: 'EXPERTISE', evidence_refs: [evidenceId], source_finding_refs: [findingId], confidence: 'MEDIUM' }],
+      audience: [{ source_finding_refs: [findingId], categories: ['AUTHORITY_AUDIENCE'], evidence_refs: [evidenceId], confidence: 'HIGH', self_declared: true }],
+      candidate_authoring: [],
+      ...over,
+    },
+    dropped: [{ path: 'objective_relations[7].finding_index', reason: 'FINDING_INDEX_INVALID', detail: 7 }],
+    derived_at: '2026-09-08T00:00:00.000Z',
+  });
+
+  // AC3 + AC7
+  it('os seis sinais chegam ao runStrategicReasoning; objective_relation vai só para a cópia de reasoning, nunca para analysis.findings[]', () => {
+    reasoningCalls.length = 0;
+    const analysis = analysisFixture();
+    const findingId = analysis.findings[0].finding_id;
+    const evidenceId = analysis.findings[0].evidence_refs[0];
+    const { analysis: final } = applyStrategicCore(analysis, order, evidencePackage(), {
+      enabled: true, strategicSignals: resolvedSignals(findingId, evidenceId),
+    });
+    const options = reasoningCalls.at(-1).options;
+    expect(options.functionalRoleSignals[findingId]).toEqual({ conflictsWithDesiredPerception: true });
+    expect(options.alternativeExplanationTexts[findingId]).toEqual(['Hipótese concorrente plausível.']);
+    expect(options.hiddenAssetSignals).toHaveLength(1);
+    expect(options.audienceSignals[0]).toMatchObject({ source_finding_refs: [findingId], evidenceRefs: [evidenceId], selfDeclared: true });
+    expect(Object.keys(options.candidateAuthoring)).toHaveLength(0);
+    // objective_relation: present on the in-memory reasoning copy, absent from the returned analysis
+    expect(reasoningCalls.at(-1).analysis.findings[0].objective_relation).toBe('SUPPORTS_OBJECTIVE');
+    expect('objective_relation' in final.findings[0]).toBe(false);
+    expect(analysis.findings[0]).not.toHaveProperty('objective_relation');
+    const insight = final.strategic_insights.find((x) => x.source_finding_refs[0] === findingId);
+    expect(insight.objective_relation).toBe('SUPPORTS_OBJECTIVE');
+    expect(() => validateStrategicAnalysisV23(final)).not.toThrow();
+  });
+
+  // AC9
+  it('reasoning.strategic_signals carrega dropped[] e derived_at; ausente quando não houve segunda chamada', () => {
+    const analysis = analysisFixture();
+    const withSignals = applyStrategicCore(analysis, order, evidencePackage(), {
+      enabled: true, strategicSignals: resolvedSignals(analysis.findings[0].finding_id, analysis.findings[0].evidence_refs[0]),
+    });
+    expect(withSignals.reasoning.strategic_signals).toEqual({
+      dropped: [{ path: 'objective_relations[7].finding_index', reason: 'FINDING_INDEX_INVALID', detail: 7 }],
+      derived_at: '2026-09-08T00:00:00.000Z',
+    });
+    const withoutSignals = applyStrategicCore(analysisFixture(), order, evidencePackage(), { enabled: true });
+    expect('strategic_signals' in withoutSignals.reasoning).toBe(false);
+  });
+
+  // AC1
+  it('STRATEGIC_SIGNALS ausente/null preserva exatamente a forma de reasoning do Sprint 3', () => {
+    const a = applyStrategicCore(analysisFixture(), order, evidencePackage(), { enabled: true });
+    const b = applyStrategicCore(analysisFixture(), order, evidencePackage(), { enabled: true, strategicSignals: null });
+    expect(Object.keys(a.reasoning).sort()).toEqual(['capability_state', 'derived_at', 'insight_candidates']);
+    expect(Object.keys(b.reasoning).sort()).toEqual(['capability_state', 'derived_at', 'insight_candidates']);
+  });
+
+  // AC6
+  it('candidate CONTRADICTION só é promovido com detecção determinística + authoring resolvido + gate final', () => {
+    const analysis = contradictionAnalysis();
+    const strategicSignals = {
+      bundle: {
+        objective_relations: [], functional_role_conflicts: [], alternative_explanations: [], hidden_assets: [], audience: [],
+        candidate_authoring: [{ candidate_type: 'CONTRADICTION', source_finding_refs: ['finding.pos', 'finding.neg'], title: 'Sinais em tensão', summary: 'Resumo factual da contradição observada.' }],
+      },
+      dropped: [], derived_at: '2026-09-08T00:00:00.000Z',
+    };
+    const { analysis: final, reasoning } = applyStrategicCore(analysis, order, evidencePackage(), { enabled: true, strategicSignals });
+    const promoted = final.strategic_insights.find((x) => x.type === 'CONTRADICTION');
+    expect(promoted).toBeDefined();
+    expect(promoted.title).toBe('Sinais em tensão');
+    expect(promoted.insight_id).toMatch(/^strategic_insight\./);
+    expect(promoted.source_finding_refs).toEqual(['finding.pos', 'finding.neg']);
+    expect(reasoning.insight_candidates.some((x) => x.type === 'CONTRADICTION')).toBe(false);
+  });
+
+  // AC6 (negativo)
+  it('authoring que não casa com nenhum candidato determinístico não promove nada — candidate permanece em insight_candidates', () => {
+    const analysis = contradictionAnalysis();
+    const strategicSignals = {
+      bundle: {
+        objective_relations: [], functional_role_conflicts: [], alternative_explanations: [], hidden_assets: [], audience: [],
+        candidate_authoring: [{ candidate_type: 'CONTRADICTION', source_finding_refs: ['finding.pos', 'finding.ausente'], title: 'x', summary: 'y' }],
+      },
+      dropped: [], derived_at: '2026-09-08T00:00:00.000Z',
+    };
+    const { analysis: final, reasoning } = applyStrategicCore(analysis, order, evidencePackage(), { enabled: true, strategicSignals });
+    expect(final.strategic_insights.some((x) => x.type === 'CONTRADICTION')).toBe(false);
+    expect(reasoning.insight_candidates.some((x) => x.type === 'CONTRADICTION')).toBe(true);
+  });
+});
+
+describe('Sprint 4 — E2E de fixture: bundle resolvido dos 6 tipos, MAIN/scorecard/Report inalterados', () => {
+  // AC10 — reproduz finishValidatedAnalysis com STRATEGIC_CORE=ON e um bundle STRATEGIC_SIGNALS já resolvido,
+  // sem D1 e sem OpenAI: fixture -> applyStrategicCore(strategicSignals) -> validação 2.3.0 -> scoring -> report.
+  it('fixture + Strategic Signals resolvido → 2.3.0 válida; scorecard e Report idênticos ao caminho sem sinais', () => {
+    const pkg = { ...evidencePackage(), investigation_limitations: [] };
+    pkg.evidence = pkg.evidence.map((e) => ({ ...e, limitations: [] }));
+    const fixtureAnalysis = controlledFixture(order, pkg);
+    const findingId = fixtureAnalysis.findings[0].finding_id;
+    const evidenceId = fixtureAnalysis.findings[0].evidence_refs[0];
+    const strategicSignals = {
+      bundle: {
+        objective_relations: [{ finding_id: findingId, relation: 'SUPPORTS_OBJECTIVE' }],
+        functional_role_conflicts: [{ finding_id: findingId }],
+        alternative_explanations: [{ finding_id: findingId, explanations: ['Hipótese concorrente plausível.'] }],
+        hidden_assets: [{ category: 'EXPERTISE', evidence_refs: [evidenceId], source_finding_refs: [findingId], confidence: 'MEDIUM' }],
+        audience: [{ source_finding_refs: [findingId], categories: ['AUTHORITY_AUDIENCE'], evidence_refs: [evidenceId], confidence: 'HIGH', self_declared: true }],
+        candidate_authoring: [],
+      },
+      dropped: [{ path: 'audience[1]', reason: 'EVIDENCE_OUTSIDE_ANALYSIS' }],
+      derived_at: '2026-09-08T00:00:00.000Z',
+    };
+
+    const off = applyStrategicCore(structuredClone(fixtureAnalysis), order, pkg, { enabled: true });
+    const on = applyStrategicCore(structuredClone(fixtureAnalysis), order, pkg, { enabled: true, strategicSignals });
+
+    expect(on.analysis.contract_version).toBe('2.3.0');
+    expect(() => validateAnalysisSemantics(structuredClone(on.analysis), pkg)).not.toThrow();
+    expect(on.analysis.findings.every((finding) => !('objective_relation' in finding))).toBe(true);
+
+    const scOff = scoreAnalysis(structuredClone(off.analysis));
+    const scOn = scoreAnalysis(structuredClone(on.analysis));
+    expect(stripVolatile(scOn)).toEqual(stripVolatile(scOff));
+
+    const reportOff = composeReport(structuredClone(off.analysis), scOff);
+    const reportOn = composeReport(structuredClone(on.analysis), scOn);
+    expect(reportShape(reportOn)).toEqual(reportShape(reportOff));
+    expect(() => validateReport(reportOn, on.analysis)).not.toThrow();
+
+    expect(on.reasoning.strategic_signals.dropped).toEqual([{ path: 'audience[1]', reason: 'EVIDENCE_OUTSIDE_ANALYSIS' }]);
+    expect(on.reasoning.strategic_signals.derived_at).toBe('2026-09-08T00:00:00.000Z');
   });
 });

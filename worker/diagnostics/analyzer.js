@@ -4,6 +4,11 @@ import {
   quickWinGenerationSchema, validateGenerationStructure, validateQuickWins,
 } from './contracts.js';
 import { controlledFixture } from './fixture-analyzer.js';
+import {
+  STRATEGIC_SIGNALS_CONTRACT_VERSION, STRATEGIC_SIGNALS_INSTRUCTIONS,
+  buildStrategicSignalsInput, resolveStrategicSignals, strategicSignalsSchema,
+  validateStrategicSignalsStructure,
+} from './strategic-signals.js';
 import { id, now } from './utils.js';
 
 const confidencePoints = { LOW: 3, MEDIUM: 6, HIGH: 9 };
@@ -11,6 +16,13 @@ const criterionPoints = { NOT_SUPPORTED: 0, PARTIAL: 1, SUPPORTED: 2, UNEVALUABL
 export const PARTIAL_BUDGET = Object.freeze({ max_input_tokens: 6000, max_output_tokens: 4000, max_attempts: 2,
   input_usd_per_million: 0.25, output_usd_per_million: 2, cap_usd: 0.03 });
 export function partialWorstCaseCost(config = PARTIAL_BUDGET) {
+  return Number((config.max_attempts * ((config.max_input_tokens * config.input_usd_per_million + config.max_output_tokens * config.output_usd_per_million) / 1_000_000)).toFixed(8));
+}
+// Own budget for the Sprint 4 second structured call. Independent from PARTIAL_BUDGET so the
+// STRATEGIC_SIGNALS stage carries its own cost ceiling, worst-case guard and audit.
+export const STRATEGIC_SIGNALS_BUDGET = Object.freeze({ max_input_tokens: 4000, max_output_tokens: 3000, max_attempts: 2,
+  input_usd_per_million: 0.25, output_usd_per_million: 2, cap_usd: 0.02 });
+export function strategicSignalsWorstCaseCost(config = STRATEGIC_SIGNALS_BUDGET) {
   return Number((config.max_attempts * ((config.max_input_tokens * config.input_usd_per_million + config.max_output_tokens * config.output_usd_per_million) / 1_000_000)).toFixed(8));
 }
 const extractText = (response) => response.output_text || response.output?.flatMap((x) => x.content || []).find((x) => x.type === 'output_text')?.text;
@@ -47,7 +59,7 @@ async function callStructuredOnce(env, schema, name, instructions, input, stage)
     headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
     signal: AbortSignal.timeout(60000),
     body: JSON.stringify({ model: env.OPENAI_MODEL || 'gpt-5-mini', instructions, input: JSON.stringify(input),
-      max_output_tokens: stage === 'MAIN_ANALYSIS' ? 12000 : PARTIAL_BUDGET.max_output_tokens,
+      max_output_tokens: stage === 'MAIN_ANALYSIS' ? 12000 : stage === 'STRATEGIC_SIGNALS' ? STRATEGIC_SIGNALS_BUDGET.max_output_tokens : PARTIAL_BUDGET.max_output_tokens,
       text: { format: { type: 'json_schema', name, strict: true, schema } } }) }); }
   catch (error) { throw new TechnicalResponseError(error.name === 'TimeoutError' ? 'TIMEOUT' : 'UNKNOWN_TRANSPORT_FAILURE', 'Falha de transporte antes da resposta completa.', { stage, availability:'USAGE_UNAVAILABLE', request_id:null }, true); }
   const requestId = response.headers.get('x-request-id');
@@ -58,6 +70,8 @@ async function callStructuredOnce(env, schema, name, instructions, input, stage)
 async function callStructured(env, schema, name, instructions, input, stage) {
   if (stage === 'PARTIAL_REGENERATION' && partialWorstCaseCost() > PARTIAL_BUDGET.cap_usd)
     throw new TechnicalResponseError('COST_CAP_EXCEEDED', `Worst-case ${partialWorstCaseCost()} excede teto ${PARTIAL_BUDGET.cap_usd}.`, { stage, availability:'USAGE_UNAVAILABLE', request_id:null }, false);
+  if (stage === 'STRATEGIC_SIGNALS' && strategicSignalsWorstCaseCost() > STRATEGIC_SIGNALS_BUDGET.cap_usd)
+    throw new TechnicalResponseError('COST_CAP_EXCEEDED', `Worst-case ${strategicSignalsWorstCaseCost()} excede teto ${STRATEGIC_SIGNALS_BUDGET.cap_usd}.`, { stage, availability:'USAGE_UNAVAILABLE', request_id:null }, false);
   const usages=[];
   for (let attempt=0; attempt<2; attempt++) try {
     const result=await callStructuredOnce(env,schema,name,instructions,input,stage); result.technicalRetryCount=attempt; result.priorUsages=usages; return result;
@@ -86,7 +100,7 @@ export async function regenerateQuickWins(env, generation, order, pkg) {
 }
 
 export async function generateAnalysis(env, order, pkg, lifecycle = {}) {
-  if (env.ANALYZER_MODE === 'CONTROLLED_FIXTURE') return { analysis: controlledFixture(order, pkg), usages: [] };
+  if (env.ANALYZER_MODE === 'CONTROLLED_FIXTURE') return { analysis: controlledFixture(order, pkg), usages: [], strategicSignals: null };
   const input = buildGenerationInput(order, pkg);
   const main = await callStructured(env, analyzerGenerationSchema, ANALYZER_GENERATION_CONTRACT_VERSION,
     'Interprete estrategicamente apenas o necessário. Os arrays de propriedades e evidências são indexados a partir de zero: devolva somente índices válidos. Não invente IDs, pontos, scores, códigos, limitações, estados do pipeline, CTA ou service match. Produza 7 dimensões, 3 prioridades e um finding CROSS_CHANNEL. Ausência não observável por limitação de acesso é UNEVALUABLE, nunca NOT_SUPPORTED. Não prescreva ferramenta, arquivo, quantidade, escopo ou prazo específico sem evidência; exemplos devem ser explicitamente opcionais. Assistência só é cabível diante de impedimento técnico/estrutural comprovado; o padrão é SELF_IMPLEMENTATION. Cada Quick Win aponta apenas para priority_index 0, 1 ou 2, propõe ação específica e não instrui criar/adicionar algo listado em verified_existing_elements; se o problema for qualidade, visibilidade, coerência ou funcionamento, nomeie esse problema. Escreva em pt-BR.', input, 'MAIN_ANALYSIS');
@@ -96,9 +110,48 @@ export async function generateAnalysis(env, order, pkg, lifecycle = {}) {
   main.value.quick_wins = [];
   try { generation = validateGenerationStructure(main.value, pkg); }
   catch (error) { error.usages = [main.usage]; throw error; }
-  await lifecycle.persistValidGeneration?.({ generation: structuredClone(generation), usage: main.usage,
+  const mainPersisted = await lifecycle.persistValidGeneration?.({ generation: structuredClone(generation), usage: main.usage,
     contract_version: ANALYZER_GENERATION_CONTRACT_VERSION, component: 'MAIN_ANALYSIS', parent_generation_id: null });
-  return { analysis: assembleAnalysisV2(generation, order, pkg), usages: [main.usage] };
+  const analysis = assembleAnalysisV2(generation, order, pkg);
+  // Second, dedicated structured call. Isolated on purpose: a failure here never invalidates the
+  // MAIN analysis above — it only degrades the Strategic Core to NOT_EXECUTED downstream.
+  const strategicSignals = await generateStrategicSignals(env, order, pkg, analysis, lifecycle, mainPersisted?.generation_id || null);
+  return { analysis, usages: [main.usage, ...strategicSignals.usages], strategicSignals };
+}
+
+// Runs only with STRATEGIC_CORE=ON and STRATEGIC_SIGNALS=ON. Returns a discriminated result:
+//   { status: 'GENERATED', bundle, dropped, derived_at, contract_version, usage, technicalRetryCount, usages }
+//   { status: 'SKIPPED', reason, usages: [] }
+//   { status: 'FAILED', reason, error_code, usages }
+// `usages` always carries whatever the OpenAI call produced (success or failed attempts) so the
+// handler records STRATEGIC_SIGNALS stage cost/retry regardless of outcome.
+export async function generateStrategicSignals(env, order, pkg, analysis, lifecycle = {}, parentGenerationId = null) {
+  if (env.STRATEGIC_CORE !== 'ON') return { status: 'SKIPPED', reason: 'STRATEGIC_CORE_OFF', usages: [] };
+  if (env.STRATEGIC_SIGNALS !== 'ON') return { status: 'SKIPPED', reason: 'STRATEGIC_SIGNALS_FLAG_OFF', usages: [] };
+  const input = buildStrategicSignalsInput(order, pkg, analysis);
+  let call;
+  try {
+    call = await callStructured(env, strategicSignalsSchema, STRATEGIC_SIGNALS_CONTRACT_VERSION,
+      STRATEGIC_SIGNALS_INSTRUCTIONS, input, 'STRATEGIC_SIGNALS');
+  } catch (error) {
+    return { status: 'FAILED', reason: error.code || 'STRATEGIC_SIGNALS_CALL_FAILED', error_code: error.code || null, usages: error.usages || [] };
+  }
+  const usages = [...(call.priorUsages || []), call.usage];
+  try { validateStrategicSignalsStructure(call.value); }
+  catch { return { status: 'FAILED', reason: 'STRATEGIC_SIGNALS_SCHEMA_INVALID', error_code: 'SCHEMA_INVALID', usages }; }
+  const resolved = resolveStrategicSignals(call.value, { analysis, pkg });
+  await lifecycle.persistValidGeneration?.({ generation: call.value, usage: call.usage,
+    contract_version: STRATEGIC_SIGNALS_CONTRACT_VERSION, component: 'STRATEGIC_SIGNALS', parent_generation_id: parentGenerationId });
+  return {
+    status: 'GENERATED',
+    bundle: resolved.bundle,
+    dropped: resolved.dropped,
+    derived_at: resolved.derived_at,
+    contract_version: STRATEGIC_SIGNALS_CONTRACT_VERSION,
+    usage: call.usage,
+    technicalRetryCount: call.technicalRetryCount ?? 0,
+    usages,
+  };
 }
 
 export const analyze = generateAnalysis;
