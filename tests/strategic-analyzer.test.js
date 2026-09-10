@@ -509,4 +509,57 @@ describe('runStrategicReasoning — orquestrador', () => {
     expect(() => runStrategicReasoning(analysis, order, { baseInsights: duplicated }))
       .toThrow(StrategicInsightValidationError);
   });
+
+  // MICRO-GATE 6D.8 (B) — um STRENGTH/OPPORTUNITY lift que UNDERMINES_OBJECTIVE é auto-contraditório.
+  describe('reconciliação LEGACY_FINDING_LIFT × UNDERMINES_OBJECTIVE', () => {
+    const liftAnalysis = (findingOver = {}) => ({
+      dimensions: [
+        dim('content_narrative', [crit('PARTIAL', ['ev.u']), crit('SUPPORTED', ['ev.u'])]),
+        dim('journey', [crit('PARTIAL', ['ev.u'])]),
+      ],
+      findings: [finding({
+        finding_id: 'finding.u', dimension_keys: ['content_narrative'], property_ids: ['prop.site'],
+        evidence_refs: ['ev.u'], confidence: 'MEDIUM', priority_timing: 'NOW',
+        objective_relation: 'UNDERMINES_OBJECTIVE', ...findingOver,
+      })],
+    });
+    const liftInsight = (over = {}) => ({
+      insight_id: 'strategic_insight.lift', type: 'STRENGTH', title: 'Ponte fraca',
+      summary: 'A home não conecta identidade a provas.', source_finding_refs: ['finding.u'],
+      evidence_refs: ['ev.u'], confidence: 'MEDIUM', validation_required: false,
+      derivation_method: 'LEGACY_FINDING_LIFT', evidence_state: 'POSITIVE_EVIDENCE', ...over,
+    });
+    const decorate = (analysisArg, insightOver) => runStrategicReasoning(analysisArg, order, { baseInsights: [liftInsight(insightOver)] })
+      .insights.find((x) => x.insight_id === 'strategic_insight.lift');
+
+    it('impact HIGH + UNDERMINES_OBJECTIVE: STRENGTH → RISK, evidence_state removido, validation_required true', () => {
+      const d = decorate(liftAnalysis({ impact: 'HIGH' }));
+      expect(d.type).toBe('RISK');
+      expect(d.objective_relation).toBe('UNDERMINES_OBJECTIVE');
+      expect('evidence_state' in d).toBe(false);
+      expect(d.validation_required).toBe(true);
+    });
+
+    it('impact não-HIGH em journey + UNDERMINES_OBJECTIVE → FRICTION', () => {
+      expect(decorate(liftAnalysis({ impact: 'MEDIUM', dimension_keys: ['journey'] })).type).toBe('FRICTION');
+    });
+
+    it('impact não-HIGH fora de journey/conversion + UNDERMINES_OBJECTIVE → GAP', () => {
+      expect(decorate(liftAnalysis({ impact: 'MEDIUM', dimension_keys: ['authority_trust'] })).type).toBe('GAP');
+    });
+
+    it('OPPORTUNITY também é reconciliado', () => {
+      expect(decorate(liftAnalysis({ impact: 'MEDIUM', dimension_keys: ['authority_trust'] }), { type: 'OPPORTUNITY' }).type).toBe('GAP');
+    });
+
+    it('SUPPORTS_OBJECTIVE não dispara reconciliação: STRENGTH permanece e evidence_state é preservado', () => {
+      const d = decorate(liftAnalysis({ impact: 'HIGH', objective_relation: 'SUPPORTS_OBJECTIVE' }));
+      expect(d.type).toBe('STRENGTH');
+      expect(d.evidence_state).toBe('POSITIVE_EVIDENCE');
+    });
+
+    it('derivation_method STRATEGIC_ANALYZER não é tocado, mesmo com UNDERMINES_OBJECTIVE', () => {
+      expect(decorate(liftAnalysis({ impact: 'HIGH' }), { derivation_method: 'STRATEGIC_ANALYZER' }).type).toBe('STRENGTH');
+    });
+  });
 });

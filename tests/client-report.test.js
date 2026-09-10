@@ -265,6 +265,26 @@ describe('toClientReport :: Objective Alignment', () => {
   });
 });
 
+describe('toClientReport :: reconciliação de tipo (MICRO-GATE 6D.8 B) reflete no roteamento', () => {
+  // O client report roteia por `type`: um lift positivo que mina o objetivo, se não reconciliado
+  // na origem, cairia em "leitura estratégica"; reconciliado para tipo de atenção, vai para
+  // "pontos de atenção" com a lente de objetivo.
+  it('type de atenção + UNDERMINES_OBJECTIVE → watch_points, nunca strategic_reading', () => {
+    const reconciled = insight({ type: 'RISK', objective_relation: 'UNDERMINES_OBJECTIVE', title: 'Ponte fraca entre identidade e prova', summary: 'A home não conecta identidade a provas concretas.' });
+    const { report } = clientFor([reconciled]);
+    expect(JSON.stringify(report.watch_points)).toContain('Ponte fraca entre identidade e prova');
+    expect(report.watch_points[0].objective_note).toMatch(/puxa contra o seu objetivo/i);
+    expect(JSON.stringify(report.strategic_reading || [])).not.toContain('Ponte fraca entre identidade e prova');
+  });
+
+  it('contexto: um STRENGTH não reconciliado que mina o objetivo cairia em strategic_reading — o client report não corrige isso', () => {
+    const notReconciled = insight({ type: 'STRENGTH', objective_relation: 'UNDERMINES_OBJECTIVE', summary: 'Resumo do sinal mal rotulado.' });
+    const { report } = clientFor([notReconciled]);
+    expect(JSON.stringify(report.strategic_reading || [])).toContain('Resumo do sinal mal rotulado.');
+    expect(JSON.stringify(report.watch_points || [])).not.toContain('Resumo do sinal mal rotulado.');
+  });
+});
+
 describe('toClientReport :: Alternative Explanations', () => {
   it('≤ 1 aside por insight, só para confidence MEDIUM/LOW', () => {
     const medium = clientFor([insight({ confidence: 'MEDIUM', alternative_explanations: ['A variedade editorial pode explicar a leitura.'] })]).report;

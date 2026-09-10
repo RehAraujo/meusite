@@ -254,7 +254,13 @@ function assembleCross(value, pkg) {
   if (pkg.analysis_scope.primary_channels.length < 2) return null;
   const points = { CONFLICTING: 0, PARTIALLY_ALIGNED: 1, ALIGNED: 2, UNEVALUABLE: null };
   const byAxis = new Map(value.axes.map((x) => [x.axis, x]));
-  const axes = CROSS_CHANNEL_AXES.map((name) => { const x = byAxis.get(name); return { axis: name, state: x.state, points: points[x.state], evidence_refs: x.evidence_indexes.map((i) => pkg.evidence[i].evidence_id) }; });
+  // Cross-channel coherence is only defensible when every primary channel actually yielded
+  // evidence. If one is missing (e.g. Instagram HTTP 429), the LLM's per-axis states describe a
+  // single channel against declared intent, not a cross-channel comparison — so every axis is
+  // forced UNEVALUABLE and index/band/confidence fall through to null/NOT_SCORED/LOW.
+  const foundChannels = new Set(pkg.evidence.filter((e) => e.availability === 'FOUND').map((e) => e.channel_type));
+  const crossEvaluable = pkg.analysis_scope.primary_channels.every((channel) => foundChannels.has(channel));
+  const axes = CROSS_CHANNEL_AXES.map((name) => { const x = byAxis.get(name); const state = crossEvaluable ? x.state : 'UNEVALUABLE'; return { axis: name, state, points: points[state], evidence_refs: x.evidence_indexes.map((i) => pkg.evidence[i].evidence_id) }; });
   const evaluable = axes.filter((x) => x.points != null), index = evaluable.length >= 5 ? Math.round(((evaluable.reduce((s,x) => s+x.points,0)/(evaluable.length*2))*100)/5)*5 : null;
   const critical = deterministicCriticalFracture(axes, pkg);
   return { method_version: 'cross_channel_v1.0', axes, index, band: index == null ? 'NOT_SCORED' : index < 25 ? 'INCOHERENT' : index < 50 ? 'FRAGMENTED' : index < 75 ? 'PARTIALLY_COHERENT' : 'COHERENT',

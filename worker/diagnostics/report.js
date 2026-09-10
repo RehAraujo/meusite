@@ -2,6 +2,10 @@ import { id, now } from './utils.js';
 const block = (title, body, refs = []) => ({ title, body, source_refs: [...new Set(refs)] });
 export function composeReport(analysis, scorecard) {
   const refs = analysis.findings.map((x) => x.finding_id);
+  // "O que funciona" must be sourced from genuine positive signal, never from the non-HIGH-impact
+  // slice of findings (which are still gaps). intention_vs_perception entries the site already
+  // lands (classification SUPPORTED) are the real positives; fall back to the neutral note when none.
+  const supportedPerceptions = analysis.intention_vs_perception.filter((x) => x.classification === 'SUPPORTED');
   const priorities = analysis.top_priorities
     .map((x) => `${x.rank}. ${x.title}: ${x.what_to_change}`)
     .join('\n');
@@ -43,11 +47,9 @@ export function composeReport(analysis, scorecard) {
       ),
       what_works: block(
         'O que funciona',
-        analysis.findings
-          .filter((x) => x.impact !== 'HIGH')
-          .map((x) => x.diagnosis)
-          .join('\n') || 'Os sinais positivos estão incorporados ao diagnóstico.',
-        refs,
+        supportedPerceptions.map((x) => x.explanation).join('\n')
+          || 'Os sinais positivos estão incorporados ao diagnóstico.',
+        supportedPerceptions.flatMap((x) => x.evidence_refs),
       ),
       bottlenecks: block(
         'Principais gargalos',

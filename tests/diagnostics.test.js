@@ -394,3 +394,52 @@ describe('falhas técnicas de Structured Outputs', () => {
     finally{globalThis.fetch=previous;}
   });
 });
+
+describe('MICRO-GATE 6D.8 — representação honesta de lacunas e cross-channel', () => {
+  // A — report.js / composeReport :: "O que funciona"
+  it('A: what_works usa explicações de intention_vs_perception SUPPORTED, nunca o slice não-HIGH de findings', () => {
+    const source = {
+      ...analysis(),
+      findings: [{ finding_id: 'finding.med', diagnosis: 'Lacuna de prova social no site.', impact: 'MEDIUM' }],
+      intention_vs_perception: [
+        { intention: 'especialista', classification: 'SUPPORTED', explanation: 'Método e trajetória sustentam a especialidade.', evidence_refs: ['ev.1'], confidence: 'HIGH' },
+        { intention: 'confiável', classification: 'PARTIALLY_SUPPORTED', explanation: 'Ainda faltam provas destacadas.', evidence_refs: ['ev.1'], confidence: 'MEDIUM' },
+      ],
+    };
+    const report = composeReport(source, scoreAnalysis(source));
+    expect(report.sections.what_works.body).toBe('Método e trajetória sustentam a especialidade.');
+    expect(report.sections.what_works.body).not.toMatch(/Lacuna de prova social/);
+    expect(report.sections.what_works.source_refs).toEqual(['ev.1']);
+  });
+
+  it('A: what_works cai no texto neutro quando nenhuma percepção está SUPPORTED', () => {
+    const source = {
+      ...analysis(),
+      findings: [{ finding_id: 'finding.med', diagnosis: 'Lacuna que não deve virar "o que funciona".', impact: 'MEDIUM' }],
+      intention_vs_perception: [
+        { intention: 'confiável', classification: 'PARTIALLY_SUPPORTED', explanation: 'x', evidence_refs: ['ev.1'], confidence: 'MEDIUM' },
+      ],
+    };
+    const report = composeReport(source, scoreAnalysis(source));
+    expect(report.sections.what_works.body).toBe('Os sinais positivos estão incorporados ao diagnóstico.');
+    expect(report.sections.what_works.body).not.toMatch(/Lacuna que não deve/);
+  });
+
+  // C — analyzer.js / assembleCross :: guard determinístico de evaluabilidade cross-channel
+  it('C: canal primário sem evidência FOUND força index null / NOT_SCORED / LOW e eixos UNEVALUABLE', () => {
+    const raw = generation();
+    const pkg = evidencePackage();
+    pkg.evidence[0].availability = 'NOT_ACCESSIBLE'; // INSTAGRAM inacessível (ex.: HTTP 429)
+    const cross = assembleCrossChannel(raw.cross_channel, pkg);
+    expect(cross).toMatchObject({ index: null, band: 'NOT_SCORED', confidence: 'LOW', critical_fracture: false });
+    expect(cross.axes).toHaveLength(7);
+    expect(cross.axes.every((a) => a.state === 'UNEVALUABLE' && a.points === null)).toBe(true);
+  });
+
+  it('C: com todos os canais primários FOUND o cálculo do índice permanece inalterado', () => {
+    const raw = generation(); // 7 eixos PARTIALLY_ALIGNED
+    const cross = assembleCrossChannel(raw.cross_channel, evidencePackage());
+    expect(cross).toMatchObject({ index: 50, band: 'PARTIALLY_COHERENT', confidence: 'HIGH' });
+    expect(cross.axes.every((a) => a.state === 'PARTIALLY_ALIGNED' && a.points === 1)).toBe(true);
+  });
+});

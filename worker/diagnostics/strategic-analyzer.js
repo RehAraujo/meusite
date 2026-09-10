@@ -416,6 +416,29 @@ export function runStrategicReasoning(analysis, order, {
     executionState.OBJECTIVE_ALIGNMENT = objectiveAlignment.state;
     if (objectiveAlignment.state === 'EXECUTED_WITH_FINDING') item.objective_relation = objectiveAlignment.objective_relation;
 
+    // Reconcile a legacy lift whose first-pass positive type now contradicts the objective relation
+    // resolved above: a STRENGTH/OPPORTUNITY that UNDERMINES_OBJECTIVE is self-contradictory. Only
+    // LEGACY_FINDING_LIFT items with exactly one source finding are touched — CONTRADICTION/
+    // HIDDEN_ASSET candidates (derivation_method STRATEGIC_ANALYZER) keep their deliberate type.
+    // The negative type mirrors inferLegacyType's own negative branch; evidence_state is dropped
+    // (the lift read PARTIAL criteria as POSITIVE_EVIDENCE, which the objective relation refutes)
+    // and the insight is flagged for validation.
+    if (
+      item.derivation_method === 'LEGACY_FINDING_LIFT'
+      && (item.type === 'STRENGTH' || item.type === 'OPPORTUNITY')
+      && item.objective_relation === 'UNDERMINES_OBJECTIVE'
+      && sourceFindings.length === 1
+    ) {
+      const [finding] = sourceFindings;
+      item.type = finding.impact === 'HIGH'
+        ? 'RISK'
+        : (finding.dimension_keys || []).some((key) => key === 'journey' || key === 'conversion')
+          ? 'FRICTION'
+          : 'GAP';
+      delete item.evidence_state;
+      item.validation_required = true;
+    }
+
     const audienceSignal = audienceSignals.find((signal) => sameFindingSet(signal.source_finding_refs, item.source_finding_refs));
     if (audienceSignal) {
       const classification = buildAudienceClassification(audienceSignal);

@@ -337,6 +337,62 @@ describe('Sprint 4 — Strategic Signals :: applyStrategicCore alimentado pela s
     expect(final.strategic_insights.some((x) => x.type === 'CONTRADICTION')).toBe(false);
     expect(reasoning.insight_candidates.some((x) => x.type === 'CONTRADICTION')).toBe(true);
   });
+
+  // MICRO-GATE 6D.8 (B) — end-to-end: um finding-lift positivo cujo objective_relation resolvido
+  // é UNDERMINES_OBJECTIVE é reconciliado para um tipo de atenção antes do 2.3.0 e do Client Report.
+  const cleanGeneration = () => {
+    const g = generation();
+    g.dimension_assessments = g.dimension_assessments.map((d) => ({
+      ...d,
+      channels: d.channels.map((ch) => ({ ...ch, criteria: [2, 1, 1, 0, 2].map((v) => ({ state: v === 2 ? 'SUPPORTED' : v === 1 ? 'PARTIAL' : 'NOT_SUPPORTED', evidence_indexes: [ch.channel_index] })) })),
+    }));
+    return g;
+  };
+  const cleanPkg = () => { const pkg = { ...evidencePackage() }; pkg.evidence = pkg.evidence.map((e) => ({ ...e, limitations: [] })); return pkg; };
+  const liftInsightOf = (final, findingId) => final.strategic_insights.find((x) => x.derivation_method === 'LEGACY_FINDING_LIFT' && x.source_finding_refs[0] === findingId);
+
+  it('B: STRENGTH lift + UNDERMINES_OBJECTIVE → tipo de atenção (RISK), evidence_state removido, 2.3.0 válida', () => {
+    const base = assembleAnalysisV2(cleanGeneration(), order, cleanPkg());
+    const findingId = base.findings[0].finding_id;
+    const evidenceId = base.findings[0].evidence_refs[0];
+    const { analysis: final } = applyStrategicCore(base, order, cleanPkg(), {
+      enabled: true,
+      strategicSignals: resolvedSignals(findingId, evidenceId, { objective_relations: [{ finding_id: findingId, relation: 'UNDERMINES_OBJECTIVE' }] }),
+    });
+    const insight = liftInsightOf(final, findingId);
+    expect(['RISK', 'FRICTION', 'GAP']).toContain(insight.type);
+    expect(insight.type).not.toBe('STRENGTH');
+    expect(insight.objective_relation).toBe('UNDERMINES_OBJECTIVE');
+    expect('evidence_state' in insight).toBe(false);
+    expect(insight.validation_required).toBe(true);
+    expect(() => validateStrategicAnalysisV23(final)).not.toThrow();
+  });
+
+  it('B: mesmo lift com SUPPORTS_OBJECTIVE permanece STRENGTH (sem reconciliação)', () => {
+    const base = assembleAnalysisV2(cleanGeneration(), order, cleanPkg());
+    const findingId = base.findings[0].finding_id;
+    const evidenceId = base.findings[0].evidence_refs[0];
+    const { analysis: final } = applyStrategicCore(base, order, cleanPkg(), {
+      enabled: true,
+      strategicSignals: resolvedSignals(findingId, evidenceId, { objective_relations: [{ finding_id: findingId, relation: 'SUPPORTS_OBJECTIVE' }] }),
+    });
+    expect(liftInsightOf(final, findingId).type).toBe('STRENGTH');
+  });
+
+  it('B: o insight reconciliado entra em watch_points do Client Report, nunca em strategic_reading', () => {
+    const base = assembleAnalysisV2(cleanGeneration(), order, cleanPkg());
+    const findingId = base.findings[0].finding_id;
+    const evidenceId = base.findings[0].evidence_refs[0];
+    const { analysis: final } = applyStrategicCore(base, order, cleanPkg(), {
+      enabled: true,
+      strategicSignals: resolvedSignals(findingId, evidenceId, { objective_relations: [{ finding_id: findingId, relation: 'UNDERMINES_OBJECTIVE' }] }),
+    });
+    const { report: client, suppressed } = toClientReport(composeReport(final, scoreAnalysis(structuredClone(final))), final);
+    expect(suppressed).toBe(false);
+    const title = liftInsightOf(final, findingId).title;
+    expect(JSON.stringify(client.watch_points || [])).toContain(title);
+    expect(JSON.stringify(client.strategic_reading || [])).not.toContain(title);
+  });
 });
 
 describe('Sprint 4 — E2E de fixture: bundle resolvido dos 6 tipos, MAIN/scorecard/Report inalterados', () => {
