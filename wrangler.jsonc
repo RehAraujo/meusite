@@ -19,14 +19,14 @@
   "d1_databases": [{
     "binding": "DIAGNOSTICS_DB",
     "database_name": "renatajoin-controlled-mvp",
-    "database_id": "REPLACE_AFTER_D1_CREATE",
+    "database_id": "5a93eea5-d1b3-4c96-9193-5c976d989941",
     "migrations_dir": "migrations"
   }],
   "queues": {
     "producers": [{ "binding": "CONTROLLED_MVP_QUEUE", "queue": "renatajoin-controlled-mvp" }],
     "consumers": [{ "queue": "renatajoin-controlled-mvp", "max_batch_size": 1, "max_retries": 2 }]
   },
-  "vars": { "OPENAI_MODEL": "gpt-5-mini" },
+  "vars": { "OPENAI_MODEL": "gpt-5-mini", "STRATEGIC_CORE": "ON", "STRATEGIC_SIGNALS": "ON" },
   // Sprint 6 — isolated staging environment. name/main/compatibility_date/assets/observability
   // are inherited from the top level; d1_databases/queues/vars are not inherited and are fully
   // restated here. Bindings DIAGNOSTICS_DB and CONTROLLED_MVP_QUEUE are kept identical to prod so
