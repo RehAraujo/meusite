@@ -45,4 +45,8 @@ describe('hidratação do HTML pré-renderizado', () => {
   it('hidrata a trajetória sem divergência', async () => {
     await expectCleanHydration('/sobre');
   });
+
+  it('hidrata o case TED TEC sem substituir a árvore', async () => {
+    await expectCleanHydration('/clientes/ted-tec');
+  });
 });

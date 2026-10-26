@@ -1,5 +1,26 @@
 export const projects = [
   {
+    name: 'TED TEC',
+    context: 'Empresa · Assistência técnica',
+    audience: 'empresas',
+    challenge:
+      'A presença digital precisava conectar a identidade da marca a uma experiência mais clara, técnica e sustentável sobre uma instalação WordPress existente.',
+    decision:
+      'Investiguei a estrutura antes de intervir, organizei a experiência e conduzi identidade, interface, desenvolvimento, motion, integrações e validação como partes do mesmo sistema.',
+    result:
+      'Identidade visual, estratégia, UX/UI, componentes WordPress próprios, motion nativo e avaliações do Google integradas à interface existente.',
+    impact:
+      'Uma presença digital estruturada para manutenção e evolução, sem depender de atualização manual das avaliações exibidas.',
+    tags: ['Branding', 'UX/UI', 'WordPress', 'Motion', 'Integrações', 'QA'],
+    casePath: '/clientes/ted-tec',
+    featuredTitle: 'Da identidade à experiência digital.',
+    featuredDescription:
+      'Identidade, estratégia, interface e tecnologia reunidas na construção de uma nova experiência digital para a TED TEC.',
+    image: '/assets/tedtec-case-hero.png',
+    imageAlt:
+      'Hero do site TED TEC com mensagem de assistência técnica e notebook em visualização técnica',
+  },
+  {
     name: 'Potência Solar',
     context: 'Empresa · Energia solar',
     audience: 'empresas',
