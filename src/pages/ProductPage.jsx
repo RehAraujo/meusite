@@ -9,9 +9,7 @@ export default function ProductPage({ type }) {
   const description = guide
     ? 'Um sistema editável para organizar cardápio, compras, substituições, chás e hidratação sem reinventar a rotina.'
     : 'Registre treinos, cargas, frequência e evolução com mais consciência e menos improviso.';
-  const buyUrl = guide
-    ? 'https://rehabloom.gumroad.com/l/guia'
-    : 'https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20comprar%20o%20Planner%20de%20Treino.';
+  const buyUrl = `/checkout?produto=${guide ? 'planner-alimentar' : 'planner-treino'}`;
   useDocumentMeta({ title: `${title} | Renata Join`, description, path });
 
   if (!guide) {

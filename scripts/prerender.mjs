@@ -10,6 +10,7 @@ const routes = [
   '/clientes',
   '/pensamentos',
   '/ferramentas',
+  '/checkout',
   '/carreira',
   '/career',
   '/curriculo',
@@ -112,6 +113,7 @@ const metadata = {
     'QA de diagnósticos | Renata Join',
     'Área operacional de revisão do MVP controlado.',
   ],
+  '/checkout': ['Seu pedido | Renata Join', 'Pagamento e acesso ao seu produto digital.'],
   '/404': ['Página não encontrada | Renata Join', 'Esta página não foi encontrada.'],
 };
 
@@ -122,7 +124,7 @@ const createHead = (route) => {
   const [title, description] = metadata[route];
   const canonicalRoute = route === '/career' || route === '/curriculo' ? '/carreira' : route;
   const canonical = `https://renatajoin.com${canonicalRoute === '/' ? '/' : canonicalRoute}`;
-  const noindex = route === '/404' || route.startsWith('/operacao/');
+  const noindex = route === '/checkout' || route === '/404' || route.startsWith('/operacao/');
   return `
     <title>${title}</title>
     <meta name="description" content="${escapeAttribute(description)}" />

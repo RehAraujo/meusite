@@ -1,8 +1,13 @@
+import { handleCommerce } from './worker/commerce/handler.js';
 import { handleDiagnostics, processOrder } from './worker/diagnostics/handler.js';
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (url.pathname === '/api/commerce' || url.pathname.startsWith('/api/commerce/')) {
+      return handleCommerce(request, env, url);
+    }
 
     if (url.pathname.startsWith('/api/diagnostics')) {
       return handleDiagnostics(request, env, url);

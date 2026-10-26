@@ -29,7 +29,7 @@ describe('interações críticas', () => {
     expect(screen.getByRole('heading', { name: 'Planner Anti-Inflamatório' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Comprar' })).toHaveAttribute(
       'href',
-      'https://rehabloom.gumroad.com/l/guia',
+      '/checkout?produto=planner-alimentar',
     );
   });
 });

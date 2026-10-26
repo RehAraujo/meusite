@@ -11,6 +11,8 @@
     "binding": "ASSETS",
     "run_worker_first": [
       "/api/diagnostics/*",
+      "/api/commerce",
+      "/api/commerce/*",
       "/wrangler.jsonc"
     ],
     "html_handling": "auto-trailing-slash",
@@ -26,7 +28,7 @@
     "producers": [{ "binding": "CONTROLLED_MVP_QUEUE", "queue": "renatajoin-controlled-mvp" }],
     "consumers": [{ "queue": "renatajoin-controlled-mvp", "max_batch_size": 1, "max_retries": 2 }]
   },
-  "vars": { "OPENAI_MODEL": "gpt-5-mini", "STRATEGIC_CORE": "ON", "STRATEGIC_SIGNALS": "ON" },
+  "vars": { "COMMERCE_MODE": "disabled", "OPENAI_MODEL": "gpt-5-mini", "STRATEGIC_CORE": "ON", "STRATEGIC_SIGNALS": "ON" },
   // Sprint 6 — isolated staging environment. name/main/compatibility_date/assets/observability
   // are inherited from the top level; d1_databases/queues/vars are not inherited and are fully
   // restated here. Bindings DIAGNOSTICS_DB and CONTROLLED_MVP_QUEUE are kept identical to prod so
@@ -34,6 +36,7 @@
   "env": {
     "staging": {
       "name": "meusite-staging",
+      "r2_buckets": [{ "binding": "DIGITAL_PRODUCTS", "bucket_name": "meusite-digital-products-staging" }],
       "d1_databases": [{
         "binding": "DIAGNOSTICS_DB",
         "database_name": "renatajoin-controlled-mvp-staging",
@@ -44,7 +47,7 @@
         "producers": [{ "binding": "CONTROLLED_MVP_QUEUE", "queue": "renatajoin-controlled-mvp-staging" }],
         "consumers": [{ "queue": "renatajoin-controlled-mvp-staging", "max_batch_size": 1, "max_retries": 2 }]
       },
-      "vars": { "OPENAI_MODEL": "gpt-5-mini", "STRATEGIC_CORE": "ON", "STRATEGIC_SIGNALS": "ON" }
+      "vars": { "COMMERCE_MODE": "disabled", "OPENAI_MODEL": "gpt-5-mini", "STRATEGIC_CORE": "ON", "STRATEGIC_SIGNALS": "ON" }
     }
   }
 }
