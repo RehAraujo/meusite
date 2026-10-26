@@ -91,4 +91,22 @@ describe('checkout experience', () => {
     expect(await screen.findByRole('button', { name: 'Baixar produto' })).toBeEnabled();
     expect(screen.getByRole('status')).toHaveTextContent('Pagamento confirmado');
   });
+  it('shows suspended delivery without a download button even if stale paid=true arrives', async () => {
+    sessionStorage.setItem(`commerce:${id}`, JSON.stringify({ id, token }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        response({
+          ...product,
+          product_id: product.id,
+          paid: true,
+          delivery_blocked: true,
+          status: 'processed',
+        }),
+      ),
+    );
+    page(`pedido=${id}`);
+    expect(await screen.findByRole('status')).toHaveTextContent('Entrega suspensa');
+    expect(screen.queryByRole('button', { name: 'Baixar produto' })).not.toBeInTheDocument();
+  });
 });

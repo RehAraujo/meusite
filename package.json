@@ -14,7 +14,8 @@
     "format:write": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:commerce:isolated": "vitest run --config vitest.commerce.config.js"
+    "test:commerce:isolated": "vitest run --config vitest.commerce.config.js",
+    "check:commerce:staging": "node scripts/check-commerce-staging.mjs"
   },
   "dependencies": {
     "ajv": "8.20.0",

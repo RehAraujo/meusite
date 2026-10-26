@@ -1,5 +1,8 @@
 # Auditoria prévia — Mercado Pago Orders
 
+> Registro histórico anterior à integração da main e aos tratamentos de risco.
+> Para o estado atual, consulte [a preparação de homologação](mercadopago-homologacao.md).
+
 Data: 26/10/2026. Branch: `codex/mercadopago-orders`. Commit auditado: `752cae4`.
 Parecer: **adequado para testes locais simulados; não aprovado para ativação remota**.
 A inspeção de branches, segurança e infraestrutura foi realizada antes de editar

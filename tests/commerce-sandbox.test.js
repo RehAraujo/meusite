@@ -21,6 +21,12 @@ it('exercises the Worker offline with disposable storage and synthetic credentia
   const productionDb = config.d1_databases.find((db) => db.binding === 'DIAGNOSTICS_DB');
   const stagingDb = config.env.staging.d1_databases.find((db) => db.binding === 'DIAGNOSTICS_DB');
   assert.notEqual(productionDb.database_id, stagingDb.database_id);
+  const commerceDb = config.env.staging.d1_databases.find((db) => db.binding === 'COMMERCE_DB');
+  assert.notEqual(commerceDb.database_id, productionDb.database_id);
+  assert.notEqual(commerceDb.database_id, stagingDb.database_id);
+  assert.equal(commerceDb.migrations_dir, 'migrations/commerce');
+  assert.equal(commerceDb.remote, false);
+  assert.deepEqual(config.env.staging.routes, []);
   assert.notEqual(productionDb.database_name, stagingDb.database_name);
   assert.equal(
     config.env.staging.r2_buckets.find((b) => b.binding === 'DIGITAL_PRODUCTS').bucket_name,
@@ -31,6 +37,7 @@ it('exercises the Worker offline with disposable storage and synthetic credentia
   log('OK: configuração local distingue D1 de produção/staging e mantém checkout desativado.');
 
   const db = new DatabaseSync(':memory:');
+  const diagnosticsDb = new DatabaseSync(':memory:');
   const originalFetch = globalThis.fetch;
   const origin = 'https://commerce.local.invalid';
   const id = randomUUID();
@@ -46,11 +53,17 @@ it('exercises the Worker offline with disposable storage and synthetic credentia
     ['products/planner-treino/v1.zip', fixture],
   ]);
   const env = {
+    COMMERCE_ENVIRONMENT: 'staging',
     COMMERCE_MODE: 'test',
     COMMERCE_ORIGIN: origin,
     MERCADOPAGO_ACCESS_TOKEN: `TEST-${randomBytes(32).toString('hex')}`,
     MERCADOPAGO_WEBHOOK_SECRET: randomBytes(32).toString('hex'),
     DIAGNOSTICS_DB: {
+      prepare() {
+        throw new Error('Commerce must not access diagnostic storage');
+      },
+    },
+    COMMERCE_DB: {
       prepare(sql) {
         const statement = db.prepare(sql);
         return {
@@ -107,7 +120,10 @@ it('exercises the Worker offline with disposable storage and synthetic credentia
     });
   }
   try {
-    for (const migration of ['0001_controlled_mvp.sql', '0002_commerce.sql']) {
+    diagnosticsDb.exec(
+      readFileSync(new URL('../migrations/0001_controlled_mvp.sql', import.meta.url), 'utf8'),
+    );
+    for (const migration of ['commerce/0001_orders.sql', 'commerce/0002_delivery_safety.sql']) {
       const sql = readFileSync(new URL(`../migrations/${migration}`, import.meta.url), 'utf8');
       db.exec(sql);
       db.exec(sql);
@@ -182,7 +198,7 @@ it('exercises the Worker offline with disposable storage and synthetic credentia
     state = { status: 'refunded', status_detail: 'refunded', total_paid_amount: '0.00' };
     assert.equal((await webhook()).status, 200);
     assert.equal((await run(`/api/commerce/orders/${id}/download`)).status, 403);
-    assert.equal(db.prepare('SELECT count(*) AS n FROM orders').get().n, 0);
+    assert.equal(diagnosticsDb.prepare('SELECT count(*) AS n FROM orders').get().n, 0);
     assert.equal(db.prepare('SELECT count(*) AS n FROM commerce_orders').get().n, 1);
     assert.equal(db.prepare('SELECT downloads FROM commerce_orders').get().downloads, 1);
     log('OK: Worker → pedido → webhook HMAC → ZIP privado → estorno; diagnóstico intacto.');
@@ -195,5 +211,6 @@ it('exercises the Worker offline with disposable storage and synthetic credentia
   } finally {
     globalThis.fetch = originalFetch;
     db.close();
+    diagnosticsDb.close();
   }
 });

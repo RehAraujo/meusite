@@ -1,3 +1,4 @@
+import { BLOCKED_SQL, RISK_TOPICS, persistRisk, captureSafety, riskResource } from './safety.js';
 import { CATALOG, money } from './catalog.js';
 
 const encoder = new TextEncoder();
@@ -36,8 +37,9 @@ function configured(env) {
   try {
     const origin = new URL(env.COMMERCE_ORIGIN);
     return (
+      env.COMMERCE_ENVIRONMENT === 'staging' &&
       testMode(env) &&
-      env.DIAGNOSTICS_DB &&
+      env.COMMERCE_DB &&
       env.DIGITAL_PRODUCTS &&
       !!env.MERCADOPAGO_WEBHOOK_SECRET &&
       origin.protocol === 'https:' &&
@@ -76,12 +78,12 @@ async function limited(request, env, scope, maximum) {
   const now = Date.now(),
     bucket = Math.floor(now / 60000);
   const ip = await hash(`${request.headers.get('CF-Connecting-IP') || 'local'}:${bucket}`);
-  const row = await env.DIAGNOSTICS_DB.prepare(
+  const row = await env.COMMERCE_DB.prepare(
     'INSERT INTO commerce_limits (key,count,expires) VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 RETURNING count',
   )
     .bind(`${scope}:${ip}`, (bucket + 2) * 60000)
     .first();
-  await env.DIAGNOSTICS_DB.prepare('DELETE FROM commerce_limits WHERE expires < ?').bind(now).run();
+  await env.COMMERCE_DB.prepare('DELETE FROM commerce_limits WHERE expires < ?').bind(now).run();
   return row.count > maximum;
 }
 async function mp(env, path, options = {}) {
@@ -151,7 +153,11 @@ export async function verifySignature(request, url, secret) {
   );
 }
 const byId = (env, id) =>
-  env.DIAGNOSTICS_DB.prepare('SELECT * FROM commerce_orders WHERE id=?').bind(id).first();
+  env.COMMERCE_DB.prepare(
+    `SELECT commerce_orders.*, ${BLOCKED_SQL} AS delivery_blocked FROM commerce_orders WHERE id=?`,
+  )
+    .bind(id)
+    .first();
 async function owned(request, env, id) {
   const bearer = token(request);
   if (!bearer) return null;
@@ -169,7 +175,8 @@ function view(row) {
     currency: row.currency,
     status: row.status,
     status_detail: row.status_detail,
-    paid: row.status === 'processed' && row.status_detail === 'accredited',
+    paid: row.status === 'processed' && row.status_detail === 'accredited' && !row.delivery_blocked,
+    delivery_blocked: !!row.delivery_blocked,
     access_expires: row.access_expires,
   };
 }
@@ -187,6 +194,7 @@ export function matchesOrder(remote, row) {
 async function reconcile(env, row) {
   const remote = await mp(env, `/${encodeURIComponent(row.mp_id)}`);
   if (!matchesOrder(remote, row)) throw new Error('mismatch');
+  await captureSafety(env, row, remote);
   const updated = Date.parse(remote.last_updated_date);
   if (!Number.isFinite(updated) || updated > Date.now() + 60000) throw new Error('version');
   const status = typeof remote.status === 'string' ? remote.status : 'unknown';
@@ -199,7 +207,7 @@ async function reconcile(env, row) {
     throw new Error('amount');
   const verifiedPaid = status === 'processed' && detail === 'accredited';
   // Atomic monotonic snapshots prevent out-of-order webhooks from restoring stale access.
-  await env.DIAGNOSTICS_DB.prepare(
+  await env.COMMERCE_DB.prepare(
     'UPDATE commerce_orders SET status=?,status_detail=?,remote_updated=? WHERE id=? AND (remote_updated < ? OR (remote_updated = ? AND ? = 0))',
   )
     .bind(status, detail, updated, row.id, updated, updated, verifiedPaid ? 1 : 0)
@@ -229,7 +237,7 @@ async function checkout(request, env) {
     if (!(await env.DIGITAL_PRODUCTS.head(product.key)))
       return json({ message: 'Produto indisponível.' }, 503);
     const now = Date.now();
-    await env.DIAGNOSTICS_DB.prepare(
+    await env.COMMERCE_DB.prepare(
       'INSERT OR IGNORE INTO commerce_orders (id,token_hash,product_id,product_title,amount_cents,currency,asset_key,filename,created_at,access_expires) VALUES (?,?,?,?,?,?,?,?,?,?)',
     )
       .bind(
@@ -280,7 +288,7 @@ async function checkout(request, env) {
   const redirect = checkoutUrl(remote.checkout_url, remote.id);
   if (!TEST_ORDER.test(remote.id || '') || remote.live_mode === true || !redirect)
     throw new Error('test-order');
-  await env.DIAGNOSTICS_DB.prepare(
+  await env.COMMERCE_DB.prepare(
     'UPDATE commerce_orders SET mp_id=?,checkout_url=? WHERE id=? AND mp_id IS NULL',
   )
     .bind(remote.id, redirect, id)
@@ -298,14 +306,22 @@ async function webhook(request, env, url) {
     return json({ message: 'Notificação inválida.' }, 400);
   }
   const id = url.searchParams.get('data.id');
+  const topic = input?.type;
+  const queryType = url.searchParams.get('type');
   if (
-    input?.type !== 'order' ||
-    input.data?.id !== id ||
-    input.live_mode !== false ||
-    !TEST_ORDER.test(id)
+    input?.live_mode !== false ||
+    (queryType && queryType !== topic) ||
+    url.searchParams.getAll('type').length > 1
   )
     return json({ message: 'Evento incompatível.' }, 400);
-  const row = await env.DIAGNOSTICS_DB.prepare('SELECT * FROM commerce_orders WHERE mp_id=?')
+  if (Object.hasOwn(RISK_TOPICS, topic)) {
+    if (riskResource(input, topic) !== id) return json({ message: 'Recurso incompatível.' }, 400);
+    await persistRisk(env, topic, id);
+    return json({ received: true });
+  }
+  if (topic !== 'order' || input.data?.id !== id || !TEST_ORDER.test(id))
+    return json({ message: 'Evento incompatível.' }, 400);
+  const row = await env.COMMERCE_DB.prepare('SELECT * FROM commerce_orders WHERE mp_id=?')
     .bind(id)
     .first();
   // A notification can precede persistence of the provider ID: ask for a retry.
@@ -340,6 +356,11 @@ export async function handleCommerce(request, env, url = new URL(request.url)) {
     let row = await owned(request, env, match[1]);
     if (!row) return json({ message: 'Acesso inválido ou expirado.' }, 404);
     if (!match[2]) return json(view(row));
+    if (row.delivery_blocked)
+      return json(
+        { message: 'Entrega suspensa para revisão. Entre em contato com o suporte.' },
+        403,
+      );
     if (!row.mp_id) return json({ message: 'Pagamento não confirmado.' }, 403);
     // Recheck authoritative status on EVERY download, including refunds/chargebacks.
     row = await reconcile(env, row);
@@ -347,8 +368,8 @@ export async function handleCommerce(request, env, url = new URL(request.url)) {
       return json({ message: 'Pagamento não confirmado.' }, 403);
     const asset = await env.DIGITAL_PRODUCTS.get(row.asset_key);
     if (!asset) return json({ message: 'Arquivo temporariamente indisponível.' }, 503);
-    const updated = await env.DIAGNOSTICS_DB.prepare(
-      "UPDATE commerce_orders SET downloads=downloads+1 WHERE id=? AND status='processed' AND status_detail='accredited' AND access_expires>? AND downloads<10 RETURNING id",
+    const updated = await env.COMMERCE_DB.prepare(
+      `UPDATE commerce_orders SET downloads=downloads+1 WHERE id=? AND status='processed' AND status_detail='accredited' AND access_expires>? AND downloads<10 AND NOT ${BLOCKED_SQL} RETURNING id`,
     )
       .bind(row.id, Date.now())
       .first();

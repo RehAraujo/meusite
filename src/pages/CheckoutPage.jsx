@@ -157,14 +157,16 @@ export default function CheckoutPage() {
                 <h2>{order.title}</h2>
                 <p className="price">R$ {order.amount.replace('.', ',')}</p>
                 <p role="status">
-                  {order.paid
-                    ? 'Pagamento confirmado. Seu arquivo está disponível.'
-                    : ['refunded', 'canceled', 'failed', 'charged_back'].includes(order.status) ||
-                        order.status_detail === 'partially_refunded'
-                      ? 'Pagamento não concluído ou estornado.'
-                      : 'Aguardando confirmação do pagamento. Atualize o status em alguns instantes.'}
+                  {order.delivery_blocked
+                    ? 'Entrega suspensa para revisão. Fale pelo contato do site com o número do pedido.'
+                    : order.paid
+                      ? 'Pagamento confirmado. Seu arquivo está disponível.'
+                      : ['refunded', 'canceled', 'failed', 'charged_back'].includes(order.status) ||
+                          order.status_detail === 'partially_refunded'
+                        ? 'Pagamento não concluído ou estornado.'
+                        : 'Aguardando confirmação do pagamento. Atualize o status em alguns instantes.'}
                 </p>
-                {order.paid && (
+                {order.paid && !order.delivery_blocked && (
                   <>
                     <p>
                       Baixe seu pacote em até 7 dias após iniciar a compra. Limite de 10 downloads.

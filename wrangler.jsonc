@@ -36,18 +36,27 @@
   "env": {
     "staging": {
       "name": "meusite-staging",
-      "r2_buckets": [{ "binding": "DIGITAL_PRODUCTS", "bucket_name": "meusite-digital-products-staging" }],
+      "workers_dev": true,
+      "routes": [],
+      "r2_buckets": [{ "binding": "DIGITAL_PRODUCTS", "bucket_name": "meusite-digital-products-staging", "remote": false }],
       "d1_databases": [{
         "binding": "DIAGNOSTICS_DB",
         "database_name": "renatajoin-controlled-mvp-staging",
         "database_id": "0c71a899-00ee-4ff3-874c-339a884ea49c",
-        "migrations_dir": "migrations"
+        "migrations_dir": "migrations",
+        "remote": false
+      }, {
+        "binding": "COMMERCE_DB",
+        "database_name": "meusite-commerce-staging",
+        "database_id": "REPLACE_WITH_STAGING_COMMERCE_D1_ID",
+        "migrations_dir": "migrations/commerce",
+        "remote": false
       }],
       "queues": {
         "producers": [{ "binding": "CONTROLLED_MVP_QUEUE", "queue": "renatajoin-controlled-mvp-staging" }],
         "consumers": [{ "queue": "renatajoin-controlled-mvp-staging", "max_batch_size": 1, "max_retries": 2 }]
       },
-      "vars": { "COMMERCE_MODE": "disabled", "OPENAI_MODEL": "gpt-5-mini", "STRATEGIC_CORE": "ON", "STRATEGIC_SIGNALS": "ON" }
+      "vars": { "COMMERCE_MODE": "disabled", "COMMERCE_ENVIRONMENT": "staging", "COMMERCE_ORIGIN": "https://replace-me.invalid", "OPENAI_MODEL": "gpt-5-mini", "STRATEGIC_CORE": "ON", "STRATEGIC_SIGNALS": "ON" }
     }
   }
 }

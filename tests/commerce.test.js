@@ -53,6 +53,7 @@ async function signed({
   dataId = mpId,
   timestamp = String(Date.now()),
   bodyId = dataId,
+  type = 'order',
   ...payload
 } = {}) {
   const requestId = 'request-test';
@@ -69,10 +70,10 @@ async function signed({
     new TextEncoder().encode(`id:${dataId.toLowerCase()};request-id:${requestId};ts:${timestamp};`),
   );
   const hex = Buffer.from(digest).toString('hex');
-  return request(`/webhook?data.id=${dataId}&type=order`, {
+  return request(`/webhook?data.id=${dataId}&type=${type}`, {
     method: 'POST',
     headers: { 'x-request-id': requestId, 'x-signature': `ts=${timestamp},v1=${hex}` },
-    payload: { type: 'order', data: { id: bodyId }, live_mode: false, ...payload },
+    payload: { type, data: { id: bodyId }, live_mode: false, ...payload },
   });
 }
 async function notify(remote = snapshot()) {
@@ -82,13 +83,20 @@ async function notify(remote = snapshot()) {
 beforeEach(() => {
   vi.stubGlobal('crypto', webcrypto);
   db = new DatabaseSync(':memory:');
-  db.exec(readFileSync(new URL('../migrations/0002_commerce.sql', import.meta.url), 'utf8'));
+  db.exec(readFileSync(new URL('../migrations/commerce/0001_orders.sql', import.meta.url), 'utf8'));
+  db.exec(
+    readFileSync(
+      new URL('../migrations/commerce/0002_delivery_safety.sql', import.meta.url),
+      'utf8',
+    ),
+  );
   env = {
+    COMMERCE_ENVIRONMENT: 'staging',
     COMMERCE_MODE: 'test',
     COMMERCE_ORIGIN: origin,
     MERCADOPAGO_ACCESS_TOKEN: 'TEST-fixture-only',
     MERCADOPAGO_WEBHOOK_SECRET: 'fixture-webhook-secret',
-    DIAGNOSTICS_DB: {
+    COMMERCE_DB: {
       prepare(sql) {
         const statement = db.prepare(sql);
         return {
@@ -118,7 +126,9 @@ afterEach(() => {
 
 describe('commerce integration with real SQLite persistence and mocked network', () => {
   it('migration is additive and repeatable; catalogue omits private keys and secrets', async () => {
-    db.exec(readFileSync(new URL('../migrations/0002_commerce.sql', import.meta.url), 'utf8'));
+    db.exec(
+      readFileSync(new URL('../migrations/commerce/0001_orders.sql', import.meta.url), 'utf8'),
+    );
     const response = await run('/catalog');
     const text = await response.text();
     expect(text).toContain('67.00');
@@ -348,5 +358,146 @@ describe('commerce integration with real SQLite persistence and mocked network',
     expect(response.status).toBe(503);
     expect(await response.text()).not.toContain('TEST-sensitive');
     expect(env.DIGITAL_PRODUCTS.get).not.toHaveBeenCalled();
+  });
+});
+
+describe('durable delivery safety for fraud, chargebacks and refunds', () => {
+  const paymentId = '58980959081';
+  const linked = () =>
+    snapshot({
+      transactions: { payments: [{ id: 'PAY01EXAMPLE123', reference: { id: paymentId } }] },
+    });
+  const risk = (type, dataId = paymentId, overrides = {}) => signed({ type, dataId, ...overrides });
+
+  it.each(['stop_delivery_op_wh', 'topic_chargebacks_wh', 'chargebacks'])(
+    'persists and acknowledges %s without any provider or money call',
+    async (type) => {
+      await checkout();
+      await notify(linked());
+      provider.mockClear();
+      const event = await risk(type);
+      expect((await handleCommerce(event, env)).status).toBe(200);
+      expect(provider).not.toHaveBeenCalled();
+      expect((await handleCommerce(await risk(type), env)).status).toBe(200);
+      expect(db.prepare('SELECT count(*) AS n FROM commerce_risk_events').get().n).toBe(1);
+      const state = await (await run(`/orders/${id}`)).json();
+      expect(state.delivery_blocked).toBe(true);
+      expect(state.paid).toBe(false);
+      expect((await run(`/orders/${id}/download`)).status).toBe(403);
+      expect(env.DIGITAL_PRODUCTS.get).not.toHaveBeenCalled();
+      expect(provider).not.toHaveBeenCalled();
+    },
+  );
+  it('does not trust a body reference or allow a forged/live risk event to suspend delivery', async () => {
+    await checkout();
+    await notify(linked());
+    provider.mockClear();
+    const forged = await risk('stop_delivery_op_wh');
+    forged.headers.set('x-signature', 'invalid');
+    expect((await handleCommerce(forged, env)).status).toBe(401);
+    expect(
+      (await handleCommerce(await risk('stop_delivery_op_wh', paymentId, { live_mode: true }), env))
+        .status,
+    ).toBe(400);
+    expect(
+      (await handleCommerce(await risk('stop_delivery_op_wh', paymentId, { bodyId: 'other' }), env))
+        .status,
+    ).toBe(400);
+    expect((await (await run(`/orders/${id}`)).json()).delivery_blocked).toBe(false);
+    expect(db.prepare('SELECT count(*) AS n FROM commerce_risk_events').get().n).toBe(0);
+    expect(provider).not.toHaveBeenCalled();
+  });
+  it('accepts the documented legacy fraud payment_id only when it matches the signed ID', async () => {
+    const event = await risk('stop_delivery_op_wh', paymentId, {
+      data: { payment_id: Number(paymentId), external_reference: 'untrusted' },
+    });
+    expect((await handleCommerce(event, env)).status).toBe(200);
+    expect(db.prepare('SELECT resource_id,task FROM commerce_risk_events').get()).toMatchObject({
+      resource_id: paymentId,
+      task: 'refund_review',
+    });
+    expect(
+      (
+        await handleCommerce(
+          await risk('stop_delivery_op_wh', paymentId, { data: { payment_id: 'other' } }),
+          env,
+        )
+      ).status,
+    ).toBe(400);
+  });
+  it('keeps unknown risk durable and globally blocks downloads until a provider-verified association', async () => {
+    await checkout();
+    await notify();
+    const otherId = '32a6f0a0-2759-4ca1-a1be-c808c34921d2';
+    db.prepare(
+      `INSERT INTO commerce_orders (id,token_hash,product_id,product_title,amount_cents,currency,asset_key,filename,created_at,access_expires)
+      SELECT ?,token_hash,product_id,product_title,amount_cents,currency,asset_key,filename,created_at,access_expires FROM commerce_orders WHERE id=?`,
+    ).run(otherId, id);
+    expect(
+      (
+        await handleCommerce(
+          await risk('stop_delivery_op_wh', paymentId, { external_reference: otherId }),
+          env,
+        )
+      ).status,
+    ).toBe(200);
+    expect((await (await run(`/orders/${otherId}`)).json()).delivery_blocked).toBe(true);
+    expect((await (await run(`/orders/${id}`)).json()).delivery_blocked).toBe(true);
+    await notify(linked());
+    expect((await (await run(`/orders/${otherId}`)).json()).delivery_blocked).toBe(false);
+    expect((await (await run(`/orders/${id}`)).json()).delivery_blocked).toBe(true);
+    // Approved/newer notifications cannot release the linked safety block.
+    await notify(linked());
+    expect((await run(`/orders/${id}/download`)).status).toBe(403);
+  });
+  it('maps chargeback case IDs from verified Orders transactions, without trusting coverage', async () => {
+    await checkout();
+    await handleCommerce(await risk('topic_chargebacks_wh', '123456789'), env);
+    await notify(
+      snapshot({
+        transactions: {
+          chargebacks: [{ id: 'CBK123', case_id: '123456789', coverage_applied: true }],
+        },
+      }),
+    );
+    expect((await (await run(`/orders/${id}`)).json()).delivery_blocked).toBe(true);
+    expect(
+      db.prepare('SELECT reason FROM commerce_delivery_holds WHERE order_id=?').get(id).reason,
+    ).toBe('chargeback');
+    expect((await run(`/orders/${id}/download`)).status).toBe(403);
+  });
+  it.each([
+    { status: 'refunded', status_detail: 'refunded', total_paid_amount: '0.00' },
+    { status: 'processed', status_detail: 'partially_refunded' },
+    { transactions: { refunds: [{ id: 'REF123' }] } },
+    { transactions: { payments: [{ status: 'refunded' }] } },
+    { transactions: { payments: [{ status: 'charged_back' }] } },
+  ])(
+    'persists a safety hold for refund/chargeback even after a later approved snapshot: %j',
+    async (adverse) => {
+      await checkout();
+      await notify(snapshot(adverse));
+      await notify(snapshot({ last_updated_date: new Date().toISOString() }));
+      expect((await (await run(`/orders/${id}`)).json()).delivery_blocked).toBe(true);
+      expect((await run(`/orders/${id}/download`)).status).toBe(403);
+      expect(env.DIGITAL_PRODUCTS.get).not.toHaveBeenCalled();
+    },
+  );
+  it('rechecks safety atomically if a fraud alert arrives during download preparation', async () => {
+    await checkout();
+    await notify(linked());
+    env.DIGITAL_PRODUCTS.get.mockImplementation(async () => {
+      expect((await handleCommerce(await risk('stop_delivery_op_wh'), env)).status).toBe(200);
+      return { body: 'zip-test' };
+    });
+    expect((await run(`/orders/${id}/download`)).status).toBe(403);
+    expect(db.prepare('SELECT downloads FROM commerce_orders WHERE id=?').get(id).downloads).toBe(
+      0,
+    );
+  });
+  it('does not acknowledge a non-retryable fraud alert if durable persistence fails', async () => {
+    db.exec('DROP TABLE commerce_risk_events');
+    expect((await handleCommerce(await risk('stop_delivery_op_wh'), env)).status).toBe(503);
+    expect(provider).not.toHaveBeenCalled();
   });
 });
