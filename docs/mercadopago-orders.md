@@ -137,3 +137,10 @@ Após o ajuste final de metadados, os 31 testes de loja/checkout e o build foram
 reexecutados com sucesso. A inspeção visual pelo navegador integrado não pôde ser
 concluída por falha de inicialização da ferramenta; a interface foi verificada pelos
 testes React, SSR e build, sem alegação de homologação visual.
+
+## Auditoria de continuação
+
+Consulte [a auditoria prévia](mercadopago-auditoria.md) para a comparação atual com
+main, os riscos encontrados, o teste offline isolado e as configurações manuais.
+A revisão esclarece que o bloqueio de contestação depende do estado retornado pela
+Orders API; tópicos separados de fraude/chargeback ainda não são tratados.
