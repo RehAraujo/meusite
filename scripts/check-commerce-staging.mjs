@@ -33,8 +33,15 @@ try {
 } catch {
   issues.push('Informar uma origem HTTPS válida para staging.');
 }
-if (stage.name !== 'meusite-staging' || stage.routes?.length !== 0)
-  issues.push('Manter o Worker staging sem rotas do site público.');
+const expectedHostname = 'homologacao.renatajoin.com';
+const safeRoutes =
+  Array.isArray(stage.routes) &&
+  stage.routes.length <= 1 &&
+  stage.routes.every((route) => route.pattern === expectedHostname && route.custom_domain === true);
+if (stage.name !== 'meusite-loja-staging' || !safeRoutes)
+  issues.push(
+    'Permitir somente o Worker isolado e o domínio exato de homologação, sem rotas do site público.',
+  );
 if (
   !stage.r2_buckets?.some(
     (b) =>

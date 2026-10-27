@@ -1,149 +1,182 @@
-# Homologação Mercado Pago Orders — preparação e pendências
+# Homologação da loja Renata Join
 
-Atualizado em 26/10/2026. Somente staging e credenciais de teste. Nenhum recurso
-remoto foi criado ou alterado e nenhuma chamada de pagamento foi executada.
+Atualizado em **27/10/2026**. Ambiente publicado e verificado:
+**https://homologacao.renatajoin.com**.
 
-## Decisões e dados que dependem da responsável pelo site
+O provisionamento, as migrações e a publicação de staging foram autorizados pela
+responsável pelo site. A autorização **não inclui chamadas ao Mercado Pago,
+cobranças, publicação em produção, push ou merge na main**.
 
-1. **Autorizar separadamente** criação dos recursos de staging, cadastro dos segredos,
-   migrações no D1 exclusivo da loja e deploy do Worker `meusite-staging`. Push e merge
-   na main continuam fora da autorização atual.
-2. Confirmar a origem HTTPS exclusiva de homologação. Pode ser a URL workers.dev
-   atribuída ao Worker de staging ou subdomínio próprio, sem alterar o domínio público.
-3. Fornecer por canal seguro credencial de teste da aplicação Mercado Pago e assinatura
-   do webhook. Nunca enviar os valores em chat. A trava aceita somente `TEST-…`;
-   credenciais ambíguas não serão usadas nem testadas.
-4. Disponibilizar os dois pacotes ZIP de teste (alimentar e treino). Incluir instruções
-   de duplicação Notion e PDFs de teste; não utilizar materiais de clientes reais.
-5. Definir quem acompanha fraude, solicita reembolsos/cancelamentos e apresenta
-   documentação de contestação. A aplicação registra a pendência e suspende a entrega;
-   **não executa movimentações financeiras automaticamente** nem envia mensagens.
-6. Após configuração e deploy autorizados, autorizar expressamente chamadas externas
-   de teste e a compra ponta a ponta com conta e meios de pagamento de teste.
+## Recursos concluídos
 
-## Cloudflare — checklist manual, sem executar agora
+| Recurso                      | Nome / identificação                               | Estado                                    |
+| ---------------------------- | -------------------------------------------------- | ----------------------------------------- |
+| Worker isolado               | `meusite-loja-staging`                             | Publicado; checkout desativado            |
+| URL principal de homologação | `https://homologacao.renatajoin.com`               | HTTPS validado                            |
+| URL alternativa              | `https://meusite-loja-staging.reh0303.workers.dev` | Configurada no Worker                     |
+| D1 exclusivo da loja         | `meusite-commerce-staging`                         | Criado; migrações aplicadas               |
+| ID do D1                     | `799f4cf2-8970-4716-990f-36445c166ab3`             | Vinculado como `COMMERCE_DB`              |
+| R2 privado                   | `meusite-digital-products-staging`                 | Criado; vinculado como `DIGITAL_PRODUCTS` |
+| Credenciais Mercado Pago     | Nenhuma no novo Worker                             | Cadastro manual pendente                  |
+| Modo de pagamento            | `COMMERCE_MODE=disabled`                           | Nenhuma chamada ao provedor permitida     |
 
-- Criar/verificar D1 **`meusite-commerce-staging`**, exclusivo da loja. Copiar seu ID
-  para `env.staging.d1_databases` no binding **`COMMERCE_DB`**, substituindo
-  `REPLACE_WITH_STAGING_COMMERCE_D1_ID`. Não usar o ID do banco de produção nem o
-  banco de diagnósticos. O diagnóstico permanece com `DIAGNOSTICS_DB` de staging.
-- Criar/verificar R2 **`meusite-digital-products-staging`** e o binding
-  **`DIGITAL_PRODUCTS`**. Manter r2.dev e domínios públicos desativados. Carregar:
-  - `products/planner-alimentar/v1.zip`
-  - `products/planner-treino/v1.zip`
-- Configurar **somente no ambiente staging** os segredos
-  `MERCADOPAGO_ACCESS_TOKEN` de teste e `MERCADOPAGO_WEBHOOK_SECRET`.
-- Substituir `COMMERCE_ORIGIN=https://replace-me.invalid` pela origem HTTPS exata,
-  sem barra final; manter `COMMERCE_ENVIRONMENT=staging`.
-- Executar o verificador local `npm run check:commerce:staging`. Ele não consulta a
-  conta nem lê segredos; rejeita origem pendente/pública e IDs de produção.
-- Após autorização específica, aplicar no **COMMERCE_DB de staging** somente
-  `migrations/commerce/0001_orders.sql` e `0002_delivery_safety.sql`. O diretório
-  dedicado é configurado no binding. Não usar as migrações da raiz para provisionar
-  a loja; os arquivos antigos permanecem preservados para histórico.
-- Revisar observabilidade para não capturar Authorization, assinatura, tokens ou
-  corpos; definir acompanhamento de `commerce_risk_events` e
-  `commerce_delivery_holds` por acesso administrativo ao D1.
-- Proteger o acesso humano ao staging, mantendo a rota de webhook acessível ao
-  Mercado Pago sem CAPTCHA ou login. O Worker tem `routes: []`; não associar o
-  domínio público. Para desenvolvimento local, os bindings estão com `remote:false`.
-- Somente depois de autorizado: deploy do ambiente staging e ativação
-  `COMMERCE_MODE=test` nele. A configuração de produção permanece disabled e sem
-  bindings de loja. Não executar `wrangler deploy` sem selecionar staging.
+Versão publicada e validada: `167cfa99-250e-4dcb-81fc-7f313c63146b`.
+As URLs temporárias por versão estão desativadas. O domínio principal do site não
+foi associado ao novo Worker.
 
-## Mercado Pago — checklist manual
+O nome anteriormente previsto `meusite-staging` já pertence ao staging dos
+diagnósticos. Por isso, foi preservado e a loja recebeu um Worker próprio.
+A versão de produção `meusite` e a versão do staging de diagnósticos foram
+comparadas antes/depois e **permaneceram inalteradas**.
 
-- Confirmar aplicação Checkout Pro via Orders, vendedor de teste e comprador de
-  teste distintos, conforme o painel da aplicação. Utilizar meios de teste oficiais.
-- No painel de Webhooks, selecionar **Teste** e cadastrar
-  `https://ORIGEM-DE-STAGING/api/commerce/webhook`.
-- Ativar **Order (Mercado Pago)**, **Contestações** e **Alertas de fraude**.
-  O handler reconhece `order`, `stop_delivery_op_wh`, `topic_chargebacks_wh` e
-  `chargebacks`. Confirmar durante a simulação os tipos e IDs emitidos pela aplicação.
-- Cadastrar a assinatura correspondente no segredo do Worker de staging por canal
-  seguro. Não reutilizar automaticamente credenciais ou segredos de produção.
-- Configurar acompanhamento manual das notificações e das tarefas de fraude:
-  esses alertas podem não ser reenviados se o primeiro recebimento falhar.
-- Validar reenvio de webhook com mais de 15 minutos: a assinatura deve usar timestamp
-  renovado para a janela de ±5 minutos. Se não renovar, interromper a homologação
-  e revisar o controle de replay antes de flexibilizar a validação.
+## Banco e pacotes fictícios
 
-## Roteiro da primeira compra ponta a ponta em homologação
+Somente o D1 acima recebeu as migrações dedicadas:
 
-1. Concluir os checklists acima, confirmar aprovação para chamadas externas de teste
-   e registrar a origem, produto e conta compradora de teste, sem guardar segredos.
-2. Abrir `/checkout?produto=planner-treino` no staging; confirmar o preço do catálogo.
-3. Iniciar o checkout, concluir com meio de pagamento de teste e retornar à mesma aba.
-4. Confirmar recebimento autenticado do webhook e estado aprovado no D1; baixar o
-   pacote e conferir que contém somente o produto de teste esperado.
-5. Repetir a tentativa de criação para verificar idempotência e testar acesso sem
-   token, token de outro pedido, limite e expiração dos downloads.
-6. Testar pagamento pendente e recusado, reenvio e repetição de webhook.
-7. Após autorização específica para cada operação financeira de teste, validar
-   reembolso parcial/total e confirmar que o download permanece bloqueado.
-8. Simular alerta de fraude e contestação pelo painel. Confirmar persistência,
-   suspensão, associação ao pedido e tarefa administrativa; não reenviar eventos
-   sintéticos ao webhook de produção. Não há reembolso automático pela aplicação.
-9. Registrar resultados sem dados sensíveis. Se os eventos não estiverem disponíveis
-   no sandbox, registrar essa limitação e combinar validação com o suporte do provedor,
-   sem substituir credenciais de teste por credenciais de produção.
+- `migrations/commerce/0001_orders.sql`
+- `migrations/commerce/0002_delivery_safety.sql`
 
-## Política de segurança implementada
+O schema remoto foi conferido, as duas migrações estão registradas e o banco não
+contém pedidos. Nenhuma migração foi executada nos bancos de produção ou diagnóstico.
 
-O webhook valida assinatura e ambiente. Eventos `order` consultam a Orders API com
-credencial de teste; associam IDs de order, transação, pagamento e caso somente a
-partir dessa resposta verificada. Nenhuma referência do body de um evento de risco
-é usada para selecionar um cliente ou liberar produto.
+Foram gerados e enviados dois ZIPs fictícios:
 
-Alertas separados são persistidos **antes** do HTTP 200, sem depender de consultas
-externas. Fraude gera `refund_review`; contestação gera `dispute_review`.
-Repetições são idempotentes por tópico e recurso. IDs que ainda não puderam ser
-associados suspendem todos os downloads da loja até associação confirmada pela
-Orders API; depois o bloqueio fica restrito aos pedidos associados. Essa política
-privilegia proteção da entrega e pode interromper temporariamente outras compras.
+| Produto de teste  | Chave privada no R2                 | Tamanho   |
+| ----------------- | ----------------------------------- | --------- |
+| Planner alimentar | `products/planner-alimentar/v1.zip` | 635 bytes |
+| Planner de treino | `products/planner-treino/v1.zip`    | 632 bytes |
 
-Reembolso parcial/total, contestação ou evidência de reembolso nas transações geram
-hold persistente. Uma atualização posterior `processed/accredited`, mesmo com data
-mais nova ou cobertura favorável ao vendedor, **não libera** uma entrega suspensa.
-Não há endpoint público para remover holds ou apagar riscos. Qualquer recuperação
-exige revisão administrativa, comprovação na aplicação Mercado Pago e autorização;
-não editar as tabelas para desbloquear durante a primeira compra de teste.
+Cada ZIP contém `LEIA-ME.txt` e `conteudo-ficticio.txt`, sem dados pessoais,
+credenciais, produtos comerciais ou links Notion reais. Os arquivos foram lidos de
+volta do R2 e comparados por SHA-256; ambos passaram também a verificação de
+integridade ZIP. `r2.dev` está desabilitado e o bucket não possui domínio público.
 
-A reserva de download reavalia os bloqueios atomicamente no D1, incluindo alertas
-que chegam entre a consulta ao provedor e a leitura do R2. Arquivos já entregues e
-links Notion recebidos anteriormente não podem ser revogados.
+Arquivos locais: `output/commerce-fixtures/`. Regeneração determinística:
+`npm run fixtures:commerce`. Os ZIPs não são copiados para os assets públicos.
 
-## Evidências locais e integração das branches
+## Isolamento e validação realizados
 
-Os três commits exclusivos da main (`ecf0d8e`, `1312335`, `2cc0b90`) foram incorporados
-na branch de trabalho pelo merge local `d7e8e32`. A branch main não foi alterada.
-Os arquivos do case TED TEC, home, componentes e imagens são idênticos à main;
-rotas, pré-renderização e testes incluem tanto o case como os diagnósticos/checkout.
-O diff de CSS sobre main acrescenta somente estilos dos diagnósticos.
+Os únicos bindings do novo Worker são:
 
-A comparação visual local usou Chrome em 1440×1000 e 390×844, movimentos reduzidos
-e requisições externas bloqueadas em ambas as versões. Foram examinadas dez
-capturas da home, TED TEC e checkout, sem overflow horizontal, imagens quebradas ou
-erros JavaScript. Home desktop/mobile e TED TEC mobile tiveram capturas idênticas
-à main. TED TEC desktop manteve dimensões e apresentação; houve diferença de
-pintura em 0,43% dos pixels, examinada visualmente sem mudança de layout. Fontes
-externas bloqueadas e execução local não equivalem a avaliação em todos os aparelhos.
+- `COMMERCE_DB`: o D1 exclusivo de staging.
+- `DIGITAL_PRODUCTS`: o bucket privado exclusivo de staging.
+- `ASSETS`: os arquivos estáticos desta publicação.
+- `COMMERCE_ENVIRONMENT=staging`, `COMMERCE_MODE=disabled` e a origem HTTPS de staging.
 
-Capturas e métricas locais: `output/commerce-homologacao/` (não versionadas).
-O ambiente isolado usa bancos SQLite separados em memória, R2 simulado, Web Crypto
-real e provider simulado, sem carregar .env/.dev.vars nem credenciais de produção.
-Ele testa o Worker real e confirma que a loja não acessa o banco de diagnósticos.
+Não existem bindings de bancos de produção, diagnósticos, filas, IA ou segredos
+herdados. O entry point `worker/commerce/staging.js` importa somente a loja.
+A configuração de produção permaneceu semanticamente idêntica à anterior, coberta
+por teste automatizado. Não houve alteração na branch main, push ou deploy de produção.
 
-Validação final: **47 testes isolados e 387 testes totais aprovados**, lint/estilos
-e build React/Vite/SSR aprovados; verificação de formatação e whitespace sem erros.
-Nenhuma credencial de produção foi usada.
+Verificações HTTPS na origem de homologação:
 
-Comandos locais: `npm run test:commerce:isolated`, `npm test`, `npm run lint`,
-`npm run build`. O preflight de staging ainda retorna **pendente** para ID D1 e
-origem HTTPS; isso é intencional e impede tratá-lo como pronto para publicação.
+| Caminho                             | Resultado                                          |
+| ----------------------------------- | -------------------------------------------------- |
+| `/`                                 | 200, CSP e proteção contra frames preservadas      |
+| `/checkout/?produto=planner-treino` | 200                                                |
+| `/clientes/ted-tec/`                | 200                                                |
+| `/api/commerce/catalog`             | 200; os dois produtos indisponíveis para pagamento |
+| `POST /api/commerce/checkout`       | 503; bloqueado antes de acessar o provedor         |
+| `/api/diagnostics/orders`           | 404                                                |
+| `/wrangler.jsonc`                   | 404                                                |
+| `/assets/.DS_Store`                 | 404                                                |
 
-Referências oficiais:
+Todas as respostas verificadas possuem `noindex`. Os assets do staging também usam
+`private, no-store` e `no-referrer`. A preparação da publicação copia as exclusões
+existentes de `.assetsignore` para o build, impedindo servir metadados e arquivos
+internos. Evidências sem segredos: `output/commerce-staging-status/`.
 
-- [Webhooks e fraude](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro-orders/optional-notifications?scope=prod)
-- [Notificações de contestação](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro-orders/chargebacks/notifications)
-- [Gestão das contestações](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro-orders/chargebacks/manage)
+Validação local: **393 testes totais e 53 testes isolados aprovados**, lint e build
+aprovados. Não houve chamada à API do Mercado Pago nem cobrança. O POST acima foi
+feito exclusivamente contra o Worker próprio, com o modo desativado e sem
+credenciais do provedor; não criou pedido ou iniciou pagamento.
+
+## O que falta: credenciais de teste por canal seguro
+
+1. No painel Mercado Pago Developers, selecione a aplicação integrada com
+   **Checkout Pro via Orders** e consulte as credenciais do ambiente **Teste**.
+   Confirme a aplicação e a conta de teste; não use a credencial existente no Worker
+   de produção. A implementação aceita somente credencial explicitamente de teste
+   com prefixo `TEST-`; credenciais ambíguas permanecem bloqueadas.
+2. Abra o painel Cloudflare da conta do projeto e selecione exatamente
+   **Workers & Pages → meusite-loja-staging → Settings → Variables and Secrets**.
+3. Adicione **`MERCADOPAGO_ACCESS_TOKEN`** com o tipo **Secret**, inserindo o valor de
+   teste diretamente no painel seguro. Não envie o valor no chat, GitHub, código,
+   arquivo versionado, print ou comando de terminal com o valor literal.
+4. Após configurar o webhook abaixo, adicione também **`MERCADOPAGO_WEBHOOK_SECRET`**
+   como **Secret**, usando a assinatura da mesma aplicação e configuração de teste.
+5. Mantenha **`COMMERCE_MODE=disabled`**. O cadastro dos segredos não é autorização
+   para ativar pagamentos. Não altere os Workers `meusite` ou `meusite-staging`.
+
+Não é necessário compartilhar comigo os valores dos segredos. Avise apenas quando
+os dois nomes estiverem cadastrados no Worker correto e você tiver confirmado o
+ambiente de teste no painel Mercado Pago.
+
+## O que falta: webhook Mercado Pago
+
+Na aplicação correta, em **Configuração de Webhooks**:
+
+1. Selecione **Teste**, nunca Produção.
+2. Informe a URL **https://homologacao.renatajoin.com/api/commerce/webhook**.
+3. Selecione **Order (Mercado Pago)**, **Contestações** e **Alertas de fraude**.
+4. Salve e copie a assinatura secreta diretamente para o segredo do Worker indicado
+   acima. Não publique ou compartilhe seu valor em mensagens.
+5. Não inicie compra, simulação pelo provedor ou reembolso nesta etapa. Enquanto o
+   modo estiver disabled, o webhook retorna 503 intencionalmente. A validação ao
+   vivo será realizada após autorização explícita para as chamadas de teste.
+
+A página de homologação usa `noindex`, mas isso não equivale a controle de acesso.
+Se for configurado Cloudflare Access, não bloquear o webhook do provedor com login
+ou CAPTCHA. Não criar exceções globais para o domínio principal do site.
+
+## Autorização necessária para o teste ponta a ponta
+
+Depois de cadastrar os dois segredos, será necessário autorizar expressamente:
+
+- ativar `COMMERCE_MODE=test` **somente neste Worker**;
+- realizar chamadas externas à API Orders com credencial exclusivamente de teste;
+- concluir a compra com conta compradora e meio de pagamento de teste oficiais;
+- validar webhook, retorno na mesma aba, estado persistido e download do ZIP fictício.
+
+Nenhuma cobrança real será executada. Reembolsos/cancelamentos de teste precisam de
+escopo explícito antes de suas chamadas financeiras; não são consequência automática
+da autorização para criar uma order.
+
+O roteiro posterior inclui pagamento pendente/recusado, idempotência, reenvio de
+webhook, assinatura inválida, acesso sem token e bloqueio após estorno/contestação.
+Validar também se os reenvios do Mercado Pago renovam o timestamp: há uma janela de
+±5 minutos para a assinatura. Se não renovar, interromper a homologação para revisar
+controle de replay, sem relaxar silenciosamente a proteção.
+
+## Revisão manual de riscos
+
+A responsável inicial é a própria usuária, conforme definido nesta conversa.
+Fraude gera tarefa persistente `refund_review`; contestação gera `dispute_review`.
+O recebimento válido é persistido antes da confirmação ao provedor; não há chamadas
+automáticas de reembolso, cancelamento, envio de documentação ou mensagens.
+
+Eventos ainda não associados suspendem downloads até vínculo confirmado pela Orders
+API. Reembolsos e chargebacks geram bloqueio persistente: atualizações aprovadas
+posteriores não reabrem a entrega. Uma revisão administrativa será necessária para
+qualquer recuperação; não apagar riscos ou desbloquear pedidos durante o teste inicial.
+Arquivos já baixados ou links Notion já recebidos não podem ser revogados.
+
+## Publicações futuras exclusivamente de staging
+
+Preparar e verificar localmente, sem segredos:
+
+```sh
+npm run build
+npm run prepare:commerce:staging
+npm run check:commerce:staging
+npm run test:commerce:isolated
+```
+
+Uma nova publicação remota continua restrita ao ambiente staging autorizado;
+nunca executar deploy sem selecionar o ambiente correto. O Worker de produção
+não participa da homologação e suas credenciais não devem ser copiadas.
+
+Referências oficiais consultadas:
+
+- [Configurar notificações Orders](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro-orders/notifications)
+- [Segredos no Cloudflare Workers](https://developers.cloudflare.com/workers/configuration/secrets/)

@@ -19,15 +19,15 @@ it('exercises the Worker offline with disposable storage and synthetic credentia
   assert.equal(config.vars.COMMERCE_MODE, 'disabled');
   assert.equal(config.env.staging.vars.COMMERCE_MODE, 'disabled');
   const productionDb = config.d1_databases.find((db) => db.binding === 'DIAGNOSTICS_DB');
-  const stagingDb = config.env.staging.d1_databases.find((db) => db.binding === 'DIAGNOSTICS_DB');
-  assert.notEqual(productionDb.database_id, stagingDb.database_id);
   const commerceDb = config.env.staging.d1_databases.find((db) => db.binding === 'COMMERCE_DB');
   assert.notEqual(commerceDb.database_id, productionDb.database_id);
-  assert.notEqual(commerceDb.database_id, stagingDb.database_id);
   assert.equal(commerceDb.migrations_dir, 'migrations/commerce');
   assert.equal(commerceDb.remote, false);
-  assert.deepEqual(config.env.staging.routes, []);
-  assert.notEqual(productionDb.database_name, stagingDb.database_name);
+  assert.ok(
+    config.env.staging.routes.every(
+      (route) => route.pattern === 'homologacao.renatajoin.com' && route.custom_domain === true,
+    ),
+  );
   assert.equal(
     config.env.staging.r2_buckets.find((b) => b.binding === 'DIGITAL_PRODUCTS').bucket_name,
     'meusite-digital-products-staging',
