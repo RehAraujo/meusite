@@ -1,6 +1,7 @@
 import { createRoutesFromElements, Route } from 'react-router-dom';
 import { SiteLayout } from '../components/layout/SiteLayout';
 import AboutPage from '../pages/AboutPage';
+import AteliePage from '../pages/AteliePage';
 import BusinessPage from '../pages/BusinessPage';
 import CareerPage from '../pages/CareerPage';
 import ContentPage from '../pages/ContentPage';
@@ -29,6 +30,7 @@ export const routes = createRoutesFromElements(
     <Route path="career" element={<CareerPage />} />
     <Route path="curriculo" element={<ResumePage />} />
     <Route path="midia-kit" element={<MediaKitPage />} />
+    <Route path="atelie" element={<AteliePage />} />
     <Route path="embaixadora" element={<MediaKitPage />} />
     <Route path="guia-alimentar" element={<ProductPage type="guide" />} />
     <Route path="planner-treino" element={<ProductPage type="training" />} />

@@ -16,6 +16,7 @@ const routes = [
   '/curriculo',
   '/midia-kit',
   '/embaixadora',
+  '/atelie',
   '/processo',
   '/guia-alimentar',
   '/planner-treino',
@@ -28,8 +29,8 @@ const routes = [
 
 const metadata = {
   '/': [
-    'Renata Join — Soluções Digitais, Estratégia e Tecnologia',
-    'Transformo problemas complexos em soluções digitais bem estruturadas. Tecnologia, negócio, processos e experiência do usuário, com Design como diferencial.',
+    'Renata Join — Pensamento & Execução | Estratégia, Design e Tecnologia',
+    'Uno estratégia, design e tecnologia para ajudar negócios a fortalecer seu posicionamento, comunicar melhor suas ofertas e organizar seus processos.',
   ],
   '/sobre': [
     'Sobre | Renata Join',
@@ -107,6 +108,7 @@ const metadata = {
     'Acessibilidade | Renata Join',
     'Compromisso contínuo com uma experiência digital mais acessível.',
   ],
+  '/atelie': ['Ateliê | Renata Join', 'Entre o que crio, o que vejo e o que me inspira.'],
   '/404': ['Página não encontrada | Renata Join', 'Esta página não foi encontrada.'],
 };
 
@@ -117,7 +119,7 @@ const createHead = (route) => {
   const [title, description] = metadata[route];
   const canonicalRoute = route === '/career' || route === '/curriculo' ? '/carreira' : route;
   const canonical = `https://renatajoin.com${canonicalRoute === '/' ? '/' : canonicalRoute}`;
-  const noindex = route === '/404';
+  const noindex = route === '/404' || route === '/atelie';
   return `
     <title>${title}</title>
     <meta name="description" content="${escapeAttribute(description)}" />

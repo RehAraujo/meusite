@@ -13,11 +13,13 @@ export const site = {
 
 export const navigation = [
   { label: 'Sobre', to: '/sobre' },
-  { label: 'Como posso ajudar', to: '/servicos' },
-  { label: 'Construções', to: '/clientes' },
-  { label: 'Pensamentos', to: '/pensamentos' },
-  { label: 'Parcerias', to: '/midia-kit' },
-  { label: 'Contato', to: '/#contato' },
+  { label: 'Soluções', to: '/servicos' },
+  { label: 'Projetos', to: '/clientes' },
+  { label: 'Shopping', to: '/#shopping' },
+  { label: 'Comunidade', to: '/#comunidade' },
+  { label: 'Creator', to: '/midia-kit' },
+  { label: 'Ateliê', to: '/atelie/' },
+  { label: 'Contato', to: '/#contato', emphasis: true },
 ];
 
 export const principles = [
@@ -41,22 +43,6 @@ export const principles = [
   {
     title: 'Preservar propósito',
     description: 'Excelência é construir bem sem perder a razão pela qual começamos.',
-  },
-];
-
-// PENDENTE DE APROVAÇÃO: números e textos vindos do rascunho do Figma
-// (frame 9212:11410) — confirmar valores reais antes do merge para main.
-export const heroIndicators = [
-  { value: '+10', label: 'anos criando' },
-  { value: '+100', label: 'projetos' },
-  {
-    title: 'Resultados',
-    description: 'Organização, comunicação e estética no design e nos processos.',
-  },
-  {
-    title: 'Propósito',
-    description:
-      'Ajudar as pessoas a se entenderem, se comunicarem e alavancarem seus objetivos.',
   },
 ];
 
@@ -106,9 +92,32 @@ export const processSteps = [
   ['Evolução', 'Documento, ajusto e preparo a solução para continuar sendo utilizável.'],
 ];
 
-export const footerLinks = [
-  ...navigation.slice(0, 6),
-  { label: 'Carreira', to: '/carreira' },
-  { label: 'Privacidade', to: '/privacidade' },
-  { label: 'Acessibilidade', to: '/acessibilidade' },
+export const footerGroups = [
+  {
+    label: 'Navegação',
+    links: [
+      { label: 'Sobre', to: '/sobre' },
+      { label: 'Soluções', to: '/servicos' },
+      { label: 'Projetos', to: '/clientes' },
+      { label: 'Pensamentos', to: '/pensamentos' },
+      { label: 'Contato', to: '/#contato' },
+    ],
+  },
+  {
+    label: 'Ecossistema',
+    links: [
+      { label: 'Creator', to: '/midia-kit' },
+      { label: 'Comunidade', to: '/#comunidade' },
+      { label: 'Shopping', to: '/#shopping' },
+      { label: 'Carreira', to: '/carreira' },
+    ],
+  },
+  {
+    label: 'Institucional',
+    links: [
+      { label: 'Privacidade', to: '/privacidade' },
+      { label: 'Termos', to: '/termos' },
+      { label: 'Acessibilidade', to: '/acessibilidade' },
+    ],
+  },
 ];

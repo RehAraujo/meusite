@@ -2,7 +2,9 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
+import { Header } from '../src/components/layout/Header';
 import ProjectsPage from '../src/pages/ProjectsPage';
+import HomePage from '../src/pages/HomePage';
 import TedTecCasePage from '../src/pages/TedTecCasePage';
 import ToolsPage from '../src/pages/ToolsPage';
 
@@ -90,6 +92,83 @@ describe('interações críticas', () => {
         0,
       );
     });
+  });
+
+  it('mantém a home inteiramente legível com movimento reduzido', async () => {
+    vi.spyOn(window, 'matchMedia').mockImplementation((query) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      addEventListener() {},
+      removeEventListener() {},
+    }));
+    const { container } = render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    );
+    await waitFor(() => {
+      expect(container.querySelectorAll('[data-rj-reveal]:not([data-rj-in])')).toHaveLength(0);
+    });
+    expect(container.querySelector('[data-rj-motion]')).toBeNull();
+  });
+
+  it('apresenta o Join Premium como informação, sem assinatura', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    );
+    const premium = screen.getByRole('button', { name: /conhecer o join premium/i });
+    const panel = container.querySelector('#join-premium');
+    expect(panel).not.toBeVisible();
+    await user.click(premium);
+    expect(premium).toHaveAttribute('aria-expanded', 'true');
+    expect(panel).toBeVisible();
+    expect(panel).toHaveTextContent(/ainda não há assinatura disponível/i);
+    await user.click(premium);
+    expect(premium).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('vira os cards de projeto por toque/teclado e volta com Esc', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    );
+    const [toggle] = screen.getAllByRole('button', { name: /sobre o projeto/i });
+    const back = screen.getByRole('region', { name: /ted tec: detalhes do projeto/i });
+    const cta = screen.getByRole('link', { name: /conhecer o case/i });
+    expect(back).toHaveTextContent(/contexto/i);
+    expect(back).toHaveTextContent(/solução/i);
+    expect(cta).toHaveAttribute('tabindex', '-1');
+    toggle.focus();
+    await user.keyboard('{Enter}');
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(back).toHaveFocus();
+    expect(cta).toHaveAttribute('tabindex', '0');
+    await user.keyboard('{Escape}');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveFocus();
+    await user.click(toggle);
+    await user.click(screen.getAllByRole('button', { name: /^voltar$/i })[0]);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('informa que o acesso de membros ainda não existe', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Header />
+      </MemoryRouter>,
+    );
+    const entrar = screen.getByRole('button', { name: /^entrar$/i });
+    await user.click(entrar);
+    expect(entrar).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText(/ainda não está disponível/i)).toBeVisible();
+    await user.keyboard('{Escape}');
+    expect(entrar).toHaveAttribute('aria-expanded', 'false');
+    expect(entrar).toHaveFocus();
   });
 
   it('filtra ferramentas e mantém o checkout', async () => {
