@@ -2503,16 +2503,6 @@
     text-transform: uppercase;
   }
 
-  .rj-feature__status {
-    padding: 0.3rem 0.7rem;
-    border: 1px solid rgb(255 255 255 / 22%);
-    border-radius: 999px;
-    color: #dcdcdc;
-    font: 500 0.68rem var(--rj-sans);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
   .rj-feature__media {
     position: relative;
     margin: 0;

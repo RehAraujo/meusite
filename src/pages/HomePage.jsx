@@ -499,13 +499,14 @@ export default function HomePage() {
                     {featuredProduct.price}
                     <small>{featuredProduct.priceNote}</small>
                   </p>
-                  <span className="rj-feature__status">{featuredProduct.status}</span>
-                  <ArrowButton
-                    variant="yellow"
-                    href={createWhatsAppUrl(featuredProduct.contactMessage)}
-                  >
-                    {featuredProduct.cta}
+                  <ArrowButton variant="yellow" href={featuredProduct.cta.href}>
+                    {featuredProduct.cta.label}
                   </ArrowButton>
+                  {featuredProduct.purchase ? (
+                    <ArrowButton variant="pink" href={featuredProduct.purchase.href}>
+                      {featuredProduct.purchase.label}
+                    </ArrowButton>
+                  ) : null}
                 </div>
               </ScrollRise>
               <ScrollRise

@@ -52,10 +52,12 @@ describe('rotas essenciais', () => {
     expect(
       screen.getByRole('heading', { name: /conte-me o que você tem em mente/i }),
     ).toBeInTheDocument();
-    const earlyAccess = screen.getByRole('link', { name: /conhecer antecipadamente/i });
-    expect(earlyAccess.getAttribute('href')).toMatch(/^https:\/\/wa\.me\/5561992191272\?text=/);
-    expect(screen.getByText('Pré-lançamento')).toBeInTheDocument();
-    expect(document.querySelector('a[href*="meu-dinheiro-minhas-regras"]')).toBeNull();
+    expect(screen.getByRole('link', { name: /ver produto/i })).toHaveAttribute(
+      'href',
+      'https://shopping.renatajoin.com/meu-dinheiro-minhas-regras/',
+    );
+    expect(screen.queryByText(/pré-lançamento/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/conhecer antecipadamente/i)).not.toBeInTheDocument();
     expect(screen.getByText('1.563.147')).toBeInTheDocument();
     expect(screen.getByText(/fonte: instagram insights · últimos 90 dias/i)).toBeInTheDocument();
     expect(screen.queryByText(/captura de/i)).not.toBeInTheDocument();
