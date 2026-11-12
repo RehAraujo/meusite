@@ -1,0 +1,307 @@
+/* Ateliê: galeria de painéis que se expandem. Usa os tokens --rj-* (rj-2026.css). */
+@layer rj {
+  /* Seção em clima de galeria privada: preto profundo, muito respiro e texto discreto. */
+  .rj-atelie-section {
+    --rj-focus: var(--rj-white);
+
+    padding-block: clamp(6.5rem, 12vw, 10.5rem);
+    border-top: 1px solid rgb(255 255 255 / 6%);
+    background: var(--rj-black);
+    color: var(--rj-white);
+  }
+
+  .rj-atelie-section__header {
+    display: grid;
+    justify-items: center;
+    gap: 1.1rem;
+    margin-bottom: clamp(3.5rem, 7vw, 5.5rem);
+    text-align: center;
+  }
+
+  .rj-atelie-section .rj-atelie-section__header :is(h1, h2) {
+    max-width: none;
+    margin: 0;
+    color: #f4f2ee;
+    font: italic 400 clamp(1.9rem, 1.45rem + 1.5vw, 2.6rem) / 1.1 var(--rj-serif);
+    letter-spacing: 0.01em;
+  }
+
+  /* Fio fino entre título e legenda, como numa parede de exposição. */
+  .rj-atelie-section__header::after {
+    order: 1;
+    width: 2rem;
+    height: 1px;
+    background: rgb(255 255 255 / 28%);
+    content: '';
+  }
+
+  .rj-atelie-section .rj-atelie-section__header p {
+    order: 2;
+    max-width: 26rem;
+    margin: 0;
+    color: #9d9d9d;
+    font: 300 0.88rem / 1.6 var(--rj-sans);
+    letter-spacing: 0.03em;
+  }
+
+  .rj-atelie-section__cta {
+    color: #cfcfcf;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    background: linear-gradient(currentcolor, currentcolor) left 80% / 0 1px no-repeat;
+    transition:
+      color var(--rj-t-hover) var(--rj-ease),
+      background-size var(--rj-t-hover) var(--rj-ease);
+  }
+
+  .rj-atelie-section__cta:hover {
+    color: var(--rj-white);
+    background-size: calc(100% - 1.25rem) 1px;
+  }
+
+  /* Página provisória /atelie/ */
+  .rj-atelie-page {
+    min-height: 70vh;
+    border-top: 0;
+  }
+
+  .rj-atelie-page__note {
+    display: grid;
+    justify-items: center;
+    gap: 0.9rem;
+    max-width: 30rem;
+    margin: clamp(4rem, 8vw, 6rem) auto 0;
+    color: #9d9d9d;
+    font: 300 0.88rem / 1.7 var(--rj-sans);
+    letter-spacing: 0.02em;
+    text-align: center;
+  }
+
+  .rj-atelie-page__status {
+    padding: 0.3rem 0.75rem;
+    border: 1px solid rgb(255 255 255 / 22%);
+    border-radius: 999px;
+    color: #e6e6e6;
+    font: 500 0.64rem / 1.2 var(--rj-sans);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .rj-atelie {
+    --gap: clamp(0.5rem, 0.9vw, 0.85rem);
+    --grow: 4;
+    --h: clamp(26rem, 52vh + 6rem, 40rem);
+    --move: 950ms;
+  }
+
+  .rj-atelie__list {
+    display: flex;
+    gap: var(--gap);
+    height: var(--h);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    container-type: inline-size;
+  }
+
+  .rj-atelie__panel {
+    /* Largura do painel aberto: a imagem mantém esse tamanho durante a transição,
+       então ela não "dá zoom"; o painel apenas revela mais ou menos dela. */
+    --open: calc(
+      (100cqi - (var(--atelie-count) - 1) * var(--gap)) * var(--grow) /
+        (var(--grow) + var(--atelie-count) - 1)
+    );
+
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    border-radius: calc(var(--rj-radius) * 0.4);
+    background: #0d0d0d;
+    transition: flex-grow var(--move) var(--rj-ease);
+  }
+
+  .rj-atelie__panel[data-active] {
+    flex-grow: var(--grow);
+  }
+
+  .rj-atelie__figure {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+  }
+
+  .rj-atelie__figure img {
+    position: absolute;
+    top: 0;
+    left: calc((100% - var(--open)) * var(--fx));
+    width: var(--open);
+    max-width: none;
+    height: 100%;
+    object-fit: cover;
+    object-position: calc(var(--fx) * 100%) calc(var(--fy) * 100%);
+    transition: left var(--move) var(--rj-ease);
+  }
+
+  /* Legenda: só no painel aberto, depois que ele começa a se abrir. */
+  .rj-atelie__figure::after {
+    position: absolute;
+    inset: 50% 0 0;
+    background: linear-gradient(to top, rgb(0 0 0 / 62%), rgb(0 0 0 / 18%) 55%, transparent);
+    opacity: 0;
+    transition: opacity var(--move) var(--rj-ease);
+    content: '';
+    pointer-events: none;
+  }
+
+  .rj-atelie__panel[data-active] .rj-atelie__figure::after {
+    opacity: 1;
+  }
+
+  .rj-atelie__caption {
+    position: absolute;
+    bottom: clamp(1rem, 2vw, 1.5rem);
+    left: clamp(1rem, 2vw, 1.5rem);
+    z-index: 1;
+    display: grid;
+    gap: 0.3rem;
+
+    /* Largura fixa (a do painel aberto): o texto não se reorganiza durante a transição. */
+    width: min(calc(var(--open) - 2 * clamp(1rem, 2vw, 1.5rem)), 26rem);
+    color: var(--rj-white);
+    opacity: 0;
+    transform: translateY(0.5rem);
+    transition:
+      opacity 280ms var(--rj-ease),
+      transform 280ms var(--rj-ease);
+  }
+
+  .rj-atelie__panel[data-active] .rj-atelie__caption {
+    opacity: 1;
+    transform: none;
+    transition-duration: 700ms;
+    transition-delay: 320ms;
+  }
+
+  .rj-atelie__caption small {
+    color: rgb(255 255 255 / 70%);
+    font: 500 0.62rem / 1 var(--rj-sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .rj-atelie__caption strong {
+    font: italic 400 clamp(1rem, 0.92rem + 0.3vw, 1.15rem) / 1.25 var(--rj-serif);
+  }
+
+  .rj-atelie__caption span {
+    color: rgb(255 255 255 / 82%);
+    font: 400 0.7rem / 1.45 var(--rj-sans);
+  }
+
+  .rj-atelie__temp {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 1;
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    background: rgb(0 0 0 / 55%);
+    color: var(--rj-white);
+    font: 500 0.62rem / 1 var(--rj-sans);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .rj-atelie__trigger {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: inherit;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .rj-atelie__panel[data-active] .rj-atelie__trigger {
+    cursor: default;
+  }
+
+  .rj-atelie__trigger:focus-visible {
+    outline: 0;
+    box-shadow:
+      inset 0 0 0 2px var(--rj-white),
+      inset 0 0 0 4px var(--rj-ink);
+  }
+
+  .rj-atelie__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: clamp(1.5rem, 3vw, 2.25rem);
+  }
+
+  .rj-atelie__counter {
+    margin: 0;
+    color: #7a7a7a;
+    font: 500 var(--rj-label) / 1 var(--rj-sans);
+    letter-spacing: 0.12em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rj-atelie__counter span {
+    color: #e6e6e6;
+  }
+
+  /* Mobile: painéis empilhados; o destaque se expande na vertical. */
+  @media (width <= 48rem) {
+    .rj-atelie {
+      --grow: 6;
+      --h: clamp(32rem, 118vw, 42rem);
+    }
+
+    .rj-atelie__list {
+      flex-direction: column;
+    }
+
+    .rj-atelie__panel {
+      --open: calc(
+        (var(--h) - (var(--atelie-count) - 1) * var(--gap)) * var(--grow) /
+          (var(--grow) + var(--atelie-count) - 1)
+      );
+
+      min-height: 0;
+    }
+
+    .rj-atelie__figure img {
+      top: calc((100% - var(--open)) * var(--fy));
+      left: 0;
+      width: 100%;
+      height: var(--open);
+      transition: top var(--move) var(--rj-ease);
+    }
+
+    .rj-atelie__caption {
+      width: calc(100% - 2rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rj-atelie {
+      --move: 0.01ms;
+    }
+
+    .rj-atelie__caption,
+    .rj-atelie__panel[data-active] .rj-atelie__caption {
+      transform: none;
+      transition: opacity 200ms linear;
+    }
+  }
+}
