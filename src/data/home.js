@@ -189,9 +189,9 @@ export const creatorProposalUrl =
   'https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20solicitar%20uma%20proposta%20de%20parceria.';
 
 // Banner do primeiro produto do Shopping Join (materiais reais da página do produto).
-// PRÉ-LANÇAMENTO: a página /meu-dinheiro-minhas-regras ainda não está nesta versão do site.
-// Enquanto isso, o CTA leva ao WhatsApp (contato já usado no site), sem checkout.
-// Quando a página do produto for integrada, voltar a usar `to: '/meu-dinheiro-minhas-regras'`.
+// O CTA de descoberta leva à página pública de vendas no Shopping Join, onde ficam o
+// checkout e a entrega. `purchase` fica reservado para um futuro botão de compra direta
+// (ex.: link do Mercado Pago): quando preenchido com { label, href }, aparece ao lado do CTA.
 export const featuredProduct = {
   kicker: 'Template Notion · Shopping Join',
   name: 'Meu Dinheiro, Minhas Regras',
@@ -204,8 +204,9 @@ export const featuredProduct = {
   image: '/assets/meu-dinheiro-visao-geral-1200.webp',
   imageAlt:
     'Captura real do template Meu Dinheiro, Minhas Regras no Notion, com índice, ações rápidas e entradas do mês',
-  status: 'Pré-lançamento',
-  cta: 'Conhecer antecipadamente',
-  contactMessage:
-    'Olá, Rê! Vim pela home do site e quero conhecer antecipadamente o template Meu Dinheiro, Minhas Regras.',
+  cta: {
+    label: 'Ver produto',
+    href: 'https://shopping.renatajoin.com/meu-dinheiro-minhas-regras/',
+  },
+  purchase: null,
 };

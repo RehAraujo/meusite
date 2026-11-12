@@ -15,7 +15,7 @@ export const navigation = [
   { label: 'Sobre', to: '/sobre' },
   { label: 'Soluções', to: '/servicos' },
   { label: 'Projetos', to: '/clientes' },
-  { label: 'Shopping', to: '/ferramentas' },
+  { label: 'Shopping', to: '/#shopping' },
   { label: 'Comunidade', to: '/#comunidade' },
   { label: 'Creator', to: '/midia-kit' },
   { label: 'Ateliê', to: '/atelie/' },
@@ -108,7 +108,7 @@ export const footerGroups = [
     links: [
       { label: 'Creator', to: '/midia-kit' },
       { label: 'Comunidade', to: '/#comunidade' },
-      { label: 'Shopping', to: '/ferramentas' },
+      { label: 'Shopping', to: '/#shopping' },
       { label: 'Carreira', to: '/carreira' },
     ],
   },
