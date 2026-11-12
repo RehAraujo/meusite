@@ -44,6 +44,13 @@ describe('rotas essenciais', () => {
       'href',
       '/ferramentas',
     );
+    // Shopping (menu e rodapé) leva à seção Shopping Join da Home, não a Ferramentas.
+    for (const link of screen.getAllByRole('link', { name: /^shopping$/i })) {
+      expect(link).toHaveAttribute('href', '/#shopping');
+    }
+    expect(
+      screen.getByRole('list', { name: /categorias do shopping join/i }).closest('section'),
+    ).toHaveAttribute('id', 'shopping');
     expect(screen.getByRole('link', { name: /conhecer parcerias/i })).toHaveAttribute(
       'href',
       '/midia-kit',
