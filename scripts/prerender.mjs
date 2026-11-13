@@ -10,7 +10,7 @@ const routes = [
   '/clientes',
   '/clientes/ted-tec',
   '/pensamentos',
-  '/ferramentas',
+  '/shopping',
   '/carreira',
   '/career',
   '/curriculo',
@@ -56,9 +56,9 @@ const metadata = {
     'Pensamentos | Renata Join',
     'Textos sobre identidade, design, tecnologia, comunicação, fé e trabalho.',
   ],
-  '/ferramentas': [
-    'Ferramentas | Renata Join',
-    'Templates, sistemas e guias desenvolvidos para organizar pessoas, projetos e negócios.',
+  '/shopping': [
+    'Shopping Join | Renata Join',
+    'Ferramentas, criações e produtos para organizar, expressar e transformar ideias em algo real.',
   ],
   '/curriculo': [
     'Currículo | Renata Gomes Araujo',

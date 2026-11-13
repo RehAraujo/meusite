@@ -15,8 +15,9 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-const expectCleanHydration = async (route) => {
-  window.history.replaceState({}, '', route);
+// clientUrl: endereço real no navegador (ex.: com ?query), que o HTML estático não conhece.
+const expectCleanHydration = async (route, clientUrl = route) => {
+  window.history.replaceState({}, '', clientUrl);
   document.body.innerHTML = `<div id="root">${renderToString(
     <StaticRouter location={route}>
       <App />
@@ -48,5 +49,16 @@ describe('hidratação do HTML pré-renderizado', () => {
 
   it('hidrata o case TED TEC sem substituir a árvore', async () => {
     await expectCleanHydration('/clientes/ted-tec');
+  });
+
+  it('hidrata o Shopping, inclusive com categoria na URL', async () => {
+    await expectCleanHydration('/shopping');
+    await act(async () => {
+      roots.splice(0).forEach((root) => root.unmount());
+    });
+    await expectCleanHydration('/shopping', '/shopping?categoria=lifestyle');
+    expect(document.querySelector('.rj-shop-status').textContent).toMatch(
+      /lifestyle join: em breve/i,
+    );
   });
 });

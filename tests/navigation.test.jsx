@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import App from '../src/App';
@@ -42,11 +42,11 @@ describe('rotas essenciais', () => {
     );
     expect(screen.getByRole('link', { name: /explorar shopping join/i })).toHaveAttribute(
       'href',
-      '/ferramentas',
+      '/shopping',
     );
-    // Shopping (menu e rodapé) leva à seção Shopping Join da Home, não a Ferramentas.
+    // Shopping (menu e rodapé) leva à página /shopping; Ferramentas é uma categoria dela.
     for (const link of screen.getAllByRole('link', { name: /^shopping$/i })) {
-      expect(link).toHaveAttribute('href', '/#shopping');
+      expect(link).toHaveAttribute('href', '/shopping');
     }
     expect(
       screen.getByRole('list', { name: /categorias do shopping join/i }).closest('section'),
@@ -173,6 +173,47 @@ describe('rotas essenciais', () => {
     expect(screen.getAllByRole('button', { name: /destacar obra/i })).toHaveLength(5);
     expect(screen.getByRole('link', { name: /voltar ao início/i })).toHaveAttribute('href', '/');
     expect(screen.queryByText(/esta página não foi/i)).not.toBeInTheDocument();
+  });
+
+  it('abre o Shopping Join com vitrine, categorias e compra desativada', () => {
+    renderRoute('/shopping');
+    expect(
+      screen.getByRole('heading', { level: 1, name: /coisas que fazem sentido/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /explorar produtos/i })).toHaveAttribute(
+      'href',
+      '#vitrine',
+    );
+    expect(screen.getByRole('link', { name: /ver categorias/i })).toHaveAttribute(
+      'href',
+      '#categorias',
+    );
+    const folders = screen.getByRole('list', { name: /pastas de categorias/i });
+    for (const label of [
+      'Personalizados',
+      'Ferramentas Digitais',
+      'Lifestyle JOIN',
+      'Coleções Especiais',
+    ]) {
+      expect(within(folders).getByRole('button', { name: new RegExp(label) })).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      );
+    }
+    for (const link of screen.getAllByRole('link', { name: /ver produto/i })) {
+      expect(link.getAttribute('href')).toMatch(
+        /^(https:\/\/shopping\.renatajoin\.com\/meu-dinheiro-minhas-regras\/|\/guia-alimentar|\/planner-treino)$/,
+      );
+    }
+    expect(screen.queryByRole('link', { name: /comprar/i })).not.toBeInTheDocument();
+    expect(screen.getAllByText('Sob orçamento')).toHaveLength(4);
+  });
+
+  it('leva o endereço antigo de Ferramentas para a categoria no Shopping', () => {
+    renderRoute('/ferramentas');
+    expect(
+      screen.getByRole('heading', { level: 1, name: /coisas que fazem sentido/i }),
+    ).toBeInTheDocument();
   });
 
   it('entrega uma página 404 útil', () => {

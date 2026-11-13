@@ -15,7 +15,9 @@ import { AtelieSection } from '../components/atelie/AtelieSection';
 import { HeroCosmos, HeroWords } from '../components/home/HeroNetwork';
 import { ProjectFlipCard } from '../components/home/ProjectFlipCard';
 import { ScrollCharacters, ScrollDepth, ScrollRise } from '../components/home/ScrollMotion';
+import { FeaturedProduct } from '../components/shop/FeaturedProduct';
 import { ArrowButton } from '../components/ui/ArrowButton';
+import { Eyebrow } from '../components/ui/Eyebrow';
 import { BrazilFlag } from '../components/ui/BrazilFlag';
 import {
   creatorInsights,
@@ -32,6 +34,7 @@ import { atelieSection, atelieWorks } from '../data/atelie';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { useRjReveal } from '../hooks/useRjReveal';
 import { useScrollMotionReady } from '../hooks/useScrollMotionReady';
+import { resetPointer, trackPointer } from '../utils/pointer';
 import { createWhatsAppUrl } from '../utils/whatsapp';
 
 const iconPaths = {
@@ -80,20 +83,6 @@ function LineIcon({ name }) {
     </svg>
   );
 }
-
-// Resposta delicada ao cursor: posição relativa em CSS (--mx/--my), só com mouse.
-const trackPointer = (event) => {
-  if (event.pointerType !== 'mouse') return;
-  const element = event.currentTarget;
-  const bounds = element.getBoundingClientRect();
-  element.style.setProperty('--mx', ((event.clientX - bounds.left) / bounds.width).toFixed(3));
-  element.style.setProperty('--my', ((event.clientY - bounds.top) / bounds.height).toFixed(3));
-};
-
-const resetPointer = (event) => {
-  event.currentTarget.style.removeProperty('--mx');
-  event.currentTarget.style.removeProperty('--my');
-};
 
 // Sutilezas de ambiente: textura pontilhada, brilho radial e pontos de luz.
 // Ficam nas laterais, fora do conteúdo, e só animam enquanto visíveis.
@@ -146,16 +135,6 @@ function CountUp({ value }) {
   }, [value, shouldReduceMotion]);
 
   return <span ref={ref}>{value}</span>;
-}
-
-function Eyebrow({ number, children }) {
-  return (
-    <p className="rj-eyebrow">
-      <span className="rj-eyebrow__line" aria-hidden="true" />
-      {number && <span className="rj-eyebrow__number">{number} /</span>}
-      {children}
-    </p>
-  );
 }
 
 // Cada etapa acende quando a linha do processo chega até ela.
@@ -473,63 +452,7 @@ export default function HomePage() {
                 viver com mais personalidade.
               </p>
             </header>
-            <article
-              className="rj-feature"
-              aria-labelledby="feature-title"
-              onPointerMove={trackPointer}
-              onPointerLeave={resetPointer}
-            >
-              <ScrollRise className="rj-feature__copy" distance={24}>
-                <p className="rj-feature__kicker">
-                  <img src="/assets/notion-platform.ico" width="20" height="20" alt="" />
-                  {featuredProduct.kicker}
-                </p>
-                <h3 id="feature-title">{featuredProduct.name}</h3>
-                <p className="rj-feature__headline">
-                  {featuredProduct.headline[0]} <em>{featuredProduct.headline[1]}</em>
-                </p>
-                <p>{featuredProduct.description}</p>
-                <ul className="rj-feature__list">
-                  {featuredProduct.highlights.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-                <div className="rj-feature__offer">
-                  <p className="rj-feature__price">
-                    {featuredProduct.price}
-                    <small>{featuredProduct.priceNote}</small>
-                  </p>
-                  <ArrowButton variant="yellow" href={featuredProduct.cta.href}>
-                    {featuredProduct.cta.label}
-                  </ArrowButton>
-                  {featuredProduct.purchase ? (
-                    <ArrowButton variant="pink" href={featuredProduct.purchase.href}>
-                      {featuredProduct.purchase.label}
-                    </ArrowButton>
-                  ) : null}
-                </div>
-              </ScrollRise>
-              <ScrollRise
-                as="figure"
-                className="rj-feature__media"
-                distance={44}
-                offset={['start 100%', 'start 55%']}
-              >
-                <span className="rj-feature__window" aria-hidden="true">
-                  <i />
-                  <i />
-                  <i />
-                  <b>Meu Dinheiro, Minhas Regras</b>
-                </span>
-                <img
-                  src={featuredProduct.image}
-                  alt={featuredProduct.imageAlt}
-                  width="1200"
-                  height="536"
-                  loading="lazy"
-                />
-              </ScrollRise>
-            </article>
+            <FeaturedProduct product={featuredProduct} />
             <ul className="rj-shop" aria-label="Categorias do Shopping Join">
               {shoppingCategories.map((category, index) => {
                 const photo = (
@@ -572,7 +495,7 @@ export default function HomePage() {
               })}
             </ul>
             <div className="rj-actions-center" data-rj-reveal>
-              <ArrowButton variant="pink" to="/ferramentas">
+              <ArrowButton variant="pink" to="/shopping">
                 Explorar Shopping Join
               </ArrowButton>
             </div>

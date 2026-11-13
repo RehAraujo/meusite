@@ -1,4 +1,4 @@
-import { createRoutesFromElements, Route } from 'react-router-dom';
+import { createRoutesFromElements, Navigate, Route } from 'react-router-dom';
 import { SiteLayout } from '../components/layout/SiteLayout';
 import AboutPage from '../pages/AboutPage';
 import AteliePage from '../pages/AteliePage';
@@ -14,7 +14,7 @@ import ResumePage from '../pages/ResumePage';
 import ServicesPage from '../pages/ServicesPage';
 import ThoughtsPage from '../pages/ThoughtsPage';
 import TedTecCasePage from '../pages/TedTecCasePage';
-import ToolsPage from '../pages/ToolsPage';
+import ShoppingPage from '../pages/ShoppingPage';
 
 export const routes = createRoutesFromElements(
   <Route element={<SiteLayout />}>
@@ -25,7 +25,12 @@ export const routes = createRoutesFromElements(
     <Route path="clientes" element={<ProjectsPage />} />
     <Route path="clientes/ted-tec" element={<TedTecCasePage />} />
     <Route path="pensamentos" element={<ThoughtsPage />} />
-    <Route path="ferramentas" element={<ToolsPage />} />
+    <Route path="shopping" element={<ShoppingPage />} />
+    {/* Ferramentas virou uma categoria do Shopping Join. */}
+    <Route
+      path="ferramentas"
+      element={<Navigate to="/shopping?categoria=ferramentas-digitais" replace />}
+    />
     <Route path="carreira" element={<CareerPage />} />
     <Route path="career" element={<CareerPage />} />
     <Route path="curriculo" element={<ResumePage />} />
