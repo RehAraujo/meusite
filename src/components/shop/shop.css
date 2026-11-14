@@ -510,14 +510,17 @@
     margin-top: clamp(2rem, 4vw, 3rem) !important;
   }
 
+  /* min-width: 0 impede que textos de uma linha (crédito) alarguem a coluna. */
   .rj-products > li {
     display: flex;
+    min-width: 0;
   }
 
   .rj-product {
     display: flex;
     flex: 1;
     flex-direction: column;
+    min-width: 0;
   }
 
   .rj-product__media {
@@ -1300,6 +1303,16 @@
 
     .rj-shop-empty {
       grid-template-columns: 1fr;
+    }
+
+    /* Capas tipográficas pequenas: só formato e nome, sem sobreposição. */
+    .rj-product__cover em {
+      display: none;
+    }
+
+    .rj-product__cover {
+      align-content: start;
+      gap: 0.4rem;
     }
   }
 
