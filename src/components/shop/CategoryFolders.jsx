@@ -8,7 +8,7 @@ const summary = (category, products) => {
   const count = products.filter((item) => item.category === category.id).length;
   if (category.status === 'em-breve' || count === 0) return statusLabels['em-breve'];
   const noun = count === 1 ? 'item' : 'itens';
-  if (category.status === 'demonstrativo') return `${count} ${noun} · sob orçamento`;
+  if (category.note) return `${count} ${noun} · ${category.note}`;
   return `${count} ${count === 1 ? 'produto' : 'produtos'}`;
 };
 
@@ -28,17 +28,24 @@ export function CategoryFolders({ categories, products, active, onSelect }) {
               <span>{category.number}</span>
               {category.status === 'em-breve' ? <small>Em breve</small> : null}
             </span>
-            <span className="rj-folder__sheet" aria-hidden="true">
-              <img
-                src={category.image}
-                srcSet={category.imageSet}
-                sizes="(width <= 48rem) 40vw, 16rem"
-                alt=""
-                width="480"
-                height="640"
-                loading="lazy"
-                decoding="async"
-              />
+            <span
+              className={`rj-folder__sheet${category.image ? '' : ' rj-folder__sheet--type'}`}
+              aria-hidden="true"
+            >
+              {category.image ? (
+                <img
+                  src={category.image}
+                  srcSet={category.imageSet}
+                  sizes="(width <= 48rem) 40vw, 16rem"
+                  alt=""
+                  width="480"
+                  height="640"
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <span>{category.label}</span>
+              )}
             </span>
             <span className="rj-folder__body">
               <strong>{category.label}</strong>

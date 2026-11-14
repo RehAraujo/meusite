@@ -192,8 +192,8 @@
   /* ───────────── Categorias em pastas ───────────── */
   .rj-folders {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: clamp(1rem, 2vw, 1.5rem);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: calc(2.1rem + clamp(1.25rem, 2.5vw, 2rem)) clamp(1rem, 2vw, 1.5rem);
     margin-top: clamp(3rem, 6vw, 4.5rem) !important;
   }
 
@@ -273,6 +273,18 @@
     background: #ccc;
     box-shadow: 0 0.75rem 1.5rem -1rem rgb(0 0 0 / 55%);
     transition: transform 700ms var(--rj-ease);
+  }
+
+  /* Pasta sem foto (JOIN Active): folha tipográfica até haver imagem real. */
+  .rj-folder__sheet--type {
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: var(--rj-ink);
+    color: var(--rj-yellow);
+    font: 900 italic clamp(1.4rem, 1.1rem + 1vw, 2rem) / 1 var(--rj-serif);
+    letter-spacing: -0.02em;
+    text-align: center;
   }
 
   .rj-folder__sheet img {
@@ -436,6 +448,46 @@
     color: var(--rj-white);
   }
 
+  /* Linhas do Studio Goods: abas abaixo dos filtros de categoria. */
+  .rj-shop-lines {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+    margin-top: 1.5rem;
+    border-bottom: 1px solid var(--rj-line-light);
+  }
+
+  .rj-shop-lines button {
+    min-height: 2.75rem;
+    margin-bottom: -1px;
+    padding: 0;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--rj-text-light-soft);
+    font: 600 var(--rj-label) / 1 var(--rj-sans);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      color var(--rj-t-feedback) ease,
+      border-color var(--rj-t-feedback) ease;
+  }
+
+  .rj-shop-lines button:hover {
+    color: var(--rj-ink);
+  }
+
+  .rj-shop-lines button[aria-pressed='true'] {
+    border-bottom-color: var(--rj-pink);
+    color: var(--rj-ink);
+  }
+
+  .rj-shop-lines button:focus-visible {
+    outline: 2px solid var(--rj-ink);
+    outline-offset: 2px;
+  }
+
   .rj-shop-status {
     margin: 1.75rem 0 0;
     color: var(--rj-text-light-soft);
@@ -526,6 +578,14 @@
     transition: transform 900ms var(--rj-ease);
   }
 
+  /* Impressos sem foto: cartão branco sobre papel, com faixa rosa. */
+  .rj-product__cover--fisico {
+    border: 0;
+    border-top: 0.45rem solid var(--rj-pink);
+    background: var(--rj-white);
+    box-shadow: 0 1.25rem 2rem -1.25rem rgb(0 0 0 / 45%);
+  }
+
   .rj-product:hover .rj-product__cover {
     transform: rotate(0deg) scale(1.03);
   }
@@ -569,6 +629,10 @@
 
   .rj-product__badges > .rj-product__status--disponivel {
     background: var(--rj-yellow);
+  }
+
+  .rj-product__badges > .rj-product__status--sob-consulta {
+    background: var(--rj-pink);
   }
 
   .rj-product__badges > .rj-product__status--demonstrativo {
@@ -633,6 +697,12 @@
     font: 600 0.72rem / 1.2 var(--rj-sans);
     letter-spacing: 0.1em;
     text-transform: uppercase;
+  }
+
+  .rj-product--ilustrativo .rj-product__price {
+    font: 800 1.2rem / 1.1 var(--rj-serif);
+    letter-spacing: normal;
+    text-transform: none;
   }
 
   .rj-product__action {
@@ -919,6 +989,19 @@
 
     .rj-shop-empty {
       grid-template-columns: 1fr;
+    }
+
+    /* Linhas numa faixa rolável: seis abas sem ocupar meia tela. */
+    .rj-shop-lines {
+      flex-wrap: nowrap;
+      margin-inline: calc(var(--rj-gutter, 1rem) * -1);
+      padding-inline: var(--rj-gutter, 1rem);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .rj-shop-lines button {
+      flex: none;
     }
 
     .rj-product__media {

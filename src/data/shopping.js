@@ -11,8 +11,9 @@
  *
  * Campos de produto (preparados para o catálogo crescer):
  * - kind: 'digital' | 'fisico'
- * - status: 'disponivel' | 'demonstrativo' | 'em-breve' | 'indisponivel'
- * - pricing: 'fixo' (price + priceValue) | 'orcamento'
+ * - status: 'disponivel' | 'demonstrativo' | 'sob-consulta' | 'em-breve' | 'indisponivel'
+ * - pricing: 'fixo' (price + priceValue) | 'ilustrativo' (referência, sem compra) | 'orcamento'
+ * - line: subcategoria (Studio Goods)
  * - cta: { label, href | to } — destino de visualização; null quando não há ação
  * - purchase: reservado para compra direta (checkout integrado), sempre null por ora
  * - variants / gallery / personalization: reservados para a página de produto
@@ -48,6 +49,7 @@ export const shoppingCategories = [
     image: '/assets/shop-personalizados-480.webp',
     imageSet: '/assets/shop-personalizados-480.webp 480w, /assets/shop-personalizados-860.webp 860w',
     status: 'demonstrativo',
+    note: 'sob orçamento',
   },
   {
     id: 'ferramentas-digitais',
@@ -81,7 +83,48 @@ export const shoppingCategories = [
     imageSet: '/assets/shop-moda-480.webp 480w, /assets/shop-moda-860.webp 860w',
     status: 'em-breve',
   },
+  {
+    id: 'studio-goods',
+    number: '05',
+    label: 'Studio Goods',
+    description: 'Papelaria, certificados, tags, fotos, convites e impressos de marca, com arte inclusa.',
+    tone: 'pink',
+    ...(() => {
+      const image = asset('demo-etiquetas', [600, 960]);
+      return { image: image.src, imageSet: image.srcSet };
+    })(),
+    status: 'demonstrativo',
+    note: 'preços ilustrativos',
+  },
+  {
+    id: 'join-active',
+    number: '06',
+    label: 'JOIN Active',
+    description: 'Moda fitness com a assinatura JOIN. Peças demonstrativas e fornecedores em definição.',
+    tone: 'yellow',
+    // Sem fotos de produto ainda: a pasta mostra uma folha tipográfica.
+    image: null,
+    imageSet: null,
+    status: 'em-breve',
+  },
 ];
+
+/*
+ * Studio Goods: impressos com arte da Renata, produzidos por gráfica parceira.
+ * Os preços são ilustrativos e já incluem arte, produção, envio e margem. A conta
+ * fica em docs/studio-goods-precos.md (fora do site, para não expor custos).
+ * Nada aqui é comprável: o CTA abre uma conversa de orçamento no WhatsApp.
+ */
+export const studioGoodsLines = [
+  { id: 'papelaria', label: 'Papelaria' },
+  { id: 'certificados', label: 'Certificados & Diplomas' },
+  { id: 'tags-etiquetas', label: 'Tags & Etiquetas' },
+  { id: 'fotografia', label: 'Fotografia & Memórias' },
+  { id: 'convites', label: 'Convites & Eventos' },
+  { id: 'marca', label: 'Para sua Marca' },
+];
+
+export const STUDIO_LEAD_TIME = '10 dias úteis';
 
 const toolById = Object.fromEntries(tools.map((tool) => [tool.id, tool]));
 const priceValue = (price) => Number(price.replace(/\D/g, '')) || null;
@@ -104,6 +147,226 @@ const product = (fields) => ({
 
 const planner = toolById['planner-alimentar'];
 const training = toolById['planner-treino'];
+
+
+const WHATSAPP = 'https://wa.me/5561992191272';
+const quote = (name) => ({
+  label: 'Pedir orçamento',
+  href: `${WHATSAPP}?text=${encodeURIComponent(`Oi Rê! Quero um orçamento de ${name} (Studio Goods).`)}`,
+});
+
+const studio = ({ line, name, price, unit, ...fields }) =>
+  product({
+    category: 'studio-goods',
+    line,
+    kind: 'fisico',
+    name,
+    status: 'demonstrativo',
+    pricing: 'ilustrativo',
+    price: `R$ ${price}`,
+    priceValue: price,
+    priceNote: `${unit} · preço ilustrativo`,
+    image: null,
+    cover: name,
+    coverNote: 'Imagem em breve',
+    cta: quote(name),
+    ...fields,
+  });
+
+const studioGoods = [
+  studio({
+    id: 'bloco-de-anotacoes',
+    line: 'papelaria',
+    format: 'Bloco 100 folhas',
+    name: 'Bloco de anotações',
+    description: 'Bloco com a sua arte em papel apergaminhado 90g, para mesa, loja ou brinde.',
+    price: 110,
+    unit: '1 bloco',
+  }),
+  studio({
+    id: 'caderno-personalizado',
+    line: 'papelaria',
+    format: 'Caderno capa dura',
+    name: 'Caderno personalizado',
+    description: 'Capa dura com a sua arte e miolo personalizado: pautas, planner ou páginas da marca.',
+    price: 160,
+    unit: '1 unidade',
+  }),
+  studio({
+    id: 'marcador-de-pagina',
+    line: 'papelaria',
+    format: 'Marcador 15 × 5 cm',
+    name: 'Marcador de página',
+    description: 'Marcadores em papel Gold Master 300g, de brilho perolado, para leitura e presentes.',
+    price: 170,
+    unit: '50 unidades',
+  }),
+  studio({
+    id: 'certificado-a4',
+    line: 'certificados',
+    format: 'Certificado A4',
+    name: 'Certificado A4',
+    description: 'Certificado em couchê 300g para cursos, eventos e premiações, com cada nome na arte.',
+    price: 200,
+    unit: '10 unidades',
+  }),
+  studio({
+    id: 'certificado-a4-perolado',
+    line: 'certificados',
+    format: 'Certificado A4 especial',
+    name: 'Certificado em papel perolado',
+    description: 'Mesmo formato A4 em papel Gold Master 300g, para premiações e formaturas.',
+    price: 260,
+    unit: '10 unidades',
+  }),
+  studio({
+    id: 'diploma-a3',
+    line: 'certificados',
+    format: 'Diploma A3',
+    name: 'Diploma A3',
+    description: 'Formato grande em couchê 300g, pensado para moldura e parede.',
+    price: 220,
+    unit: '10 unidades',
+  }),
+  studio({
+    id: 'tags-especiais',
+    line: 'tags-etiquetas',
+    format: 'Tags couchê 300g',
+    name: 'Tags especiais',
+    description: 'Tags com verniz UV para roupas, presentes e produtos artesanais.',
+    price: 360,
+    unit: '500 unidades',
+  }),
+  studio({
+    id: 'tags-com-furo',
+    line: 'tags-etiquetas',
+    format: 'Tags com furo',
+    name: 'Tags com furo',
+    description: 'Tags em couchê 250g com verniz UV na frente, prontas para fita ou cordão.',
+    price: 170,
+    unit: '1.000 unidades',
+  }),
+  studio({
+    id: 'etiquetas-redondas',
+    line: 'tags-etiquetas',
+    format: 'Etiqueta adesiva 5,3 cm',
+    name: 'Etiquetas adesivas redondas',
+    description: 'Adesivos redondos para lacres, embalagens, potes e identificação de produtos.',
+    price: 240,
+    unit: '1.000 unidades',
+  }),
+  studio({
+    id: 'fotos-polaroid',
+    line: 'fotografia',
+    format: 'Foto 10 × 7,5 cm',
+    name: 'Fotos estilo polaroid',
+    description: 'Suas fotos impressas com moldura branca e verniz. Sob confirmação de disponibilidade.',
+    status: 'sob-consulta',
+    price: 110,
+    unit: '18 fotos',
+  }),
+  studio({
+    id: 'fotos-10x15',
+    line: 'fotografia',
+    format: 'Foto 10 × 15 cm',
+    name: 'Fotos impressas 10 × 15',
+    description: 'Impressão em papel fosco com verniz. Sob confirmação de disponibilidade.',
+    status: 'sob-consulta',
+    price: 100,
+    unit: '9 fotos',
+  }),
+  studio({
+    id: 'foto-com-suporte',
+    line: 'fotografia',
+    format: 'Foto com suporte',
+    name: 'Foto com suporte de mesa',
+    description: 'Foto em papel firme com suporte para ficar em pé. Sob confirmação de disponibilidade.',
+    status: 'sob-consulta',
+    price: 95,
+    unit: '9 unidades',
+  }),
+  studio({
+    id: 'convite-laminado',
+    line: 'convites',
+    format: 'Convite couchê 250g',
+    name: 'Convite com laminação fosca',
+    description: 'Convite com toque aveludado na frente e no verso, para aniversários e eventos.',
+    price: 130,
+    unit: '50 unidades',
+  }),
+  studio({
+    id: 'convite-hot-stamping',
+    line: 'convites',
+    format: 'Convite hot stamping',
+    name: 'Convite com hot stamping',
+    description: 'Detalhes em metalizado aplicados sobre laminação fosca, para ocasiões especiais.',
+    price: 150,
+    unit: '50 unidades',
+  }),
+  studio({
+    id: 'cartao-de-agradecimento',
+    line: 'convites',
+    format: 'Cartão 18 × 14,7 cm',
+    name: 'Cartão de agradecimento',
+    description: 'Cartão em couchê 300g com laminação fosca, para pedidos, eventos e lembranças.',
+    price: 530,
+    unit: '500 unidades',
+  }),
+  studio({
+    id: 'envelope-personalizado',
+    line: 'convites',
+    format: 'Envelope 23 × 11 cm',
+    name: 'Envelope personalizado',
+    description: 'Envelope com a sua arte, para convites, cartas e cartões.',
+    price: 120,
+    unit: '10 unidades',
+  }),
+  studio({
+    id: 'cartao-de-visita',
+    line: 'marca',
+    format: 'Couchê 300g · verniz UV total',
+    name: 'Cartão de visita',
+    description: 'Couchê 300g com verniz UV total na frente e no verso: brilho e proteção.',
+    price: 190,
+    unit: '1.000 unidades',
+  }),
+  studio({
+    id: 'cartao-de-visita-supremo',
+    line: 'marca',
+    format: 'Supremo 305g · verniz UV',
+    name: 'Cartão de visita Supremo',
+    description: 'Papel encorpado de 305g com verniz UV na frente, para tiragens menores.',
+    price: 120,
+    unit: '500 unidades',
+  }),
+  studio({
+    id: 'cartao-de-visita-hot-stamping',
+    line: 'marca',
+    format: 'Hot stamping · laminação fosca',
+    name: 'Cartão de visita com hot stamping',
+    description: 'Laminação fosca com detalhe metalizado na frente, para marcas que pedem presença.',
+    price: 360,
+    unit: '500 unidades',
+  }),
+  studio({
+    id: 'papel-timbrado',
+    line: 'marca',
+    format: 'Papel timbrado A5',
+    name: 'Papel timbrado',
+    description: 'Folhas com a identidade da marca para recibos, cartas, receitas e orçamentos.',
+    price: 120,
+    unit: '50 folhas',
+  }),
+  studio({
+    id: 'caixa-personalizada',
+    line: 'marca',
+    format: 'Caixa couchê 300g',
+    name: 'Caixa personalizada',
+    description: 'Caixa com laminação fosca para bijuterias, canetas e pequenos produtos.',
+    price: 550,
+    unit: '500 unidades',
+  }),
+];
 
 export const shoppingProducts = [
   product({
@@ -226,6 +489,7 @@ export const shoppingProducts = [
     },
     credit: 'Imagem de projeto realizado · Matula Café',
   }),
+  ...studioGoods,
 ];
 
 export const shoppingEditorial = {
@@ -258,6 +522,7 @@ export const statusLabels = {
   disponivel: 'Disponível',
   demonstrativo: 'Demonstrativo',
   'em-breve': 'Em breve',
+  'sob-consulta': 'Sob consulta',
   indisponivel: 'Indisponível',
 };
 
@@ -270,11 +535,15 @@ const normalize = (value) =>
     .toLowerCase();
 
 // Filtro, busca e ordenação puros: a mesma função serve à vitrine e aos testes.
-export const filterProducts = (products, { category = 'todos', query = '', sort = 'destaques' }) => {
+export const filterProducts = (
+  products,
+  { category = 'todos', line = 'todas', query = '', sort = 'destaques' },
+) => {
   const term = normalize(query.trim());
   const filtered = products.filter(
     (item) =>
       (category === 'todos' || item.category === category) &&
+      (line === 'todas' || item.line === line) &&
       (!term || normalize(`${item.name} ${item.format} ${item.description}`).includes(term)),
   );
   const byPrice = (direction) => (a, b) => {

@@ -3,13 +3,15 @@ import { kindLabels, statusLabels } from '../../data/shopping';
 
 /*
  * Card de produto da vitrine. Mostra tipo (digital/físico), categoria, preço ou
- * "Sob orçamento" e o estado de disponibilidade. Só produtos disponíveis têm CTA;
- * demonstrativos nunca parecem compráveis.
+ * "Sob orçamento" e o estado de disponibilidade. Produtos disponíveis levam à sua
+ * página; Studio Goods (preço ilustrativo) leva a um orçamento. Nada é comprável aqui.
  */
 function ProductAction({ product }) {
   const { cta } = product;
-  // Demonstrativos e itens sem página não têm ação: o selo de estado já explica.
-  if (product.status !== 'disponivel' || !cta) return null;
+  // Só disponíveis levam à página do produto. Demonstrativos com preço ilustrativo
+  // (Studio Goods) levam a um pedido de orçamento, nunca a uma compra.
+  const quoteOnly = product.pricing === 'ilustrativo';
+  if (!cta || (product.status !== 'disponivel' && !quoteOnly)) return null;
   const content = (
     <>
       {cta.label}
@@ -35,7 +37,7 @@ export function ProductCard({ product, categories }) {
   const { image } = product;
   return (
     <article
-      className={`rj-product rj-product--${product.kind}`}
+      className={`rj-product rj-product--${product.kind} rj-product--${product.pricing}`}
       aria-labelledby={`p-${product.id}`}
     >
       <figure className="rj-product__media">
@@ -51,10 +53,10 @@ export function ProductCard({ product, categories }) {
             decoding="async"
           />
         ) : (
-          <span className="rj-product__cover">
+          <span className={`rj-product__cover rj-product__cover--${product.kind}`}>
             <small>{product.format}</small>
             <strong>{product.cover}</strong>
-            <em>Capa provisória</em>
+            <em>{product.coverNote ?? 'Capa provisória'}</em>
           </span>
         )}
         <span className="rj-product__badges">

@@ -194,6 +194,8 @@ describe('rotas essenciais', () => {
       'Ferramentas Digitais',
       'Lifestyle JOIN',
       'Coleções Especiais',
+      'Studio Goods',
+      'JOIN Active',
     ]) {
       expect(within(folders).getByRole('button', { name: new RegExp(label) })).toHaveAttribute(
         'aria-pressed',

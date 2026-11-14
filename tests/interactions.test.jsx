@@ -209,4 +209,49 @@ describe('interações críticas', () => {
     await user.click(screen.getByRole('button', { name: /limpar busca e filtros/i }));
     expect(screen.getByLabelText(/buscar produtos/i)).toHaveValue('');
   });
+  it('organiza o Studio Goods em linhas com preço ilustrativo e pedido de orçamento', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={['/shopping?categoria=studio-goods&linha=certificados']}>
+        <ShoppingPage />
+      </MemoryRouter>,
+    );
+    const lines = await screen.findByRole('group', { name: /linhas do studio goods/i });
+    expect(within(lines).getByRole('button', { name: 'Certificados & Diplomas' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(
+      screen.getByText(/^3 produtos em studio goods · certificados & diplomas$/i),
+    ).toBeInTheDocument();
+
+    const certificate = screen.getByRole('article', { name: 'Certificado A4' });
+    expect(within(certificate).getByText('R$ 200')).toBeInTheDocument();
+    expect(within(certificate).getByText(/10 unidades · preço ilustrativo/i)).toBeInTheDocument();
+    expect(within(certificate).getByRole('link', { name: /pedir orçamento/i })).toHaveAttribute(
+      'href',
+      expect.stringContaining('https://wa.me/5561992191272?text='),
+    );
+
+    await user.click(within(lines).getByRole('button', { name: 'Para sua Marca' }));
+    const card = screen.getByRole('article', { name: 'Cartão de visita' });
+    expect(within(card).getByText('R$ 190')).toBeInTheDocument();
+    expect(within(card).getByText(/1\.000 unidades/)).toBeInTheDocument();
+
+    await user.click(within(lines).getByRole('button', { name: 'Fotografia & Memórias' }));
+    expect(screen.getAllByText('Sob consulta')).toHaveLength(3);
+
+    // Sem vestuário na curadoria e sem compra direta.
+    await user.click(within(lines).getByRole('button', { name: 'Todas as linhas' }));
+    expect(screen.getByText(/^21 produtos em studio goods$/i)).toBeInTheDocument();
+    expect(screen.queryByText(/camiseta|polo|dry fit|corta-vento/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /comprar/i })).not.toBeInTheDocument();
+
+    const filters = screen.getByRole('group', { name: /filtrar por categoria/i });
+    await user.click(within(filters).getByRole('button', { name: 'JOIN Active' }));
+    expect(screen.getByText(/join active: em breve/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole('group', { name: /linhas do studio goods/i }),
+    ).not.toBeInTheDocument();
+  });
 });

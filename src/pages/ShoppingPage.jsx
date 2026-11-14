@@ -15,6 +15,8 @@ import {
   shoppingHero,
   shoppingProducts,
   shoppingSortOptions,
+  STUDIO_LEAD_TIME,
+  studioGoodsLines,
 } from '../data/shopping';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { useRjReveal } from '../hooks/useRjReveal';
@@ -22,6 +24,10 @@ import { useRjReveal } from '../hooks/useRjReveal';
 const ALL = 'todos';
 const categoryIds = new Set(shoppingCategories.map((category) => category.id));
 const filterOptions = [{ id: ALL, label: 'Todos' }, ...shoppingCategories];
+const ALL_LINES = 'todas';
+const STUDIO = 'studio-goods';
+const lineIds = new Set(studioGoodsLines.map((line) => line.id));
+const lineOptions = [{ id: ALL_LINES, label: 'Todas as linhas' }, ...studioGoodsLines];
 
 /*
  * /shopping/: vitrine do Shopping Join.
@@ -52,14 +58,18 @@ export default function ShoppingPage() {
   const requested = searchParams.get('categoria');
   const category = hydrated && categoryIds.has(requested) ? requested : ALL;
   const activeCategory = shoppingCategories.find((item) => item.id === category);
+  // Subcategoria (?linha=) só vale dentro de Studio Goods.
+  const requestedLine = searchParams.get('linha');
+  const line = category === STUDIO && lineIds.has(requestedLine) ? requestedLine : ALL_LINES;
+  const activeLine = studioGoodsLines.find((item) => item.id === line);
 
   const showFeatured = !query.trim() && (category === ALL || category === 'ferramentas-digitais');
   const visible = useMemo(
     () =>
-      filterProducts(shoppingProducts, { category, query, sort }).filter(
+      filterProducts(shoppingProducts, { category, line, query, sort }).filter(
         (item) => !(showFeatured && item.featured),
       ),
-    [category, query, sort, showFeatured],
+    [category, line, query, sort, showFeatured],
   );
   const total = visible.length + (showFeatured ? 1 : 0);
 
@@ -67,11 +77,19 @@ export default function ShoppingPage() {
     const next = new URLSearchParams(searchParams);
     if (id === ALL) next.delete('categoria');
     else next.set('categoria', id);
+    next.delete('linha');
     setSearchParams(next, { replace: true, preventScrollReset: true });
     if (scroll) {
       document.getElementById('vitrine')?.scrollIntoView({ block: 'start' });
       resultsRef.current?.focus({ preventScroll: true });
     }
+  };
+
+  const selectLine = (id) => {
+    const next = new URLSearchParams(searchParams);
+    if (id === ALL_LINES) next.delete('linha');
+    else next.set('linha', id);
+    setSearchParams(next, { replace: true, preventScrollReset: true });
   };
 
   const clearFilters = () => {
@@ -183,7 +201,8 @@ export default function ShoppingPage() {
                 </h2>
               </div>
               <p className="rj-heading__copy">
-                Produtos digitais com página própria e projetos personalizados sob orçamento.
+                Produtos digitais com página própria, impressos com arte inclusa e projetos
+                personalizados sob orçamento.
               </p>
             </header>
 
@@ -195,7 +214,7 @@ export default function ShoppingPage() {
                   type="search"
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Ex.: planner, cartões"
+                  placeholder="Ex.: planner, certificado"
                   autoComplete="off"
                 />
               </div>
@@ -223,12 +242,27 @@ export default function ShoppingPage() {
               </div>
             </div>
 
+            {category === STUDIO ? (
+              <div className="rj-shop-lines" role="group" aria-label="Linhas do Studio Goods">
+                {lineOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    aria-pressed={line === option.id}
+                    onClick={() => selectLine(option.id)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
             <p className="rj-shop-status" aria-live="polite" ref={resultsRef} tabIndex={-1}>
               {comingSoon
                 ? `${activeCategory.label}: em breve`
                 : `${total} ${total === 1 ? 'produto' : 'produtos'}${
                     activeCategory ? ` em ${activeCategory.label}` : ''
-                  }`}
+                  }${activeLine ? ` · ${activeLine.label}` : ''}`}
             </p>
 
             {showFeatured && !comingSoon ? (
@@ -247,14 +281,16 @@ export default function ShoppingPage() {
 
             {comingSoon ? (
               <div className="rj-shop-empty rj-shop-empty--soon">
-                <img
-                  src={activeCategory.image}
-                  alt=""
-                  width="480"
-                  height="640"
-                  loading="lazy"
-                  decoding="async"
-                />
+                {activeCategory.image ? (
+                  <img
+                    src={activeCategory.image}
+                    alt=""
+                    width="480"
+                    height="640"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : null}
                 <div>
                   <span className="rj-chip rj-chip--ink">Em breve</span>
                   <h3>{activeCategory.label}</h3>
@@ -280,6 +316,27 @@ export default function ShoppingPage() {
                   </button>
                 </div>
               </div>
+            ) : null}
+
+            {category === ALL || category === STUDIO ? (
+              <aside
+                className="rj-shop-custom rj-shop-custom--studio"
+                data-rj-reveal
+                aria-label="Como funciona o Studio Goods"
+              >
+                <p>
+                  <strong>Studio Goods: arte inclusa.</strong> Os preços são ilustrativos e já
+                  consideram a criação da arte, o ajuste ao gabarito de impressão, a produção e o
+                  envio. O valor final é confirmado no orçamento, e o prazo é de {STUDIO_LEAD_TIME}{' '}
+                  depois da aprovação da arte. Nenhuma compra é feita por esta página.
+                </p>
+                <ArrowButton
+                  variant="ink"
+                  href="https://wa.me/5561992191272?text=Oi%20R%C3%AA!%20Quero%20um%20or%C3%A7amento%20do%20Studio%20Goods."
+                >
+                  Pedir orçamento
+                </ArrowButton>
+              </aside>
             ) : null}
 
             {category === ALL || category === 'personalizados' ? (
