@@ -1,12 +1,13 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { Header } from '../src/components/layout/Header';
 import ProjectsPage from '../src/pages/ProjectsPage';
 import HomePage from '../src/pages/HomePage';
 import TedTecCasePage from '../src/pages/TedTecCasePage';
-import ToolsPage from '../src/pages/ToolsPage';
+import ShoppingPage from '../src/pages/ShoppingPage';
+import ShoppingCategoryPage from '../src/pages/ShoppingCategoryPage';
 
 describe('interações críticas', () => {
   it('filtra construções por contexto', async () => {
@@ -171,18 +172,94 @@ describe('interações críticas', () => {
     expect(entrar).toHaveFocus();
   });
 
-  it('filtra ferramentas e mantém o checkout', async () => {
+  it('abre as pastas do Arquivo JOIN por clique e por teclado', async () => {
     const user = userEvent.setup();
     render(
-      <MemoryRouter>
-        <ToolsPage />
+      <MemoryRouter initialEntries={['/shopping']}>
+        <ShoppingPage />
       </MemoryRouter>,
     );
-    await user.click(screen.getByRole('button', { name: 'guias' }));
-    expect(screen.getByRole('heading', { name: 'Planner Anti-Inflamatório' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Comprar' })).toHaveAttribute(
+    const tablist = screen.getByRole('tablist', { name: /universos do shopping join/i });
+    const tab = (name) => within(tablist).getByRole('tab', { name: new RegExp(name) });
+    expect(tab('Ferramentas Digitais')).toHaveAttribute('aria-selected', 'true');
+    const panel = screen.getByRole('tabpanel');
+    expect(within(panel).getByRole('link', { name: /abrir a categoria/i })).toHaveAttribute(
       'href',
-      'https://rehabloom.gumroad.com/l/guia',
+      '/shopping/ferramentas-digitais',
     );
+
+    await user.click(tab('JOIN Active'));
+    expect(tab('JOIN Active')).toHaveAttribute('aria-selected', 'true');
+    expect(
+      within(screen.getByRole('tabpanel')).getByRole('link', { name: /conhecer o universo/i }),
+    ).toHaveAttribute('href', '/shopping/join-active');
+
+    await user.keyboard('{ArrowRight}');
+    expect(tab('Lifestyle JOIN')).toHaveAttribute('aria-selected', 'true');
+    expect(tab('Lifestyle JOIN')).toHaveFocus();
+    // O arquivo é circular: depois da última pasta vem a primeira.
+    await user.keyboard('{ArrowRight}');
+    expect(tab('Ferramentas Digitais')).toHaveAttribute('aria-selected', 'true');
+    await user.keyboard('{End}');
+    expect(tab('Lifestyle JOIN')).toHaveAttribute('aria-selected', 'true');
+    await user.click(screen.getByRole('button', { name: /próxima pasta/i }));
+    expect(tab('Ferramentas Digitais')).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('filtra as ferramentas na página principal do Shopping', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={['/shopping']}>
+        <ShoppingPage />
+      </MemoryRouter>,
+    );
+    const filters = screen.getByRole('group', { name: /filtrar ferramentas/i });
+    const list = () => screen.queryByRole('list', { name: /ferramentas em destaque/i });
+    expect(within(list()).getAllByRole('article')).toHaveLength(3);
+    await user.click(within(filters).getByRole('button', { name: 'Finanças' }));
+    expect(within(list()).getAllByRole('article')).toHaveLength(1);
+    await user.click(within(filters).getByRole('button', { name: 'Negócios' }));
+    expect(list()).not.toBeInTheDocument();
+    expect(screen.getByText(/negócios: em breve/i)).toBeInTheDocument();
+  });
+
+  it('navega pelo catálogo de Papelaria & Impressos com linhas, busca e orçamento', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={['/shopping/papelaria-impressos?filtro=certificados']}>
+        <Routes>
+          <Route path="/shopping/:categoria" element={<ShoppingCategoryPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    const filters = screen.getByRole('group', { name: /filtrar por linha/i });
+    await waitFor(() =>
+      expect(
+        within(filters).getByRole('button', { name: 'Certificados & Diplomas' }),
+      ).toHaveAttribute('aria-pressed', 'true'),
+    );
+    expect(screen.getByText(/^3 produtos · certificados & diplomas$/i)).toBeInTheDocument();
+    const certificate = screen.getByRole('article', { name: 'Certificado A4' });
+    // Papelaria sem valores, quantidades ou prazos visíveis: só o pedido de orçamento.
+    expect(within(certificate).queryByText(/R\$/)).not.toBeInTheDocument();
+    expect(within(certificate).queryByText(/unidades|ilustrativo/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: /preço/i })).not.toBeInTheDocument();
+    expect(within(certificate).getByRole('link', { name: /pedir orçamento/i })).toHaveAttribute(
+      'href',
+      expect.stringContaining('https://wa.me/5561992191272?text='),
+    );
+
+    await user.click(within(filters).getByRole('button', { name: 'Fotografia & Memórias' }));
+    expect(screen.getAllByText('Sob consulta')).toHaveLength(3);
+
+    await user.click(within(filters).getByRole('button', { name: 'Todos' }));
+    expect(screen.getAllByText(/^21 produtos$/i)).toHaveLength(2);
+    expect(screen.queryByText(/camiseta|polo|dry fit|corta-vento/i)).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/buscar nesta categoria/i), 'xyz');
+    expect(screen.getByRole('heading', { name: /nenhum produto encontrado/i })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /ver todos os produtos/i }));
+    expect(screen.getByLabelText(/buscar nesta categoria/i)).toHaveValue('');
+    expect(screen.queryByRole('link', { name: /comprar/i })).not.toBeInTheDocument();
   });
 });

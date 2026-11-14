@@ -128,7 +128,7 @@ export const shoppingCategories = [
     image: '/assets/shop-ferramentas-capa-480.webp',
     imageSet: '/assets/shop-ferramentas-capa-480.webp 480w',
     imagePosition: '40% 45%',
-    to: '/ferramentas',
+    to: '/shopping/ferramentas-digitais',
     available: true,
   },
   {

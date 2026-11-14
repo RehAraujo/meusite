@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import App from '../src/App';
@@ -42,11 +42,11 @@ describe('rotas essenciais', () => {
     );
     expect(screen.getByRole('link', { name: /explorar shopping join/i })).toHaveAttribute(
       'href',
-      '/ferramentas',
+      '/shopping',
     );
-    // Shopping (menu e rodapé) leva à seção Shopping Join da Home, não a Ferramentas.
+    // Shopping (menu e rodapé) leva à página /shopping; Ferramentas é uma categoria dela.
     for (const link of screen.getAllByRole('link', { name: /^shopping$/i })) {
-      expect(link).toHaveAttribute('href', '/#shopping');
+      expect(link).toHaveAttribute('href', '/shopping');
     }
     expect(
       screen.getByRole('list', { name: /categorias do shopping join/i }).closest('section'),
@@ -173,6 +173,107 @@ describe('rotas essenciais', () => {
     expect(screen.getAllByRole('button', { name: /destacar obra/i })).toHaveLength(5);
     expect(screen.getByRole('link', { name: /voltar ao início/i })).toHaveAttribute('href', '/');
     expect(screen.queryByText(/esta página não foi/i)).not.toBeInTheDocument();
+  });
+
+  it('abre o Shopping JOIN como vitrine de curadoria, sem compra ativa', () => {
+    renderRoute('/shopping');
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: /seu estilo\. suas escolhas\. suas regras\./i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /explorar a loja/i })).toHaveAttribute(
+      'href',
+      '#ferramentas',
+    );
+    expect(screen.getByRole('link', { name: /ver categorias/i })).toHaveAttribute(
+      'href',
+      '#arquivo',
+    );
+    const tabs = within(screen.getByRole('tablist', { name: /universos do shopping join/i }));
+    expect(
+      tabs
+        .getAllByRole('tab')
+        .map((tab) => tab.querySelector('.rj-folder-card__label').textContent),
+    ).toEqual([
+      'Ferramentas Digitais',
+      'Papelaria & Impressos',
+      'Ateliê JOIN',
+      'JOIN Active',
+      'Lifestyle JOIN',
+    ]);
+    // Sem a vitrine duplicada "Seleção JOIN"; o Meu Dinheiro segue entre as ferramentas.
+    expect(screen.queryByText(/por onde começar/i)).not.toBeInTheDocument();
+    expect(
+      within(screen.getByRole('list', { name: /ferramentas em destaque/i })).getByRole('article', {
+        name: /meu dinheiro/i,
+      }),
+    ).toBeInTheDocument();
+    // Seção editorial antiga removida; sem categorias duplicadas.
+    expect(screen.queryByText(/personalidade também é produto/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^personalizados$/i)).not.toBeInTheDocument();
+    // Meu Dinheiro com o preço atualizado; papelaria sem valores nem prazos.
+    expect(screen.getByText('R$ 47')).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('list', { name: /seleção de papelaria/i })).queryByText(/R\$/),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/dias úteis/i)).not.toBeInTheDocument();
+    // Papelaria reduzida a 5 destaques, com caminho para o catálogo completo.
+    expect(
+      within(screen.getByRole('list', { name: /seleção de papelaria/i })).getAllByRole('article'),
+    ).toHaveLength(5);
+    expect(screen.getByRole('link', { name: /ver toda a papelaria/i })).toHaveAttribute(
+      'href',
+      '/shopping/papelaria-impressos',
+    );
+    expect(screen.getByRole('link', { name: /ver todas as ferramentas/i })).toHaveAttribute(
+      'href',
+      '/shopping/ferramentas-digitais',
+    );
+    for (const link of screen.getAllByRole('link', { name: /ver produto/i })) {
+      expect(link.getAttribute('href')).toMatch(
+        /^(https:\/\/shopping\.renatajoin\.com\/meu-dinheiro-minhas-regras\/|\/guia-alimentar|\/planner-treino)$/,
+      );
+    }
+    expect(screen.queryByRole('link', { name: /comprar/i })).not.toBeInTheDocument();
+  });
+
+  it('abre a página própria de um universo em breve, sem produtos fictícios', () => {
+    renderRoute('/shopping/join-active');
+    expect(screen.getByRole('heading', { level: 1, name: 'JOIN Active' })).toBeInTheDocument();
+    expect(screen.queryByRole('article')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /avise-me quando chegar/i })).toHaveAttribute(
+      'href',
+      expect.stringContaining('https://wa.me/5561992191272?text='),
+    );
+    expect(screen.getByRole('link', { name: /voltar ao shopping/i })).toHaveAttribute(
+      'href',
+      '/shopping',
+    );
+    // O brechó saiu da experiência pública: nem na navegação, nem como rota.
+    expect(screen.queryByText(/rejoin brechó/i)).not.toBeInTheDocument();
+  });
+
+  it('não expõe mais o ReJOIN Brechó', () => {
+    renderRoute('/shopping/rejoin-brecho');
+    expect(
+      screen.getByRole('heading', { level: 1, name: /esta página não foi encontrada/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('responde 404 para uma categoria inexistente do Shopping', () => {
+    renderRoute('/shopping/nao-existe');
+    expect(
+      screen.getByRole('heading', { level: 1, name: /esta página não foi encontrada/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('leva o endereço antigo de Ferramentas para a página da categoria', () => {
+    renderRoute('/ferramentas');
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Ferramentas Digitais' }),
+    ).toBeInTheDocument();
   });
 
   it('entrega uma página 404 útil', () => {
