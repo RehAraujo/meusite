@@ -22,7 +22,6 @@ const shoppingCategoryMeta = {
     'Moda fitness e acessórios esportivos. Fornecedores em definição.',
   ],
   lifestyle: ['Lifestyle', 'Objetos, acessórios e coleções autorais.'],
-  'rejoin-brecho': ['ReJOIN Brechó', 'Moda circular: peças únicas com curadoria pessoal.'],
   'colecoes-especiais': ['Coleções Especiais', 'Colaborações, edições limitadas e lançamentos.'],
 };
 const shoppingCategoryRoutes = Object.keys(shoppingCategoryMeta).map((id) => `/shopping/${id}`);

@@ -141,6 +141,11 @@ export function ArchiveFolders({ categories, counts, initial = categories[0].id 
                     loading="lazy"
                     decoding="async"
                     draggable="false"
+                    style={{
+                      objectFit: category.imageFit?.fit ?? 'cover',
+                      objectPosition: category.imageFit?.position,
+                      background: category.imageFit?.bg,
+                    }}
                   />
                 ) : (
                   <span className="rj-folder-card__type">{category.label}</span>

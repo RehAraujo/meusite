@@ -81,16 +81,6 @@ export default function ShoppingCategoryPage() {
                   >
                     Avise-me quando chegar
                   </ArrowButton>
-                  {category.instagram ? (
-                    <a
-                      className="rj-link rj-link--ink"
-                      href={category.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Acompanhar no Instagram <i aria-hidden="true">→</i>
-                    </a>
-                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -104,6 +94,11 @@ export default function ShoppingCategoryPage() {
                   height="600"
                   alt={category.imageAlt ?? ''}
                   fetchPriority="high"
+                  style={{
+                    objectFit: category.imageFit?.fit ?? 'cover',
+                    objectPosition: category.imageFit?.position,
+                    background: category.imageFit?.bg,
+                  }}
                 />
               </figure>
             ) : (

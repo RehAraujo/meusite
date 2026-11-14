@@ -115,7 +115,7 @@ export default function ShoppingPage() {
                 </h2>
               </div>
               <p className="rj-heading__copy">
-                Oito universos, cada um com a sua página. Deslize ou use as setas para navegar.
+                Sete universos, cada um com a sua página. Deslize ou use as setas para navegar.
               </p>
             </header>
             <ArchiveFolders categories={shoppingCategories} counts={counts} />
@@ -218,7 +218,7 @@ export default function ShoppingPage() {
             </ul>
             <div className="rj-shop-section-cta">
               <ArrowButton variant="pink" to={papelariaPage}>
-                Explorar toda a papelaria
+                Ver toda a papelaria
               </ArrowButton>
             </div>
           </div>
@@ -239,7 +239,8 @@ export default function ShoppingPage() {
                 </h2>
               </div>
               <p className="rj-heading__copy">
-                Cada universo abre com produtos, fotos e preços reais. Entre na página para receber o aviso.
+                Cada universo abre com produtos, fotos e preços reais. Entre na página para receber
+                o aviso.
               </p>
             </header>
             <ul className="rj-universes" aria-label="Universos em breve">

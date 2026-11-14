@@ -203,7 +203,6 @@ describe('rotas essenciais', () => {
       'Ateliê JOIN',
       'JOIN Active',
       'Lifestyle',
-      'ReJOIN Brechó',
       'Coleções Especiais',
     ]);
     // Seção editorial antiga removida; sem categorias duplicadas.
@@ -212,8 +211,8 @@ describe('rotas essenciais', () => {
     // Papelaria reduzida a 6 itens, com caminho para o catálogo completo.
     expect(
       within(screen.getByRole('list', { name: /seleção de papelaria/i })).getAllByRole('article'),
-    ).toHaveLength(6);
-    expect(screen.getByRole('link', { name: /explorar toda a papelaria/i })).toHaveAttribute(
+    ).toHaveLength(5);
+    expect(screen.getByRole('link', { name: /ver toda a papelaria/i })).toHaveAttribute(
       'href',
       '/shopping/papelaria-impressos',
     );
@@ -230,21 +229,26 @@ describe('rotas essenciais', () => {
   });
 
   it('abre a página própria de um universo em breve, sem produtos fictícios', () => {
-    renderRoute('/shopping/rejoin-brecho');
-    expect(screen.getByRole('heading', { level: 1, name: 'ReJOIN Brechó' })).toBeInTheDocument();
+    renderRoute('/shopping/join-active');
+    expect(screen.getByRole('heading', { level: 1, name: 'JOIN Active' })).toBeInTheDocument();
+    expect(screen.queryByRole('article')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /avise-me quando chegar/i })).toHaveAttribute(
       'href',
       expect.stringContaining('https://wa.me/5561992191272?text='),
-    );
-    expect(screen.queryByRole('article')).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /acompanhar no instagram/i })).toHaveAttribute(
-      'href',
-      'https://www.instagram.com/renatajoin_/',
     );
     expect(screen.getByRole('link', { name: /voltar ao shopping/i })).toHaveAttribute(
       'href',
       '/shopping',
     );
+    // O brechó saiu da experiência pública: nem na navegação, nem como rota.
+    expect(screen.queryByText(/rejoin brechó/i)).not.toBeInTheDocument();
+  });
+
+  it('não expõe mais o ReJOIN Brechó', () => {
+    renderRoute('/shopping/rejoin-brecho');
+    expect(
+      screen.getByRole('heading', { level: 1, name: /esta página não foi encontrada/i }),
+    ).toBeInTheDocument();
   });
 
   it('responde 404 para uma categoria inexistente do Shopping', () => {

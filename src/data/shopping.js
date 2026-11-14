@@ -34,7 +34,7 @@ export const shoppingHero = {
   image: {
     ...asset('hero-editorial', [720, 1200]),
     width: 1200,
-    height: 1500,
+    height: 1800,
     alt: 'Retrato em preto e branco de Renata Join sentada em um banco, de blusa preta de ombros abertos, sorrindo para a câmera',
   },
 };
@@ -63,6 +63,8 @@ export const shoppingCategories = [
       'Certificados, tags, etiquetas, adesivos, cartões, blocos e impressões fotográficas, com arte inclusa.',
     tone: 'pink',
     ...shoppingAsset('demo-cartoes-de-visita', [600, 960]),
+    // Produto inteiro: contain sobre a cor do fundo da foto.
+    imageFit: { fit: 'contain', bg: '#c4adb0' },
     status: 'ilustrativo',
     note: 'preços ilustrativos',
   },
@@ -73,6 +75,7 @@ export const shoppingCategories = [
     description: 'Templates Notion, sistemas, planners e recursos de produtividade.',
     tone: 'yellow',
     ...shoppingAsset('categoria-ferramentas', [480, 860]),
+    imageFit: { fit: 'cover', position: '50% 30%' },
     status: 'disponivel',
   },
   {
@@ -103,6 +106,7 @@ export const shoppingCategories = [
     tone: 'yellow',
     ...shopAsset('shop-lifestyle'),
     imageAlt: 'Renata Join de top e legging pretos, com óculos escuros, sentada em uma academia',
+    imageFit: { fit: 'cover', position: '50% 22%' },
     status: 'em-breve',
   },
   {
@@ -116,19 +120,8 @@ export const shoppingCategories = [
     status: 'em-breve',
   },
   {
-    id: 'rejoin-brecho',
-    number: '07',
-    label: 'ReJOIN Brechó',
-    description: 'Moda circular: peças únicas com curadoria pessoal.',
-    tone: 'pink',
-    ...shopAsset('shop-moda'),
-    imageAlt: 'Botas pretas de couro de cano alto e coturno sobre piso claro, com luz do sol',
-    status: 'em-breve',
-    instagram: 'https://www.instagram.com/renatajoin_/',
-  },
-  {
     id: 'colecoes-especiais',
-    number: '08',
+    number: '07',
     label: 'Coleções Especiais',
     description: 'Colaborações, edições limitadas e lançamentos.',
     tone: 'ink',
@@ -285,6 +278,7 @@ const studioGoods = [
       width: 960,
       height: 1200,
       alt: 'Quatro tags de Páscoa da Potência Solar, com mensagem, logotipo e ilustração de flores',
+      bg: '#ece8e3',
     },
     credit: 'Arte de projeto realizado · Potência Solar',
   }),
@@ -310,6 +304,7 @@ const studioGoods = [
       width: 960,
       height: 1200,
       alt: 'Duas etiquetas redondas da Vitrine de Chocolate, uma rosa e outra marrom, sobre fundo rosado',
+      bg: '#c9b2b3',
     },
     credit: 'Imagem de projeto realizado · Vitrine de Chocolate',
   }),
@@ -392,6 +387,7 @@ const studioGoods = [
       width: 960,
       height: 1200,
       alt: 'Cartões de visita cor-de-rosa da Vitrine de Chocolate em um porta-cartões',
+      bg: '#c4adb0',
     },
     credit: 'Imagem de projeto realizado · Vitrine de Chocolate',
   }),
@@ -436,6 +432,7 @@ const studioGoods = [
       width: 592,
       height: 528,
       alt: 'Embalagens Matula Café com a identidade visual aplicada',
+      bg: '#bad4dd',
     },
     credit: 'Imagem de projeto realizado · Matula Café',
   }),
@@ -506,15 +503,15 @@ export const toolFilters = [
   { id: 'organizacao', label: 'Organização pessoal' },
 ];
 
-// Seleção reduzida de Papelaria & Impressos na página principal do Shopping.
+// Cinco destaques de Papelaria & Impressos na página principal do Shopping.
+// Fotos polaroid seguem "Sob consulta" até a disponibilidade ser confirmada.
 export const papelariaHighlights = [
   'certificado-a4',
   'tags-especiais',
   'etiquetas-redondas',
   'cartao-de-visita',
-  'bloco-de-anotacoes',
   'fotos-polaroid',
-];
+]
 
 export const shoppingSortOptions = [
   { id: 'destaques', label: 'Destaques' },

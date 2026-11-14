@@ -35,17 +35,19 @@ function ProductAction({ product }) {
 export function ProductCard({ product, showCategory = false, categories = [] }) {
   const category = showCategory ? categories.find((item) => item.id === product.category) : null;
   const { image } = product;
+  // Produtos e mockups aparecem inteiros (contain) sobre a cor do próprio fundo.
+  const mediaStyle = image?.bg ? { background: image.bg } : undefined;
   return (
     <article
       className={`rj-product rj-product--${product.kind} rj-product--${product.pricing}`}
       aria-labelledby={`p-${product.id}`}
     >
-      <figure className="rj-product__media">
+      <figure className="rj-product__media" style={mediaStyle}>
         {image ? (
           <img
             src={image.src}
             srcSet={image.srcSet ?? undefined}
-            sizes="(width <= 40rem) 92vw, (width <= 64rem) 45vw, 18rem"
+            sizes="(width <= 40rem) 46vw, (width <= 64rem) 30vw, 15rem"
             width={image.width}
             height={image.height}
             alt={image.alt}
