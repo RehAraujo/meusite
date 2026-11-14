@@ -151,7 +151,7 @@ export const papelariaLines = [
 export const STUDIO_LEAD_TIME = '10 dias úteis';
 
 const toolById = Object.fromEntries(tools.map((tool) => [tool.id, tool]));
-// "R$ 49,00" → 49; "R$ 67" → 67.
+// "R$ 47" → 47; "R$ 47,90" → 47.9.
 const priceValue = (price) => Number(price.replace(/[^\d,]/g, '').replace(',', '.')) || null;
 
 const product = (fields) => ({

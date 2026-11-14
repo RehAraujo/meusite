@@ -214,7 +214,7 @@ describe('rotas essenciais', () => {
     expect(screen.queryByText(/personalidade também é produto/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/^personalizados$/i)).not.toBeInTheDocument();
     // Meu Dinheiro com o preço atualizado; papelaria sem valores nem prazos.
-    expect(screen.getByText('R$ 49,00')).toBeInTheDocument();
+    expect(screen.getByText('R$ 47')).toBeInTheDocument();
     expect(
       within(screen.getByRole('list', { name: /seleção de papelaria/i })).queryByText(/R\$/),
     ).not.toBeInTheDocument();
