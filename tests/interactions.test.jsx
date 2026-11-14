@@ -199,8 +199,11 @@ describe('interações críticas', () => {
     expect(tab('Lifestyle')).toHaveFocus();
     await user.keyboard('{End}');
     expect(tab('Coleções Especiais')).toHaveAttribute('aria-selected', 'true');
+    // O arquivo é circular: depois da última pasta vem a primeira.
     await user.keyboard('{ArrowRight}');
     expect(tab('Papelaria')).toHaveAttribute('aria-selected', 'true');
+    await user.click(screen.getByRole('button', { name: /próxima pasta/i }));
+    expect(tab('Ferramentas Digitais')).toHaveAttribute('aria-selected', 'true');
   });
 
   it('filtra as ferramentas na página principal do Shopping', async () => {

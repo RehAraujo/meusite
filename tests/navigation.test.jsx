@@ -193,16 +193,18 @@ describe('rotas essenciais', () => {
     );
     const tabs = within(screen.getByRole('tablist', { name: /universos do shopping join/i }));
     expect(
-      tabs.getAllByRole('tab').map((tab) => tab.textContent.replace(/\(em breve\)/, '').trim()),
+      tabs
+        .getAllByRole('tab')
+        .map((tab) => tab.querySelector('.rj-folder-card__label').textContent),
     ).toEqual([
-      '01Papelaria & Impressos',
-      '02Ferramentas Digitais',
-      '03Arte & Design',
-      '04Ateliê JOIN',
-      '05JOIN Active',
-      '06Lifestyle',
-      '07ReJOIN Brechó',
-      '08Coleções Especiais',
+      'Papelaria & Impressos',
+      'Ferramentas Digitais',
+      'Arte & Design',
+      'Ateliê JOIN',
+      'JOIN Active',
+      'Lifestyle',
+      'ReJOIN Brechó',
+      'Coleções Especiais',
     ]);
     // Seção editorial antiga removida; sem categorias duplicadas.
     expect(screen.queryByText(/personalidade também é produto/i)).not.toBeInTheDocument();
@@ -230,9 +232,10 @@ describe('rotas essenciais', () => {
   it('abre a página própria de um universo em breve, sem produtos fictícios', () => {
     renderRoute('/shopping/rejoin-brecho');
     expect(screen.getByRole('heading', { level: 1, name: 'ReJOIN Brechó' })).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: /este universo está sendo preparado/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /avise-me quando chegar/i })).toHaveAttribute(
+      'href',
+      expect.stringContaining('https://wa.me/5561992191272?text='),
+    );
     expect(screen.queryByRole('article')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /acompanhar no instagram/i })).toHaveAttribute(
       'href',

@@ -3,7 +3,6 @@ import { LazyMotion, domAnimation } from 'motion/react';
 import { Link, useParams } from 'react-router-dom';
 import { CatalogBrowser } from '../components/shop/CatalogBrowser';
 import { ArrowButton } from '../components/ui/ArrowButton';
-import { Eyebrow } from '../components/ui/Eyebrow';
 import {
   STUDIO_LEAD_TIME,
   categoryById,
@@ -74,6 +73,26 @@ export default function ShoppingCategoryPage() {
                   : `${products.length} ${products.length === 1 ? 'produto' : 'produtos'}`}
                 {category.status === 'ilustrativo' ? ' · preços ilustrativos' : ''}
               </p>
+              {soon ? (
+                <div className="rj-shop-cat-hero__actions">
+                  <ArrowButton
+                    variant={category.tone === 'ink' ? 'yellow' : 'ink'}
+                    href={whatsapp(`Oi Rê! Quero saber quando ${category.label} chegar.`)}
+                  >
+                    Avise-me quando chegar
+                  </ArrowButton>
+                  {category.instagram ? (
+                    <a
+                      className="rj-link rj-link--ink"
+                      href={category.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Acompanhar no Instagram <i aria-hidden="true">→</i>
+                    </a>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
             {category.image ? (
               <figure className="rj-shop-cat-hero__media">
@@ -95,48 +114,7 @@ export default function ShoppingCategoryPage() {
           </div>
         </section>
 
-        {soon ? (
-          <section
-            className="rj-section rj-section--white rj-shop-soon"
-            aria-labelledby="em-breve-title"
-          >
-            <div className="rj-container rj-shop-soon__grid" data-rj-reveal>
-              <div>
-                <Eyebrow>Em breve</Eyebrow>
-                <h2 id="em-breve-title">Este universo está sendo preparado.</h2>
-              </div>
-              <div className="rj-shop-soon__copy">
-                <p>
-                  Os produtos de {category.label} entram aqui quando estiverem confirmados, com
-                  fotos reais, preço e condições. Até lá, esta página mostra só o que já é real.
-                </p>
-                {category.instagram ? (
-                  <p>
-                    As peças do brechó aparecem primeiro no Instagram, onde a curadoria acontece.
-                  </p>
-                ) : null}
-                <div className="rj-shop-guide__actions">
-                  <ArrowButton
-                    variant="ink"
-                    href={whatsapp(`Oi Rê! Quero saber quando ${category.label} chegar.`)}
-                  >
-                    Avise-me quando chegar
-                  </ArrowButton>
-                  {category.instagram ? (
-                    <a
-                      className="rj-link rj-link--ink"
-                      href={category.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Acompanhar no Instagram <i aria-hidden="true">→</i>
-                    </a>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-          </section>
-        ) : (
+        {soon ? null : (
           <section
             className="rj-section rj-section--white rj-shop-showcase"
             id="catalogo"

@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArchiveFolders } from '../components/shop/ArchiveFolders';
 import { FeaturedProduct } from '../components/shop/FeaturedProduct';
 import { ProductCard } from '../components/shop/ProductCard';
+import { RevealHeadline } from '../components/shop/RevealHeadline';
 import { ArrowButton } from '../components/ui/ArrowButton';
 import { Eyebrow } from '../components/ui/Eyebrow';
 import { featuredProduct } from '../data/home';
@@ -70,38 +71,31 @@ export default function ShoppingPage() {
           <div className="rj-container rj-shop-hero__grid">
             <div className="rj-shop-hero__copy">
               <Eyebrow>{shoppingHero.eyebrow}</Eyebrow>
-              <h1 id="shopping-title">
-                <span>{shoppingHero.title[0]}</span> <span>{shoppingHero.title[1]}</span>{' '}
-                <em>{shoppingHero.title[2]}</em>
-              </h1>
+              <RevealHeadline id="shopping-title" parts={shoppingHero.title} />
               <p className="rj-shop-hero__lead">{shoppingHero.description}</p>
               <div className="rj-shop-hero__actions">
                 <ArrowButton variant="ink" href="#selecao">
                   Explorar a loja
                 </ArrowButton>
-                <a className="rj-btn rj-btn--outline" href="#arquivo">
-                  Ver categorias
+                <a className="rj-link rj-link--ink" href="#arquivo">
+                  Ver categorias <i aria-hidden="true">→</i>
                 </a>
               </div>
             </div>
             <figure className="rj-shop-hero__visual">
-              <span className="rj-shop-hero__block" aria-hidden="true" />
               <img
                 className="rj-shop-hero__photo"
                 src={shoppingHero.image.src}
                 srcSet={shoppingHero.image.srcSet}
-                sizes="(width <= 48rem) 88vw, 32rem"
+                sizes="(width <= 48rem) 100vw, 44vw"
                 width={shoppingHero.image.width}
                 height={shoppingHero.image.height}
                 alt={shoppingHero.image.alt}
                 fetchPriority="high"
               />
-              <figcaption className="rj-shop-hero__tag">
-                <span>Curadoria</span> Renata Join
+              <figcaption className="rj-shop-hero__caption">
+                Renata Join · Curadoria Shopping JOIN
               </figcaption>
-              <span className="rj-shop-hero__vertical" aria-hidden="true">
-                Shopping JOIN · Arquivo pessoal
-              </span>
             </figure>
           </div>
         </section>
@@ -117,11 +111,11 @@ export default function ShoppingPage() {
               <div>
                 <Eyebrow number="01">Arquivo JOIN</Eyebrow>
                 <h2 id="arquivo-title" className="rj-display-italic">
-                  Oito universos, uma pasta para cada.
+                  Escolha por onde entrar.
                 </h2>
               </div>
               <p className="rj-heading__copy">
-                Escolha uma aba para abrir a pasta. Cada universo tem a sua própria página.
+                Oito universos, cada um com a sua página. Deslize ou use as setas para navegar.
               </p>
             </header>
             <ArchiveFolders categories={shoppingCategories} counts={counts} />
@@ -241,11 +235,11 @@ export default function ShoppingPage() {
               <div>
                 <Eyebrow number="05">Outros universos JOIN</Eyebrow>
                 <h2 id="universos-title" className="rj-display-italic">
-                  Em preparação.
+                  Próximos lançamentos.
                 </h2>
               </div>
               <p className="rj-heading__copy">
-                Universos que chegam aos poucos. Cada página mostra o que vem por aí.
+                Cada universo abre com produtos, fotos e preços reais. Entre na página para receber o aviso.
               </p>
             </header>
             <ul className="rj-universes" aria-label="Universos em breve">
