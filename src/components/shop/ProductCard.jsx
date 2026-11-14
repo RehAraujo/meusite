@@ -77,6 +77,12 @@ export function ProductCard({ product, showCategory = false, categories = [] }) 
         </p>
         <h3 id={`p-${product.id}`}>{product.name}</h3>
         <p className="rj-product__description">{product.description}</p>
+        {/* Impressos reservam a linha do crédito para alinhar preços e CTAs. */}
+        {product.credit || product.kind === 'fisico' ? (
+          <p className="rj-product__credit" aria-hidden={product.credit ? undefined : true}>
+            {product.credit ?? '\u00a0'}
+          </p>
+        ) : null}
         <div className="rj-product__footer">
           <p className="rj-product__price">
             {product.pricing === 'orcamento' ? 'Sob orçamento' : product.price}
@@ -84,7 +90,6 @@ export function ProductCard({ product, showCategory = false, categories = [] }) 
           </p>
           <ProductAction product={product} />
         </div>
-        {product.credit ? <p className="rj-product__credit">{product.credit}</p> : null}
       </div>
     </article>
   );

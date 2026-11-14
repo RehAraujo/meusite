@@ -12,17 +12,18 @@ const shoppingCategoryMeta = {
     'Ferramentas Digitais',
     'Templates Notion, sistemas, planners e recursos de produtividade.',
   ],
-  'arte-design': [
-    'Arte & Design',
-    'Artes digitais, pôsteres, prints, ilustrações e materiais personalizados.',
+  'atelie-join': [
+    'Ateliê JOIN',
+    'Criações autorais em pequenos lotes: velas, aromatizantes, presentes, objetos artesanais e coleções limitadas.',
   ],
-  'atelie-join': ['Ateliê JOIN', 'Velas, aromatizantes, objetos artesanais e presentes.'],
   'join-active': [
     'JOIN Active',
     'Moda fitness e acessórios esportivos. Fornecedores em definição.',
   ],
-  lifestyle: ['Lifestyle', 'Objetos, acessórios e coleções autorais.'],
-  'colecoes-especiais': ['Coleções Especiais', 'Colaborações, edições limitadas e lançamentos.'],
+  lifestyle: [
+    'Lifestyle JOIN',
+    'Favoritos, recomendações pessoais e marcas parceiras, sempre com a relação comercial identificada.',
+  ],
 };
 const shoppingCategoryRoutes = Object.keys(shoppingCategoryMeta).map((id) => `/shopping/${id}`);
 

@@ -181,11 +181,11 @@ describe('interações críticas', () => {
     );
     const tablist = screen.getByRole('tablist', { name: /universos do shopping join/i });
     const tab = (name) => within(tablist).getByRole('tab', { name: new RegExp(name) });
-    expect(tab('Papelaria')).toHaveAttribute('aria-selected', 'true');
+    expect(tab('Ferramentas Digitais')).toHaveAttribute('aria-selected', 'true');
     const panel = screen.getByRole('tabpanel');
     expect(within(panel).getByRole('link', { name: /abrir a categoria/i })).toHaveAttribute(
       'href',
-      '/shopping/papelaria-impressos',
+      '/shopping/ferramentas-digitais',
     );
 
     await user.click(tab('JOIN Active'));
@@ -195,13 +195,13 @@ describe('interações críticas', () => {
     ).toHaveAttribute('href', '/shopping/join-active');
 
     await user.keyboard('{ArrowRight}');
-    expect(tab('Lifestyle')).toHaveAttribute('aria-selected', 'true');
-    expect(tab('Lifestyle')).toHaveFocus();
-    await user.keyboard('{End}');
-    expect(tab('Coleções Especiais')).toHaveAttribute('aria-selected', 'true');
+    expect(tab('Lifestyle JOIN')).toHaveAttribute('aria-selected', 'true');
+    expect(tab('Lifestyle JOIN')).toHaveFocus();
     // O arquivo é circular: depois da última pasta vem a primeira.
     await user.keyboard('{ArrowRight}');
-    expect(tab('Papelaria')).toHaveAttribute('aria-selected', 'true');
+    expect(tab('Ferramentas Digitais')).toHaveAttribute('aria-selected', 'true');
+    await user.keyboard('{End}');
+    expect(tab('Lifestyle JOIN')).toHaveAttribute('aria-selected', 'true');
     await user.click(screen.getByRole('button', { name: /próxima pasta/i }));
     expect(tab('Ferramentas Digitais')).toHaveAttribute('aria-selected', 'true');
   });

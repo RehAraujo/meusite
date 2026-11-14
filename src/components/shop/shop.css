@@ -166,16 +166,22 @@
     margin-top: clamp(2rem, 4vw, 3rem);
   }
 
+  /* Palco do coverflow na largura total da seção (a seção recorta o excesso). */
+  .rj-shop-archive {
+    overflow-x: clip;
+  }
+
   .rj-coverflow__stage {
     position: relative;
-    height: clamp(19rem, 30vw, 23rem);
+    height: clamp(19rem, 28vw, 24rem);
+    margin-inline: calc(-1 * max(var(--rj-gutter), (100vw - var(--rj-width)) / 2));
     overflow: hidden;
     touch-action: pan-y;
     user-select: none;
   }
 
   .rj-folder-card {
-    --w: clamp(11.5rem, 19vw, 15.5rem);
+    --w: clamp(11rem, 17vw, 16rem);
 
     position: absolute;
     bottom: 1.25rem;
@@ -644,6 +650,9 @@
 
   .rj-product__category {
     margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     color: var(--rj-text-light-soft);
     font: 600 0.64rem / 1.3 var(--rj-sans);
     letter-spacing: 0.12em;
@@ -651,8 +660,13 @@
   }
 
   .rj-shopping .rj-product h3 {
+    display: -webkit-box;
+    min-height: calc(2 * 1.25em);
     margin: 0.35rem 0 0;
+    overflow: hidden;
     font: 800 1.02rem / 1.25 var(--rj-serif);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     letter-spacing: -0.015em;
   }
 
@@ -663,16 +677,17 @@
     color: var(--rj-text-light-soft);
     font-size: 0.82rem;
     line-height: 1.5;
+    min-height: calc(2 * 1.5em);
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
 
+  /* Preço e CTA sempre na mesma faixa inferior do card. */
   .rj-product__footer {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
     margin-top: auto;
     padding-top: 0.75rem;
     border-top: 1px solid var(--rj-line-light);
@@ -731,11 +746,15 @@
     transform: translateX(4px);
   }
 
+  /* Crédito em uma linha, antes do rodapé: não desalinha preços e CTAs. */
   .rj-product__credit {
-    margin: 0.6rem 0 0;
+    margin: -0.45rem 0 0.85rem;
+    overflow: hidden;
     color: #6b6b6b;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .rj-shop-empty {
@@ -1094,6 +1113,41 @@
     color: inherit;
   }
 
+  /* Universos em breve: estrutura preparada, em uma linha de leitura. */
+  .rj-shop-prep {
+    padding-block: clamp(2rem, 4vw, 2.75rem);
+  }
+
+  .rj-shop-prep__grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.5rem;
+    align-items: center;
+  }
+
+  .rj-shop-prep p {
+    margin: 0;
+    color: var(--rj-text-light);
+  }
+
+  .rj-shop-prep ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .rj-shop-prep li {
+    padding: 0.55rem 0.9rem;
+    border: 1px solid var(--rj-line-light);
+    border-radius: 999px;
+    font: 600 0.7rem / 1 var(--rj-sans);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
   .rj-shop-more__head {
     display: flex;
     flex-wrap: wrap;
@@ -1242,12 +1296,6 @@
 
     .rj-universes {
       grid-template-columns: 1fr;
-    }
-
-    .rj-product__footer {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
     }
 
     .rj-shop-empty {

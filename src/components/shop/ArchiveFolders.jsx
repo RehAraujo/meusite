@@ -18,10 +18,10 @@ const statusText = {
 // Posição de cada pasta pela distância até a ativa (em % da largura da pasta).
 const place = (offset) => {
   const distance = Math.abs(offset);
-  const x = distance === 0 ? 0 : Math.sign(offset) * (62 + (distance - 1) * 32);
+  const x = distance === 0 ? 0 : Math.sign(offset) * (104 + (distance - 1) * 96);
   return {
     x: `${x}%`,
-    scale: distance === 0 ? 1 : Math.max(0.74, 0.9 - (distance - 1) * 0.07),
+    scale: distance === 0 ? 1 : Math.max(0.78, 0.9 - (distance - 1) * 0.1),
     y: distance === 0 ? -10 : 0,
     opacity: distance > 2 ? 0 : 1,
     zIndex: 20 - distance,

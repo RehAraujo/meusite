@@ -2,12 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { LazyMotion, domAnimation } from 'motion/react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArchiveFolders } from '../components/shop/ArchiveFolders';
-import { FeaturedProduct } from '../components/shop/FeaturedProduct';
 import { ProductCard } from '../components/shop/ProductCard';
 import { RevealHeadline } from '../components/shop/RevealHeadline';
 import { ArrowButton } from '../components/ui/ArrowButton';
 import { Eyebrow } from '../components/ui/Eyebrow';
-import { featuredProduct } from '../data/home';
 import {
   STUDIO_LEAD_TIME,
   categoryById,
@@ -34,8 +32,8 @@ const papelariaPage = categoryById['papelaria-impressos'].path;
 
 /*
  * /shopping: vitrine de curadoria do Shopping JOIN (não o catálogo completo).
- * Ordem: hero editorial → Arquivo JOIN (pastas) → Seleção JOIN → Ferramentas
- * Digitais → Papelaria & Impressos → outros universos → como comprar.
+ * Ordem: hero editorial → universos (coverflow) → Ferramentas Digitais →
+ * Papelaria & Impressos → próximos universos → como comprar.
  * Cada universo tem página própria em /shopping/{id}. Nada aqui inicia compra.
  */
 export default function ShoppingPage() {
@@ -74,7 +72,7 @@ export default function ShoppingPage() {
               <RevealHeadline id="shopping-title" parts={shoppingHero.title} />
               <p className="rj-shop-hero__lead">{shoppingHero.description}</p>
               <div className="rj-shop-hero__actions">
-                <ArrowButton variant="ink" href="#selecao">
+                <ArrowButton variant="ink" href="#ferramentas">
                   Explorar a loja
                 </ArrowButton>
                 <a className="rj-link rj-link--ink" href="#arquivo">
@@ -109,42 +107,18 @@ export default function ShoppingPage() {
           <div className="rj-container">
             <header className="rj-heading" data-rj-reveal>
               <div>
-                <Eyebrow number="01">Arquivo JOIN</Eyebrow>
+                <Eyebrow number="01">Universos JOIN</Eyebrow>
                 <h2 id="arquivo-title" className="rj-display-italic">
-                  Escolha por onde entrar.
+                  Cinco universos. Diferentes formas de viver o seu estilo.
                 </h2>
               </div>
-              <p className="rj-heading__copy">
-                Sete universos, cada um com a sua página. Deslize ou use as setas para navegar.
-              </p>
+              <p className="rj-heading__copy">Deslize ou use as setas para explorar.</p>
             </header>
             <ArchiveFolders categories={shoppingCategories} counts={counts} />
           </div>
         </section>
 
-        {/* 3. SELEÇÃO JOIN */}
-        <section
-          className="rj-section rj-section--white rj-shop-selection"
-          id="selecao"
-          aria-labelledby="selecao-title"
-        >
-          <div className="rj-container">
-            <header className="rj-heading" data-rj-reveal>
-              <div>
-                <Eyebrow number="02">Seleção JOIN</Eyebrow>
-                <h2 id="selecao-title" className="rj-display-italic">
-                  Por onde começar.
-                </h2>
-              </div>
-              <p className="rj-heading__copy">
-                O destaque da loja agora: um sistema para decidir o próprio dinheiro com clareza.
-              </p>
-            </header>
-            <FeaturedProduct product={featuredProduct} titleId="selecao-destaque" />
-          </div>
-        </section>
-
-        {/* 4. FERRAMENTAS DIGITAIS */}
+        {/* 3. FERRAMENTAS DIGITAIS */}
         <section
           className="rj-section rj-section--ink rj-shop-tools"
           id="ferramentas"
@@ -153,7 +127,7 @@ export default function ShoppingPage() {
           <div className="rj-container">
             <header className="rj-shop-tools__head" data-rj-reveal>
               <div>
-                <Eyebrow number="03">Ferramentas Digitais</Eyebrow>
+                <Eyebrow number="02">Ferramentas Digitais</Eyebrow>
                 <h2 id="ferramentas-title">Ferramentas para colocar a vida em ordem.</h2>
                 <p>Sistemas, templates e recursos digitais para organizar melhor o que importa.</p>
               </div>
@@ -190,7 +164,7 @@ export default function ShoppingPage() {
           </div>
         </section>
 
-        {/* 5. PAPELARIA & IMPRESSOS */}
+        {/* 4. PAPELARIA & IMPRESSOS */}
         <section
           className="rj-section rj-section--white rj-shop-paper"
           id="papelaria"
@@ -199,7 +173,7 @@ export default function ShoppingPage() {
           <div className="rj-container">
             <header className="rj-heading" data-rj-reveal>
               <div>
-                <Eyebrow number="04">Papelaria & Impressos · Studio Goods</Eyebrow>
+                <Eyebrow number="03">Papelaria & Impressos · Studio Goods</Eyebrow>
                 <h2 id="papelaria-title" className="rj-display-italic">
                   Impressos com a sua cara, arte inclusa.
                 </h2>
@@ -224,7 +198,7 @@ export default function ShoppingPage() {
           </div>
         </section>
 
-        {/* 6. OUTROS UNIVERSOS */}
+        {/* 5. OUTROS UNIVERSOS */}
         <section
           className="rj-section rj-section--paper rj-shop-universes"
           id="universos"
@@ -233,7 +207,7 @@ export default function ShoppingPage() {
           <div className="rj-container">
             <header className="rj-heading" data-rj-reveal>
               <div>
-                <Eyebrow number="05">Outros universos JOIN</Eyebrow>
+                <Eyebrow number="04">Outros universos JOIN</Eyebrow>
                 <h2 id="universos-title" className="rj-display-italic">
                   Próximos lançamentos.
                 </h2>
@@ -262,7 +236,7 @@ export default function ShoppingPage() {
           </div>
         </section>
 
-        {/* 7. COMO COMPRAR */}
+        {/* 6. COMO COMPRAR */}
         <section
           className="rj-section rj-section--white rj-shop-guide"
           id="como-comprar"
@@ -271,7 +245,7 @@ export default function ShoppingPage() {
           <div className="rj-container">
             <header className="rj-heading" data-rj-reveal>
               <div>
-                <Eyebrow number="06">Como comprar</Eyebrow>
+                <Eyebrow number="05">Como comprar</Eyebrow>
                 <h2 id="guia-title" className="rj-display-italic">
                   Simples, do primeiro clique à entrega.
                 </h2>

@@ -55,8 +55,18 @@ const shoppingAsset = (name, sizes) => {
  */
 export const shoppingCategories = [
   {
-    id: 'papelaria-impressos',
+    id: 'ferramentas-digitais',
     number: '01',
+    label: 'Ferramentas Digitais',
+    description: 'Templates Notion, sistemas, planners e recursos de produtividade.',
+    tone: 'yellow',
+    ...shoppingAsset('categoria-ferramentas', [480, 860]),
+    imageFit: { fit: 'cover', position: '50% 30%' },
+    status: 'disponivel',
+  },
+  {
+    id: 'papelaria-impressos',
+    number: '02',
     label: 'Papelaria & Impressos',
     signature: 'Studio Goods',
     description:
@@ -69,38 +79,21 @@ export const shoppingCategories = [
     note: 'preços ilustrativos',
   },
   {
-    id: 'ferramentas-digitais',
-    number: '02',
-    label: 'Ferramentas Digitais',
-    description: 'Templates Notion, sistemas, planners e recursos de produtividade.',
-    tone: 'yellow',
-    ...shoppingAsset('categoria-ferramentas', [480, 860]),
-    imageFit: { fit: 'cover', position: '50% 30%' },
-    status: 'disponivel',
-  },
-  {
-    id: 'arte-design',
+    // Ateliê e Coleções Especiais unificados: autoral, pequenos lotes, edições limitadas.
+    id: 'atelie-join',
     number: '03',
-    label: 'Arte & Design',
-    description: 'Artes digitais, pôsteres, prints, ilustrações e materiais personalizados.',
+    label: 'Ateliê JOIN',
+    description:
+      'Criações autorais em pequenos lotes: velas, aromatizantes, presentes, objetos artesanais e coleções limitadas.',
     tone: 'ink',
     image: null,
     imageSet: null,
     status: 'em-breve',
-  },
-  {
-    id: 'atelie-join',
-    number: '04',
-    label: 'Ateliê JOIN',
-    description: 'Velas, aromatizantes, objetos artesanais e presentes.',
-    tone: 'paper',
-    image: null,
-    imageSet: null,
-    status: 'em-breve',
+    statuses: ['Disponível', 'Sob encomenda', 'Em breve'],
   },
   {
     id: 'join-active',
-    number: '05',
+    number: '04',
     label: 'JOIN Active',
     description: 'Moda fitness e acessórios esportivos. Fornecedores em definição.',
     tone: 'yellow',
@@ -110,24 +103,17 @@ export const shoppingCategories = [
     status: 'em-breve',
   },
   {
+    // Curadoria: produtos que a Renata usa, recomenda ou divulga em parceria.
     id: 'lifestyle',
-    number: '06',
-    label: 'Lifestyle',
-    description: 'Objetos, acessórios e coleções autorais.',
+    number: '05',
+    label: 'Lifestyle JOIN',
+    description:
+      'Favoritos, recomendações pessoais e marcas parceiras, sempre com a relação comercial identificada.',
     tone: 'paper',
     image: null,
     imageSet: null,
     status: 'em-breve',
-  },
-  {
-    id: 'colecoes-especiais',
-    number: '07',
-    label: 'Coleções Especiais',
-    description: 'Colaborações, edições limitadas e lançamentos.',
-    tone: 'ink',
-    image: null,
-    imageSet: null,
-    status: 'em-breve',
+    curation: true,
   },
 ].map((category) => ({ ...category, path: `/shopping/${category.id}` }));
 
@@ -141,7 +127,7 @@ export const legacyCategoryIds = {
   'studio-goods': 'papelaria-impressos',
   'ferramentas-digitais': 'ferramentas-digitais',
   lifestyle: 'lifestyle',
-  colecoes: 'colecoes-especiais',
+  colecoes: 'atelie-join',
   'join-active': 'join-active',
 };
 
@@ -276,11 +262,10 @@ const studioGoods = [
     image: {
       ...asset('produto-tags', [600, 960]),
       width: 960,
-      height: 1200,
-      alt: 'Quatro tags de Páscoa da Potência Solar, com mensagem, logotipo e ilustração de flores',
-      bg: '#ece8e3',
+      height: 960,
+      alt: 'Duas tags da Maria Portes, uma preta e uma branca, com cordão de couro',
     },
-    credit: 'Arte de projeto realizado · Potência Solar',
+    credit: 'Imagem de projeto realizado · Maria Portes',
   }),
   studio({
     id: 'tags-com-furo',
@@ -383,13 +368,12 @@ const studioGoods = [
     price: 190,
     unit: '1.000 unidades',
     image: {
-      ...asset('demo-cartoes-de-visita', [600, 960]),
-      width: 960,
-      height: 1200,
-      alt: 'Cartões de visita cor-de-rosa da Vitrine de Chocolate em um porta-cartões',
-      bg: '#c4adb0',
+      ...asset('produto-cartao-visita', [600, 800]),
+      width: 800,
+      height: 800,
+      alt: 'Mão segurando um cartão de visita da Unharte, com outros cartões da marca ao fundo',
     },
-    credit: 'Imagem de projeto realizado · Vitrine de Chocolate',
+    credit: 'Imagem de projeto realizado · Unharte',
   }),
   studio({
     id: 'cartao-de-visita-supremo',
@@ -496,6 +480,16 @@ export const shoppingProducts = [
   ...studioGoods,
 ];
 
+/*
+ * Lifestyle JOIN: cada item informa a relação comercial (sem marcas, cupons ou
+ * parcerias inventadas). Campos: source, partner, disclosure, coupon, href.
+ */
+export const sourceLabels = {
+  proprio: 'Produto próprio',
+  parceiro: 'Parceria comercial',
+  recomendacao: 'Recomendação · link externo',
+};
+
 export const toolFilters = [
   { id: 'financas', label: 'Finanças' },
   { id: 'produtividade', label: 'Produtividade' },
@@ -506,10 +500,10 @@ export const toolFilters = [
 // Cinco destaques de Papelaria & Impressos na página principal do Shopping.
 // Fotos polaroid seguem "Sob consulta" até a disponibilidade ser confirmada.
 export const papelariaHighlights = [
+  'cartao-de-visita',
   'certificado-a4',
   'tags-especiais',
   'etiquetas-redondas',
-  'cartao-de-visita',
   'fotos-polaroid',
 ]
 
@@ -525,6 +519,7 @@ export const statusLabels = {
   'em-breve': 'Em breve',
   'sob-consulta': 'Sob consulta',
   'sob-orcamento': 'Sob orçamento',
+  'sob-encomenda': 'Sob encomenda',
   indisponivel: 'Indisponível',
 };
 

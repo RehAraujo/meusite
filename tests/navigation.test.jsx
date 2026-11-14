@@ -185,7 +185,7 @@ describe('rotas essenciais', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /explorar a loja/i })).toHaveAttribute(
       'href',
-      '#selecao',
+      '#ferramentas',
     );
     expect(screen.getByRole('link', { name: /ver categorias/i })).toHaveAttribute(
       'href',
@@ -197,18 +197,23 @@ describe('rotas essenciais', () => {
         .getAllByRole('tab')
         .map((tab) => tab.querySelector('.rj-folder-card__label').textContent),
     ).toEqual([
-      'Papelaria & Impressos',
       'Ferramentas Digitais',
-      'Arte & Design',
+      'Papelaria & Impressos',
       'Ateliê JOIN',
       'JOIN Active',
-      'Lifestyle',
-      'Coleções Especiais',
+      'Lifestyle JOIN',
     ]);
+    // Sem a vitrine duplicada "Seleção JOIN"; o Meu Dinheiro segue entre as ferramentas.
+    expect(screen.queryByText(/por onde começar/i)).not.toBeInTheDocument();
+    expect(
+      within(screen.getByRole('list', { name: /ferramentas em destaque/i })).getByRole('article', {
+        name: /meu dinheiro/i,
+      }),
+    ).toBeInTheDocument();
     // Seção editorial antiga removida; sem categorias duplicadas.
     expect(screen.queryByText(/personalidade também é produto/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/^personalizados$/i)).not.toBeInTheDocument();
-    // Papelaria reduzida a 6 itens, com caminho para o catálogo completo.
+    // Papelaria reduzida a 5 destaques, com caminho para o catálogo completo.
     expect(
       within(screen.getByRole('list', { name: /seleção de papelaria/i })).getAllByRole('article'),
     ).toHaveLength(5);

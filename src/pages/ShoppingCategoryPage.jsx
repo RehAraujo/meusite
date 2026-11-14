@@ -9,6 +9,7 @@ import {
   papelariaLines,
   shoppingCategories,
   shoppingProducts,
+  sourceLabels,
   toolFilters,
 } from '../data/shopping';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
@@ -108,6 +109,28 @@ export default function ShoppingCategoryPage() {
             )}
           </div>
         </section>
+
+        {soon && (category.curation || category.statuses) ? (
+          <section
+            className="rj-section rj-section--white rj-shop-prep"
+            aria-label={`Como vai funcionar ${category.label}`}
+          >
+            <div className="rj-container rj-shop-prep__grid">
+              <p>
+                {category.curation
+                  ? 'Cada item vai mostrar a relação comercial, sem letras miúdas:'
+                  : 'Cada criação vai mostrar como pode ser adquirida:'}
+              </p>
+              <ul>
+                {(category.curation ? Object.values(sourceLabels) : category.statuses).map(
+                  (label) => (
+                    <li key={label}>{label}</li>
+                  ),
+                )}
+              </ul>
+            </div>
+          </section>
+        ) : null}
 
         {soon ? null : (
           <section
