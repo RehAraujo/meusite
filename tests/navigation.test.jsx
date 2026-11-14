@@ -175,46 +175,86 @@ describe('rotas essenciais', () => {
     expect(screen.queryByText(/esta página não foi/i)).not.toBeInTheDocument();
   });
 
-  it('abre o Shopping Join com vitrine, categorias e compra desativada', () => {
+  it('abre o Shopping JOIN como vitrine de curadoria, sem compra ativa', () => {
     renderRoute('/shopping');
     expect(
-      screen.getByRole('heading', { level: 1, name: /coisas que fazem sentido/i }),
+      screen.getByRole('heading', {
+        level: 1,
+        name: /seu estilo\. suas escolhas\. suas regras\./i,
+      }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /explorar produtos/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /explorar a loja/i })).toHaveAttribute(
       'href',
-      '#vitrine',
+      '#selecao',
     );
     expect(screen.getByRole('link', { name: /ver categorias/i })).toHaveAttribute(
       'href',
-      '#categorias',
+      '#arquivo',
     );
-    const folders = screen.getByRole('list', { name: /pastas de categorias/i });
-    for (const label of [
-      'Personalizados',
-      'Ferramentas Digitais',
-      'Lifestyle JOIN',
-      'Coleções Especiais',
-      'Studio Goods',
-      'JOIN Active',
-    ]) {
-      expect(within(folders).getByRole('button', { name: new RegExp(label) })).toHaveAttribute(
-        'aria-pressed',
-        'false',
-      );
-    }
+    const tabs = within(screen.getByRole('tablist', { name: /universos do shopping join/i }));
+    expect(
+      tabs.getAllByRole('tab').map((tab) => tab.textContent.replace(/\(em breve\)/, '').trim()),
+    ).toEqual([
+      '01Papelaria & Impressos',
+      '02Ferramentas Digitais',
+      '03Arte & Design',
+      '04Ateliê JOIN',
+      '05JOIN Active',
+      '06Lifestyle',
+      '07ReJOIN Brechó',
+      '08Coleções Especiais',
+    ]);
+    // Seção editorial antiga removida; sem categorias duplicadas.
+    expect(screen.queryByText(/personalidade também é produto/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^personalizados$/i)).not.toBeInTheDocument();
+    // Papelaria reduzida a 6 itens, com caminho para o catálogo completo.
+    expect(
+      within(screen.getByRole('list', { name: /seleção de papelaria/i })).getAllByRole('article'),
+    ).toHaveLength(6);
+    expect(screen.getByRole('link', { name: /explorar toda a papelaria/i })).toHaveAttribute(
+      'href',
+      '/shopping/papelaria-impressos',
+    );
+    expect(screen.getByRole('link', { name: /ver todas as ferramentas/i })).toHaveAttribute(
+      'href',
+      '/shopping/ferramentas-digitais',
+    );
     for (const link of screen.getAllByRole('link', { name: /ver produto/i })) {
       expect(link.getAttribute('href')).toMatch(
         /^(https:\/\/shopping\.renatajoin\.com\/meu-dinheiro-minhas-regras\/|\/guia-alimentar|\/planner-treino)$/,
       );
     }
     expect(screen.queryByRole('link', { name: /comprar/i })).not.toBeInTheDocument();
-    expect(screen.getAllByText('Sob orçamento')).toHaveLength(4);
   });
 
-  it('leva o endereço antigo de Ferramentas para a categoria no Shopping', () => {
+  it('abre a página própria de um universo em breve, sem produtos fictícios', () => {
+    renderRoute('/shopping/rejoin-brecho');
+    expect(screen.getByRole('heading', { level: 1, name: 'ReJOIN Brechó' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /este universo está sendo preparado/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('article')).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /acompanhar no instagram/i })).toHaveAttribute(
+      'href',
+      'https://www.instagram.com/renatajoin_/',
+    );
+    expect(screen.getByRole('link', { name: /voltar ao shopping/i })).toHaveAttribute(
+      'href',
+      '/shopping',
+    );
+  });
+
+  it('responde 404 para uma categoria inexistente do Shopping', () => {
+    renderRoute('/shopping/nao-existe');
+    expect(
+      screen.getByRole('heading', { level: 1, name: /esta página não foi encontrada/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('leva o endereço antigo de Ferramentas para a página da categoria', () => {
     renderRoute('/ferramentas');
     expect(
-      screen.getByRole('heading', { level: 1, name: /coisas que fazem sentido/i }),
+      screen.getByRole('heading', { level: 1, name: 'Ferramentas Digitais' }),
     ).toBeInTheDocument();
   });
 

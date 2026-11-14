@@ -1,12 +1,13 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { Header } from '../src/components/layout/Header';
 import ProjectsPage from '../src/pages/ProjectsPage';
 import HomePage from '../src/pages/HomePage';
 import TedTecCasePage from '../src/pages/TedTecCasePage';
 import ShoppingPage from '../src/pages/ShoppingPage';
+import ShoppingCategoryPage from '../src/pages/ShoppingCategoryPage';
 
 describe('interações críticas', () => {
   it('filtra construções por contexto', async () => {
@@ -171,60 +172,70 @@ describe('interações críticas', () => {
     expect(entrar).toHaveFocus();
   });
 
-  it('filtra, busca e ordena a vitrine do Shopping sem ativar compra', async () => {
+  it('abre as pastas do Arquivo JOIN por clique e por teclado', async () => {
     const user = userEvent.setup();
     render(
-      <MemoryRouter initialEntries={['/shopping?categoria=ferramentas-digitais']}>
+      <MemoryRouter initialEntries={['/shopping']}>
         <ShoppingPage />
       </MemoryRouter>,
     );
-    const filters = screen.getByRole('group', { name: /filtrar por categoria/i });
-    // A categoria da URL é aplicada depois da hidratação.
-    await waitFor(() =>
-      expect(within(filters).getByRole('button', { name: 'Ferramentas Digitais' })).toHaveAttribute(
-        'aria-pressed',
-        'true',
-      ),
+    const tablist = screen.getByRole('tablist', { name: /universos do shopping join/i });
+    const tab = (name) => within(tablist).getByRole('tab', { name: new RegExp(name) });
+    expect(tab('Papelaria')).toHaveAttribute('aria-selected', 'true');
+    const panel = screen.getByRole('tabpanel');
+    expect(within(panel).getByRole('link', { name: /abrir a categoria/i })).toHaveAttribute(
+      'href',
+      '/shopping/papelaria-impressos',
     );
-    expect(screen.getByRole('heading', { name: 'Planner Anti-Inflamatório' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Cartões de visita' })).not.toBeInTheDocument();
 
-    await user.click(within(filters).getByRole('button', { name: 'Personalizados' }));
-    const card = screen.getByRole('article', { name: 'Cartões de visita' });
-    expect(within(card).getByText('Demonstrativo')).toBeInTheDocument();
-    expect(within(card).queryByRole('link')).not.toBeInTheDocument();
-
-    await user.click(within(filters).getByRole('button', { name: 'Lifestyle JOIN' }));
-    expect(screen.getByRole('heading', { name: 'Lifestyle JOIN' })).toBeInTheDocument();
-    expect(screen.getByText(/lifestyle join: em breve/i)).toBeInTheDocument();
-
-    await user.click(within(filters).getByRole('button', { name: 'Todos' }));
-    await user.type(screen.getByLabelText(/buscar produtos/i), 'treino');
-    expect(screen.getByRole('heading', { name: 'Planner de Treino' })).toBeInTheDocument();
-    expect(screen.getByText(/^1 produto$/i)).toBeInTheDocument();
-
-    await user.clear(screen.getByLabelText(/buscar produtos/i));
-    await user.type(screen.getByLabelText(/buscar produtos/i), 'xyz');
-    expect(screen.getByRole('heading', { name: /nenhum produto encontrado/i })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /limpar busca e filtros/i }));
-    expect(screen.getByLabelText(/buscar produtos/i)).toHaveValue('');
-  });
-  it('organiza o Studio Goods em linhas com preço ilustrativo e pedido de orçamento', async () => {
-    const user = userEvent.setup();
-    render(
-      <MemoryRouter initialEntries={['/shopping?categoria=studio-goods&linha=certificados']}>
-        <ShoppingPage />
-      </MemoryRouter>,
-    );
-    const lines = await screen.findByRole('group', { name: /linhas do studio goods/i });
-    expect(within(lines).getByRole('button', { name: 'Certificados & Diplomas' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    await user.click(tab('JOIN Active'));
+    expect(tab('JOIN Active')).toHaveAttribute('aria-selected', 'true');
     expect(
-      screen.getByText(/^3 produtos em studio goods · certificados & diplomas$/i),
-    ).toBeInTheDocument();
+      within(screen.getByRole('tabpanel')).getByRole('link', { name: /conhecer o universo/i }),
+    ).toHaveAttribute('href', '/shopping/join-active');
 
+    await user.keyboard('{ArrowRight}');
+    expect(tab('Lifestyle')).toHaveAttribute('aria-selected', 'true');
+    expect(tab('Lifestyle')).toHaveFocus();
+    await user.keyboard('{End}');
+    expect(tab('Coleções Especiais')).toHaveAttribute('aria-selected', 'true');
+    await user.keyboard('{ArrowRight}');
+    expect(tab('Papelaria')).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('filtra as ferramentas na página principal do Shopping', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={['/shopping']}>
+        <ShoppingPage />
+      </MemoryRouter>,
+    );
+    const filters = screen.getByRole('group', { name: /filtrar ferramentas/i });
+    const list = () => screen.queryByRole('list', { name: /ferramentas em destaque/i });
+    expect(within(list()).getAllByRole('article')).toHaveLength(3);
+    await user.click(within(filters).getByRole('button', { name: 'Finanças' }));
+    expect(within(list()).getAllByRole('article')).toHaveLength(1);
+    await user.click(within(filters).getByRole('button', { name: 'Negócios' }));
+    expect(list()).not.toBeInTheDocument();
+    expect(screen.getByText(/negócios: em breve/i)).toBeInTheDocument();
+  });
+
+  it('navega pelo catálogo de Papelaria & Impressos com linhas, busca e orçamento', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={['/shopping/papelaria-impressos?filtro=certificados']}>
+        <Routes>
+          <Route path="/shopping/:categoria" element={<ShoppingCategoryPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    const filters = screen.getByRole('group', { name: /filtrar por linha/i });
+    await waitFor(() =>
+      expect(
+        within(filters).getByRole('button', { name: 'Certificados & Diplomas' }),
+      ).toHaveAttribute('aria-pressed', 'true'),
+    );
+    expect(screen.getByText(/^3 produtos · certificados & diplomas$/i)).toBeInTheDocument();
     const certificate = screen.getByRole('article', { name: 'Certificado A4' });
     expect(within(certificate).getByText('R$ 200')).toBeInTheDocument();
     expect(within(certificate).getByText(/10 unidades · preço ilustrativo/i)).toBeInTheDocument();
@@ -233,25 +244,17 @@ describe('interações críticas', () => {
       expect.stringContaining('https://wa.me/5561992191272?text='),
     );
 
-    await user.click(within(lines).getByRole('button', { name: 'Para sua Marca' }));
-    const card = screen.getByRole('article', { name: 'Cartão de visita' });
-    expect(within(card).getByText('R$ 190')).toBeInTheDocument();
-    expect(within(card).getByText(/1\.000 unidades/)).toBeInTheDocument();
-
-    await user.click(within(lines).getByRole('button', { name: 'Fotografia & Memórias' }));
+    await user.click(within(filters).getByRole('button', { name: 'Fotografia & Memórias' }));
     expect(screen.getAllByText('Sob consulta')).toHaveLength(3);
 
-    // Sem vestuário na curadoria e sem compra direta.
-    await user.click(within(lines).getByRole('button', { name: 'Todas as linhas' }));
-    expect(screen.getByText(/^21 produtos em studio goods$/i)).toBeInTheDocument();
+    await user.click(within(filters).getByRole('button', { name: 'Todos' }));
+    expect(screen.getByText(/^21 produtos$/i)).toBeInTheDocument();
     expect(screen.queryByText(/camiseta|polo|dry fit|corta-vento/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /comprar/i })).not.toBeInTheDocument();
 
-    const filters = screen.getByRole('group', { name: /filtrar por categoria/i });
-    await user.click(within(filters).getByRole('button', { name: 'JOIN Active' }));
-    expect(screen.getByText(/join active: em breve/i)).toBeInTheDocument();
-    expect(
-      screen.queryByRole('group', { name: /linhas do studio goods/i }),
-    ).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText(/buscar nesta categoria/i), 'xyz');
+    expect(screen.getByRole('heading', { name: /nenhum produto encontrado/i })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /ver todos os produtos/i }));
+    expect(screen.getByLabelText(/buscar nesta categoria/i)).toHaveValue('');
+    expect(screen.queryByRole('link', { name: /comprar/i })).not.toBeInTheDocument();
   });
 });

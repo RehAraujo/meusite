@@ -1,19 +1,20 @@
 /*
- * Shopping Join: categorias e catálogo da página /shopping/.
+ * Shopping JOIN: universos (categorias) e catálogo de /shopping e /shopping/{id}.
  *
- * Regras do catálogo (primeira versão):
+ * Regras do catálogo:
  * - Preços e descrições dos produtos digitais vêm dos dados já publicados no site
  *   (featuredProduct em home.js e tools.js). Nada de avaliações ou depoimentos.
  * - O comércio integrado segue desativado: nenhum card faz compra direta. Os CTAs
  *   levam às páginas públicas de cada produto, que já existem.
- * - Personalizados são demonstrativos: imagens de projetos reais, sem preço e sem
- *   compra. Ficam marcados como "Demonstrativo" e "Sob orçamento".
+ * - Papelaria & Impressos: preços ilustrativos (arte, produção e envio), pedido por
+ *   orçamento. Imagens só de projetos reais; sem imagem, capa tipográfica.
+ * - Universos sem produtos confirmados ficam "Em breve", sem itens fictícios.
  *
  * Campos de produto (preparados para o catálogo crescer):
  * - kind: 'digital' | 'fisico'
- * - status: 'disponivel' | 'demonstrativo' | 'sob-consulta' | 'em-breve' | 'indisponivel'
+ * - status: 'disponivel' | 'sob-orcamento' | 'sob-consulta' | 'em-breve' | 'indisponivel'
  * - pricing: 'fixo' (price + priceValue) | 'ilustrativo' (referência, sem compra) | 'orcamento'
- * - line: subcategoria (Studio Goods)
+ * - line: linha de Papelaria & Impressos · tags: filtros das Ferramentas Digitais
  * - cta: { label, href | to } — destino de visualização; null quando não há ação
  * - purchase: reservado para compra direta (checkout integrado), sempre null por ora
  * - variants / gallery / personalization: reservados para a página de produto
@@ -27,95 +28,138 @@ const asset = (name, sizes) => ({
 });
 
 export const shoppingHero = {
-  eyebrow: 'Shopping Join',
-  title: ['Coisas que fazem sentido.', 'E outras que você simplesmente vai querer.'],
-  description:
-    'Ferramentas, criações e produtos para organizar, expressar e transformar ideias em algo real.',
+  eyebrow: 'Shopping JOIN',
+  title: ['Seu estilo.', 'Suas escolhas.', 'Suas regras.'],
+  description: 'Ferramentas, criações e descobertas para diferentes momentos da sua vida.',
   image: {
-    ...asset('hero-retrato', [720, 1200]),
+    ...asset('hero-editorial', [720, 1200]),
     width: 1200,
     height: 1500,
-    alt: 'Renata Join sentada, de chapéu preto e blusa branca, com uma câmera na mão, diante de um fundo escuro',
+    alt: 'Retrato em preto e branco de Renata Join sentada em um banco, de blusa preta de ombros abertos, sorrindo para a câmera',
   },
 };
 
+const shopAsset = (name) => ({
+  image: `/assets/${name}-480.webp`,
+  imageSet: `/assets/${name}-480.webp 480w, /assets/${name}-860.webp 860w`,
+});
+const shoppingAsset = (name, sizes) => {
+  const image = asset(name, sizes);
+  return { image: image.src, imageSet: image.srcSet };
+};
+
+/*
+ * Universos do Shopping JOIN. Cada um tem página própria em /shopping/{id}.
+ * status: 'disponivel' (produtos com página), 'ilustrativo' (preços de referência,
+ * pedido por orçamento) ou 'em-breve' (página conceitual, sem produtos).
+ */
 export const shoppingCategories = [
   {
-    id: 'personalizados',
+    id: 'papelaria-impressos',
     number: '01',
-    label: 'Personalizados',
-    description: 'Papelaria, impressos, brindes, embalagens e produtos físicos personalizados.',
+    label: 'Papelaria & Impressos',
+    signature: 'Studio Goods',
+    description:
+      'Certificados, tags, etiquetas, adesivos, cartões, blocos e impressões fotográficas, com arte inclusa.',
     tone: 'pink',
-    image: '/assets/shop-personalizados-480.webp',
-    imageSet: '/assets/shop-personalizados-480.webp 480w, /assets/shop-personalizados-860.webp 860w',
-    status: 'demonstrativo',
-    note: 'sob orçamento',
+    ...shoppingAsset('demo-cartoes-de-visita', [600, 960]),
+    status: 'ilustrativo',
+    note: 'preços ilustrativos',
   },
   {
     id: 'ferramentas-digitais',
     number: '02',
     label: 'Ferramentas Digitais',
-    description: 'Templates Notion, sistemas, planners, organizadores e materiais digitais.',
+    description: 'Templates Notion, sistemas, planners e recursos de produtividade.',
     tone: 'yellow',
-    ...(() => {
-      const image = asset('categoria-ferramentas', [480, 860]);
-      return { image: image.src, imageSet: image.srcSet };
-    })(),
+    ...shoppingAsset('categoria-ferramentas', [480, 860]),
     status: 'disponivel',
   },
   {
-    id: 'lifestyle',
+    id: 'arte-design',
     number: '03',
-    label: 'Lifestyle JOIN',
-    description: 'Produtos autorais, acessórios e futuras coleções.',
-    tone: 'paper',
-    image: '/assets/shop-lifestyle-480.webp',
-    imageSet: '/assets/shop-lifestyle-480.webp 480w, /assets/shop-lifestyle-860.webp 860w',
-    status: 'em-breve',
-  },
-  {
-    id: 'colecoes',
-    number: '04',
-    label: 'Coleções Especiais',
-    description: 'Edições limitadas, colaborações e lançamentos.',
+    label: 'Arte & Design',
+    description: 'Artes digitais, pôsteres, prints, ilustrações e materiais personalizados.',
     tone: 'ink',
-    image: '/assets/shop-moda-480.webp',
-    imageSet: '/assets/shop-moda-480.webp 480w, /assets/shop-moda-860.webp 860w',
-    status: 'em-breve',
-  },
-  {
-    id: 'studio-goods',
-    number: '05',
-    label: 'Studio Goods',
-    description: 'Papelaria, certificados, tags, fotos, convites e impressos de marca, com arte inclusa.',
-    tone: 'pink',
-    ...(() => {
-      const image = asset('demo-etiquetas', [600, 960]);
-      return { image: image.src, imageSet: image.srcSet };
-    })(),
-    status: 'demonstrativo',
-    note: 'preços ilustrativos',
-  },
-  {
-    id: 'join-active',
-    number: '06',
-    label: 'JOIN Active',
-    description: 'Moda fitness com a assinatura JOIN. Peças demonstrativas e fornecedores em definição.',
-    tone: 'yellow',
-    // Sem fotos de produto ainda: a pasta mostra uma folha tipográfica.
     image: null,
     imageSet: null,
     status: 'em-breve',
   },
-];
+  {
+    id: 'atelie-join',
+    number: '04',
+    label: 'Ateliê JOIN',
+    description: 'Velas, aromatizantes, objetos artesanais e presentes.',
+    tone: 'paper',
+    image: null,
+    imageSet: null,
+    status: 'em-breve',
+  },
+  {
+    id: 'join-active',
+    number: '05',
+    label: 'JOIN Active',
+    description: 'Moda fitness e acessórios esportivos. Fornecedores em definição.',
+    tone: 'yellow',
+    ...shopAsset('shop-lifestyle'),
+    imageAlt: 'Renata Join de top e legging pretos, com óculos escuros, sentada em uma academia',
+    status: 'em-breve',
+  },
+  {
+    id: 'lifestyle',
+    number: '06',
+    label: 'Lifestyle',
+    description: 'Objetos, acessórios e coleções autorais.',
+    tone: 'paper',
+    image: null,
+    imageSet: null,
+    status: 'em-breve',
+  },
+  {
+    id: 'rejoin-brecho',
+    number: '07',
+    label: 'ReJOIN Brechó',
+    description: 'Moda circular: peças únicas com curadoria pessoal.',
+    tone: 'pink',
+    ...shopAsset('shop-moda'),
+    imageAlt: 'Botas pretas de couro de cano alto e coturno sobre piso claro, com luz do sol',
+    status: 'em-breve',
+    instagram: 'https://www.instagram.com/renatajoin_/',
+  },
+  {
+    id: 'colecoes-especiais',
+    number: '08',
+    label: 'Coleções Especiais',
+    description: 'Colaborações, edições limitadas e lançamentos.',
+    tone: 'ink',
+    image: null,
+    imageSet: null,
+    status: 'em-breve',
+  },
+].map((category) => ({ ...category, path: `/shopping/${category.id}` }));
+
+export const categoryById = Object.fromEntries(
+  shoppingCategories.map((category) => [category.id, category]),
+);
+
+// Endereços antigos (?categoria=) levados para as páginas novas.
+export const legacyCategoryIds = {
+  personalizados: 'papelaria-impressos',
+  'studio-goods': 'papelaria-impressos',
+  'ferramentas-digitais': 'ferramentas-digitais',
+  lifestyle: 'lifestyle',
+  colecoes: 'colecoes-especiais',
+  'join-active': 'join-active',
+};
 
 /*
- * Studio Goods: impressos com arte da Renata, produzidos por gráfica parceira.
+ * Papelaria & Impressos (assinatura Studio Goods): impressos com arte da Renata,
+ * produzidos por gráfica parceira.
  * Os preços são ilustrativos e já incluem arte, produção, envio e margem. A conta
  * fica em docs/studio-goods-precos.md (fora do site, para não expor custos).
  * Nada aqui é comprável: o CTA abre uma conversa de orçamento no WhatsApp.
  */
-export const studioGoodsLines = [
+export const papelariaLines = [
   { id: 'papelaria', label: 'Papelaria' },
   { id: 'certificados', label: 'Certificados & Diplomas' },
   { id: 'tags-etiquetas', label: 'Tags & Etiquetas' },
@@ -152,16 +196,16 @@ const training = toolById['planner-treino'];
 const WHATSAPP = 'https://wa.me/5561992191272';
 const quote = (name) => ({
   label: 'Pedir orçamento',
-  href: `${WHATSAPP}?text=${encodeURIComponent(`Oi Rê! Quero um orçamento de ${name} (Studio Goods).`)}`,
+  href: `${WHATSAPP}?text=${encodeURIComponent(`Oi Rê! Quero um orçamento de ${name}.`)}`,
 });
 
 const studio = ({ line, name, price, unit, ...fields }) =>
   product({
-    category: 'studio-goods',
+    category: 'papelaria-impressos',
     line,
     kind: 'fisico',
     name,
-    status: 'demonstrativo',
+    status: 'sob-orcamento',
     pricing: 'ilustrativo',
     price: `R$ ${price}`,
     priceValue: price,
@@ -236,6 +280,13 @@ const studioGoods = [
     description: 'Tags com verniz UV para roupas, presentes e produtos artesanais.',
     price: 360,
     unit: '500 unidades',
+    image: {
+      ...asset('produto-tags', [600, 960]),
+      width: 960,
+      height: 1200,
+      alt: 'Quatro tags de Páscoa da Potência Solar, com mensagem, logotipo e ilustração de flores',
+    },
+    credit: 'Arte de projeto realizado · Potência Solar',
   }),
   studio({
     id: 'tags-com-furo',
@@ -254,6 +305,13 @@ const studioGoods = [
     description: 'Adesivos redondos para lacres, embalagens, potes e identificação de produtos.',
     price: 240,
     unit: '1.000 unidades',
+    image: {
+      ...asset('demo-etiquetas', [600, 960]),
+      width: 960,
+      height: 1200,
+      alt: 'Duas etiquetas redondas da Vitrine de Chocolate, uma rosa e outra marrom, sobre fundo rosado',
+    },
+    credit: 'Imagem de projeto realizado · Vitrine de Chocolate',
   }),
   studio({
     id: 'fotos-polaroid',
@@ -329,6 +387,13 @@ const studioGoods = [
     description: 'Couchê 300g com verniz UV total na frente e no verso: brilho e proteção.',
     price: 190,
     unit: '1.000 unidades',
+    image: {
+      ...asset('demo-cartoes-de-visita', [600, 960]),
+      width: 960,
+      height: 1200,
+      alt: 'Cartões de visita cor-de-rosa da Vitrine de Chocolate em um porta-cartões',
+    },
+    credit: 'Imagem de projeto realizado · Vitrine de Chocolate',
   }),
   studio({
     id: 'cartao-de-visita-supremo',
@@ -365,6 +430,14 @@ const studioGoods = [
     description: 'Caixa com laminação fosca para bijuterias, canetas e pequenos produtos.',
     price: 550,
     unit: '500 unidades',
+    image: {
+      src: '/assets/projeto-matula-cafe-full.webp',
+      srcSet: null,
+      width: 592,
+      height: 528,
+      alt: 'Embalagens Matula Café com a identidade visual aplicada',
+    },
+    credit: 'Imagem de projeto realizado · Matula Café',
   }),
 ];
 
@@ -387,6 +460,7 @@ export const shoppingProducts = [
       alt: featuredProduct.imageAlt,
     },
     cta: { label: 'Ver produto', href: featuredProduct.cta.href },
+    tags: ['financas', 'organizacao'],
     featured: true,
   }),
   product({
@@ -405,6 +479,7 @@ export const shoppingProducts = [
       alt: 'Prévia do Planner Anti-Inflamatório no Notion, com a área de planejamento alimentar',
     },
     cta: { label: 'Ver produto', to: planner.detailUrl },
+    tags: ['organizacao'],
   }),
   product({
     id: training.id,
@@ -419,97 +494,27 @@ export const shoppingProducts = [
     image: null,
     cover: 'Planner de Treino',
     cta: { label: 'Ver produto', to: training.detailUrl },
-  }),
-  product({
-    id: 'cartoes-de-visita',
-    category: 'personalizados',
-    kind: 'fisico',
-    format: 'Papelaria profissional',
-    name: 'Cartões de visita',
-    description: 'Cartões com identidade própria, pensados junto com a marca.',
-    status: 'demonstrativo',
-    pricing: 'orcamento',
-    image: {
-      ...asset('demo-cartoes-de-visita', [600, 960]),
-      width: 960,
-      height: 1200,
-      alt: 'Cartões de visita e cartão fidelidade cor-de-rosa da Vitrine de Chocolate em um porta-cartões',
-    },
-    credit: 'Imagem de projeto realizado · Vitrine de Chocolate',
-  }),
-  product({
-    id: 'cartao-fidelidade',
-    category: 'personalizados',
-    kind: 'fisico',
-    format: 'Impressos',
-    name: 'Cartão fidelidade',
-    description: 'Impressos para o dia a dia do negócio, na mesma linguagem da marca.',
-    status: 'demonstrativo',
-    pricing: 'orcamento',
-    image: {
-      ...asset('demo-cartao-fidelidade', [600, 960]),
-      width: 960,
-      height: 1200,
-      alt: 'Mão segurando um cartão cor-de-rosa da Vitrine de Chocolate sobre uma mesa com doces',
-    },
-    credit: 'Imagem de projeto realizado · Vitrine de Chocolate',
-  }),
-  product({
-    id: 'adesivos-e-etiquetas',
-    category: 'personalizados',
-    kind: 'fisico',
-    format: 'Adesivos e etiquetas',
-    name: 'Adesivos e etiquetas',
-    description: 'Etiquetas redondas para embalagens, lacres e identificação de produtos.',
-    status: 'demonstrativo',
-    pricing: 'orcamento',
-    image: {
-      ...asset('demo-etiquetas', [600, 960]),
-      width: 960,
-      height: 1200,
-      alt: 'Duas etiquetas redondas da Vitrine de Chocolate, uma rosa e outra marrom, sobre fundo rosado',
-    },
-    credit: 'Imagem de projeto realizado · Vitrine de Chocolate',
-  }),
-  product({
-    id: 'embalagens-personalizadas',
-    category: 'personalizados',
-    kind: 'fisico',
-    format: 'Embalagens',
-    name: 'Embalagens personalizadas',
-    description: 'Embalagens que carregam a identidade visual do produto até a mão do cliente.',
-    status: 'demonstrativo',
-    pricing: 'orcamento',
-    image: {
-      src: '/assets/projeto-matula-cafe-full.webp',
-      srcSet: null,
-      width: 592,
-      height: 528,
-      alt: 'Embalagens Matula Café com a identidade visual aplicada',
-    },
-    credit: 'Imagem de projeto realizado · Matula Café',
+    tags: ['organizacao'],
   }),
   ...studioGoods,
 ];
 
-export const shoppingEditorial = {
-  title: 'Personalidade também é produto.',
-  description: 'Do digital ao físico, criações que combinam funcionalidade, estética e intenção.',
-  images: [
-    {
-      ...asset('editorial-retrato-cor', [640, 1000]),
-      width: 1000,
-      height: 1500,
-      alt: 'Renata Join de camisa branca e calça jeans, em movimento, diante de uma parede laranja',
-    },
-    {
-      ...asset('editorial-retrato-pb', [480, 800]),
-      width: 800,
-      height: 1000,
-      alt: 'Retrato em preto e branco de Renata Join sentada em um banco, de blusa preta de ombros abertos',
-    },
-  ],
-};
+export const toolFilters = [
+  { id: 'financas', label: 'Finanças' },
+  { id: 'produtividade', label: 'Produtividade' },
+  { id: 'negocios', label: 'Negócios' },
+  { id: 'organizacao', label: 'Organização pessoal' },
+];
+
+// Seleção reduzida de Papelaria & Impressos na página principal do Shopping.
+export const papelariaHighlights = [
+  'certificado-a4',
+  'tags-especiais',
+  'etiquetas-redondas',
+  'cartao-de-visita',
+  'bloco-de-anotacoes',
+  'fotos-polaroid',
+];
 
 export const shoppingSortOptions = [
   { id: 'destaques', label: 'Destaques' },
@@ -520,13 +525,11 @@ export const shoppingSortOptions = [
 
 export const statusLabels = {
   disponivel: 'Disponível',
-  demonstrativo: 'Demonstrativo',
   'em-breve': 'Em breve',
   'sob-consulta': 'Sob consulta',
+  'sob-orcamento': 'Sob orçamento',
   indisponivel: 'Indisponível',
 };
-
-export const kindLabels = { digital: 'Produto digital', fisico: 'Produto físico' };
 
 const normalize = (value) =>
   value
@@ -537,13 +540,14 @@ const normalize = (value) =>
 // Filtro, busca e ordenação puros: a mesma função serve à vitrine e aos testes.
 export const filterProducts = (
   products,
-  { category = 'todos', line = 'todas', query = '', sort = 'destaques' },
+  { category = 'todos', line = 'todas', tag = 'todas', query = '', sort = 'destaques' },
 ) => {
   const term = normalize(query.trim());
   const filtered = products.filter(
     (item) =>
       (category === 'todos' || item.category === category) &&
       (line === 'todas' || item.line === line) &&
+      (tag === 'todas' || item.tags?.includes(tag)) &&
       (!term || normalize(`${item.name} ${item.format} ${item.description}`).includes(term)),
   );
   const byPrice = (direction) => (a, b) => {

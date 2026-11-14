@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { kindLabels, statusLabels } from '../../data/shopping';
+import { statusLabels } from '../../data/shopping';
 
 /*
  * Card de produto da vitrine. Mostra tipo (digital/físico), categoria, preço ou
@@ -32,8 +32,8 @@ function ProductAction({ product }) {
   );
 }
 
-export function ProductCard({ product, categories }) {
-  const category = categories.find((item) => item.id === product.category);
+export function ProductCard({ product, showCategory = false, categories = [] }) {
+  const category = showCategory ? categories.find((item) => item.id === product.category) : null;
   const { image } = product;
   return (
     <article
@@ -59,16 +59,19 @@ export function ProductCard({ product, categories }) {
             <em>{product.coverNote ?? 'Capa provisória'}</em>
           </span>
         )}
-        <span className="rj-product__badges">
-          <span>{kindLabels[product.kind]}</span>
-          <span className={`rj-product__status rj-product__status--${product.status}`}>
-            {statusLabels[product.status]}
+        {/* Um único selo, só quando o estado muda a decisão de compra. */}
+        {product.status !== 'disponivel' ? (
+          <span className="rj-product__badges">
+            <span className={`rj-product__status rj-product__status--${product.status}`}>
+              {statusLabels[product.status]}
+            </span>
           </span>
-        </span>
+        ) : null}
       </figure>
       <div className="rj-product__body">
         <p className="rj-product__category">
-          {category?.label} · {product.format}
+          {category ? `${category.label} · ` : ''}
+          {product.format}
         </p>
         <h3 id={`p-${product.id}`}>{product.name}</h3>
         <p className="rj-product__description">{product.description}</p>

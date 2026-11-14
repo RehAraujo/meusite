@@ -6,9 +6,9 @@
 /negocios.html /negocios 301
 /clientes.html /clientes 301
 /pensamentos.html /pensamentos 301
-/ferramentas.html /shopping?categoria=ferramentas-digitais 301
-/ferramentas /shopping?categoria=ferramentas-digitais 301
-/ferramentas/ /shopping?categoria=ferramentas-digitais 301
+/ferramentas.html /shopping/ferramentas-digitais 301
+/ferramentas /shopping/ferramentas-digitais 301
+/ferramentas/ /shopping/ferramentas-digitais 301
 /curriculo.html /carreira 301
 /curriculo /carreira 301
 /career /carreira 301
@@ -17,8 +17,8 @@
 /processo.html /processo 301
 /guia-alimentar.html /guia-alimentar 301
 /planner-treino.html /planner-treino 301
-/templates /shopping?categoria=ferramentas-digitais 301
-/templates.html /shopping?categoria=ferramentas-digitais 301
+/templates /shopping/ferramentas-digitais 301
+/templates.html /shopping/ferramentas-digitais 301
 /loja /shopping 301
 /loja.html /shopping 301
 /wrangler.jsonc /arquivo-interno-indisponivel 302

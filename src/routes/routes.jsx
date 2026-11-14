@@ -15,6 +15,7 @@ import ServicesPage from '../pages/ServicesPage';
 import ThoughtsPage from '../pages/ThoughtsPage';
 import TedTecCasePage from '../pages/TedTecCasePage';
 import ShoppingPage from '../pages/ShoppingPage';
+import ShoppingCategoryPage from '../pages/ShoppingCategoryPage';
 
 export const routes = createRoutesFromElements(
   <Route element={<SiteLayout />}>
@@ -26,11 +27,9 @@ export const routes = createRoutesFromElements(
     <Route path="clientes/ted-tec" element={<TedTecCasePage />} />
     <Route path="pensamentos" element={<ThoughtsPage />} />
     <Route path="shopping" element={<ShoppingPage />} />
-    {/* Ferramentas virou uma categoria do Shopping Join. */}
-    <Route
-      path="ferramentas"
-      element={<Navigate to="/shopping?categoria=ferramentas-digitais" replace />}
-    />
+    <Route path="shopping/:categoria" element={<ShoppingCategoryPage />} />
+    {/* Ferramentas virou uma categoria do Shopping JOIN. */}
+    <Route path="ferramentas" element={<Navigate to="/shopping/ferramentas-digitais" replace />} />
     <Route path="carreira" element={<CareerPage />} />
     <Route path="career" element={<CareerPage />} />
     <Route path="curriculo" element={<ResumePage />} />

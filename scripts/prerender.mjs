@@ -2,6 +2,31 @@ import { readFile, rm, writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+// Páginas próprias de cada universo do Shopping JOIN (ids em src/data/shopping.js).
+const shoppingCategoryMeta = {
+  'papelaria-impressos': [
+    'Papelaria & Impressos',
+    'Certificados, tags, etiquetas, adesivos, cartões, blocos e impressões fotográficas, com arte inclusa.',
+  ],
+  'ferramentas-digitais': [
+    'Ferramentas Digitais',
+    'Templates Notion, sistemas, planners e recursos de produtividade.',
+  ],
+  'arte-design': [
+    'Arte & Design',
+    'Artes digitais, pôsteres, prints, ilustrações e materiais personalizados.',
+  ],
+  'atelie-join': ['Ateliê JOIN', 'Velas, aromatizantes, objetos artesanais e presentes.'],
+  'join-active': [
+    'JOIN Active',
+    'Moda fitness e acessórios esportivos. Fornecedores em definição.',
+  ],
+  lifestyle: ['Lifestyle', 'Objetos, acessórios e coleções autorais.'],
+  'rejoin-brecho': ['ReJOIN Brechó', 'Moda circular: peças únicas com curadoria pessoal.'],
+  'colecoes-especiais': ['Coleções Especiais', 'Colaborações, edições limitadas e lançamentos.'],
+};
+const shoppingCategoryRoutes = Object.keys(shoppingCategoryMeta).map((id) => `/shopping/${id}`);
+
 const routes = [
   '/',
   '/sobre',
@@ -11,6 +36,7 @@ const routes = [
   '/clientes/ted-tec',
   '/pensamentos',
   '/shopping',
+  ...shoppingCategoryRoutes,
   '/carreira',
   '/career',
   '/curriculo',
@@ -57,9 +83,15 @@ const metadata = {
     'Textos sobre identidade, design, tecnologia, comunicação, fé e trabalho.',
   ],
   '/shopping': [
-    'Shopping Join | Renata Join',
-    'Ferramentas, criações e produtos para organizar, expressar e transformar ideias em algo real.',
+    'Shopping JOIN | Renata Join',
+    'Ferramentas, criações e descobertas para diferentes momentos da sua vida.',
   ],
+  ...Object.fromEntries(
+    Object.entries(shoppingCategoryMeta).map(([id, [label, description]]) => [
+      `/shopping/${id}`,
+      [`${label} | Shopping JOIN`, description],
+    ]),
+  ),
   '/curriculo': [
     'Currículo | Renata Gomes Araujo',
     'Currículo profissional de Renata Gomes Araujo.',

@@ -51,14 +51,17 @@ describe('hidratação do HTML pré-renderizado', () => {
     await expectCleanHydration('/clientes/ted-tec');
   });
 
-  it('hidrata o Shopping, inclusive com categoria na URL', async () => {
+  it('hidrata o Shopping e as páginas de categoria, inclusive com filtro na URL', async () => {
     await expectCleanHydration('/shopping');
     await act(async () => {
       roots.splice(0).forEach((root) => root.unmount());
     });
-    await expectCleanHydration('/shopping', '/shopping?categoria=lifestyle');
+    await expectCleanHydration(
+      '/shopping/papelaria-impressos',
+      '/shopping/papelaria-impressos?filtro=certificados',
+    );
     expect(document.querySelector('.rj-shop-status').textContent).toMatch(
-      /lifestyle join: em breve/i,
+      /3 produtos · certificados & diplomas/i,
     );
   });
 });
