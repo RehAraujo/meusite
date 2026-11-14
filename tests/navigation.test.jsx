@@ -213,6 +213,12 @@ describe('rotas essenciais', () => {
     // Seção editorial antiga removida; sem categorias duplicadas.
     expect(screen.queryByText(/personalidade também é produto/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/^personalizados$/i)).not.toBeInTheDocument();
+    // Meu Dinheiro com o preço atualizado; papelaria sem valores nem prazos.
+    expect(screen.getByText('R$ 49,00')).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('list', { name: /seleção de papelaria/i })).queryByText(/R\$/),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/dias úteis/i)).not.toBeInTheDocument();
     // Papelaria reduzida a 5 destaques, com caminho para o catálogo completo.
     expect(
       within(screen.getByRole('list', { name: /seleção de papelaria/i })).getAllByRole('article'),

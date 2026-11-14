@@ -76,7 +76,7 @@ export const shoppingCategories = [
     // Produto inteiro: contain sobre a cor do fundo da foto.
     imageFit: { fit: 'contain', bg: '#c4adb0' },
     status: 'ilustrativo',
-    note: 'preços ilustrativos',
+    note: 'sob orçamento',
   },
   {
     // Ateliê e Coleções Especiais unificados: autoral, pequenos lotes, edições limitadas.
@@ -133,7 +133,8 @@ export const legacyCategoryIds = {
 
 /*
  * Papelaria & Impressos (assinatura Studio Goods): impressos com arte da Renata,
- * produzidos por gráfica parceira.
+ * produzidos por gráfica parceira. Os preços ficam só nos dados internos: a loja
+ * não exibe valores, quantidades nem prazos; o cliente pede orçamento.
  * Os preços são ilustrativos e já incluem arte, produção, envio e margem. A conta
  * fica em docs/studio-goods-precos.md (fora do site, para não expor custos).
  * Nada aqui é comprável: o CTA abre uma conversa de orçamento no WhatsApp.
@@ -150,7 +151,8 @@ export const papelariaLines = [
 export const STUDIO_LEAD_TIME = '10 dias úteis';
 
 const toolById = Object.fromEntries(tools.map((tool) => [tool.id, tool]));
-const priceValue = (price) => Number(price.replace(/\D/g, '')) || null;
+// "R$ 49,00" → 49; "R$ 67" → 67.
+const priceValue = (price) => Number(price.replace(/[^\d,]/g, '').replace(',', '.')) || null;
 
 const product = (fields) => ({
   status: 'disponivel',
@@ -367,13 +369,16 @@ const studioGoods = [
     description: 'Couchê 300g com verniz UV total na frente e no verso: brilho e proteção.',
     price: 190,
     unit: '1.000 unidades',
+    // Fotografia real (Renata segurando o cartão): cover centrado, sem cortar mão e cartão.
     image: {
-      ...asset('produto-cartao-visita', [600, 800]),
-      width: 800,
-      height: 800,
-      alt: 'Mão segurando um cartão de visita da Unharte, com outros cartões da marca ao fundo',
+      ...asset('produto-cartao-visita', [600, 960]),
+      width: 960,
+      height: 1280,
+      fit: 'cover',
+      position: '50% 46%',
+      alt: 'Renata segurando um cartão de visita cor-de-rosa da Vitrine de Chocolate, com doces e uma xícara ao fundo',
     },
-    credit: 'Imagem de projeto realizado · Unharte',
+    credit: 'Projeto realizado · Vitrine de Chocolate',
   }),
   studio({
     id: 'cartao-de-visita-supremo',

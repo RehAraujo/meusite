@@ -199,7 +199,7 @@ export const featuredProduct = {
   description:
     'Organize entradas, despesas, saldos e parcelas em um sistema pronto para duplicar e personalizar.',
   highlights: ['Contas e bancos', 'Compras parceladas', 'Metas e objetivos'],
-  price: 'R$ 47',
+  price: 'R$ 49,00',
   priceNote: 'Pagamento único',
   image: '/assets/meu-dinheiro-visao-geral-1200.webp',
   imageAlt:

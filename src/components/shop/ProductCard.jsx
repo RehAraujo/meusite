@@ -51,6 +51,7 @@ export function ProductCard({ product, showCategory = false, categories = [] }) 
             width={image.width}
             height={image.height}
             alt={image.alt}
+            style={image.fit ? { objectFit: image.fit, objectPosition: image.position } : undefined}
             loading="lazy"
             decoding="async"
           />
@@ -84,10 +85,13 @@ export function ProductCard({ product, showCategory = false, categories = [] }) 
           </p>
         ) : null}
         <div className="rj-product__footer">
-          <p className="rj-product__price">
-            {product.pricing === 'orcamento' ? 'Sob orçamento' : product.price}
-            {product.priceNote ? <small>{product.priceNote}</small> : null}
-          </p>
+          {/* Papelaria (pricing 'ilustrativo'): sem valor exibido, só o pedido de orçamento. */}
+          {product.pricing === 'ilustrativo' ? null : (
+            <p className="rj-product__price">
+              {product.pricing === 'orcamento' ? 'Sob orçamento' : product.price}
+              {product.priceNote ? <small>{product.priceNote}</small> : null}
+            </p>
+          )}
           <ProductAction product={product} />
         </div>
       </div>

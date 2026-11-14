@@ -7,7 +7,6 @@ import { RevealHeadline } from '../components/shop/RevealHeadline';
 import { ArrowButton } from '../components/ui/ArrowButton';
 import { Eyebrow } from '../components/ui/Eyebrow';
 import {
-  STUDIO_LEAD_TIME,
   categoryById,
   legacyCategoryIds,
   papelariaHighlights,
@@ -179,8 +178,8 @@ export default function ShoppingPage() {
                 </h2>
               </div>
               <p className="rj-heading__copy">
-                Preços ilustrativos com arte, produção e envio. O valor final é confirmado no
-                orçamento; prazo de {STUDIO_LEAD_TIME} após a aprovação da arte.
+                Peças com a identidade da sua marca e arte inclusa. Cada pedido começa por um
+                orçamento.
               </p>
             </header>
             <ul className="rj-products rj-products--paper" aria-label="Seleção de papelaria">
@@ -262,8 +261,7 @@ export default function ShoppingPage() {
               <li data-rj-reveal style={{ '--rj-i': 1 }}>
                 <strong>Papelaria & Impressos</strong>
                 <p>
-                  Você pede o orçamento, aprova a arte e o pedido fica pronto em até{' '}
-                  {STUDIO_LEAD_TIME} depois da aprovação.
+                  Você pede o orçamento e recebe a proposta com valores e prazo antes da produção.
                 </p>
               </li>
               <li data-rj-reveal style={{ '--rj-i': 2 }}>

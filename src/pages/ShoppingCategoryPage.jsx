@@ -4,7 +4,6 @@ import { Link, useParams } from 'react-router-dom';
 import { CatalogBrowser } from '../components/shop/CatalogBrowser';
 import { ArrowButton } from '../components/ui/ArrowButton';
 import {
-  STUDIO_LEAD_TIME,
   categoryById,
   papelariaLines,
   shoppingCategories,
@@ -72,7 +71,6 @@ export default function ShoppingCategoryPage() {
                 {soon
                   ? 'Em breve'
                   : `${products.length} ${products.length === 1 ? 'produto' : 'produtos'}`}
-                {category.status === 'ilustrativo' ? ' · preços ilustrativos' : ''}
               </p>
               {soon ? (
                 <div className="rj-shop-cat-hero__actions">
@@ -145,14 +143,13 @@ export default function ShoppingCategoryPage() {
                 filters={catalog?.filters}
                 filterKey={catalog?.key}
                 filterLabel={catalog?.label}
+                showPriceSort={category.status !== 'ilustrativo'}
               />
               {category.status === 'ilustrativo' ? (
                 <aside className="rj-shop-custom" aria-label="Como funciona o orçamento">
                   <p>
-                    <strong>Arte inclusa.</strong> Os preços são ilustrativos e já consideram a
-                    criação da arte, o ajuste ao gabarito de impressão, a produção e o envio. O
-                    valor final é confirmado no orçamento; o prazo é de {STUDIO_LEAD_TIME} depois da
-                    aprovação da arte. Nenhuma compra é feita por esta página.
+                    <strong>Arte inclusa.</strong> Cada pedido começa por um orçamento, com valores
+                    e prazo combinados antes da produção. Nenhuma compra é feita por esta página.
                   </p>
                   <ArrowButton
                     variant="ink"

@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
  */
 const statusText = {
   disponivel: 'Disponível',
-  ilustrativo: 'Preços ilustrativos · sob orçamento',
+  ilustrativo: 'Sob orçamento',
   'em-breve': 'Em breve',
 };
 

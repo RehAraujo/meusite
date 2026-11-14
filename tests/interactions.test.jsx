@@ -240,8 +240,10 @@ describe('interações críticas', () => {
     );
     expect(screen.getByText(/^3 produtos · certificados & diplomas$/i)).toBeInTheDocument();
     const certificate = screen.getByRole('article', { name: 'Certificado A4' });
-    expect(within(certificate).getByText('R$ 200')).toBeInTheDocument();
-    expect(within(certificate).getByText(/10 unidades · preço ilustrativo/i)).toBeInTheDocument();
+    // Papelaria sem valores, quantidades ou prazos visíveis: só o pedido de orçamento.
+    expect(within(certificate).queryByText(/R\$/)).not.toBeInTheDocument();
+    expect(within(certificate).queryByText(/unidades|ilustrativo/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: /preço/i })).not.toBeInTheDocument();
     expect(within(certificate).getByRole('link', { name: /pedir orçamento/i })).toHaveAttribute(
       'href',
       expect.stringContaining('https://wa.me/5561992191272?text='),
@@ -251,7 +253,7 @@ describe('interações críticas', () => {
     expect(screen.getAllByText('Sob consulta')).toHaveLength(3);
 
     await user.click(within(filters).getByRole('button', { name: 'Todos' }));
-    expect(screen.getByText(/^21 produtos$/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/^21 produtos$/i)).toHaveLength(2);
     expect(screen.queryByText(/camiseta|polo|dry fit|corta-vento/i)).not.toBeInTheDocument();
 
     await user.type(screen.getByLabelText(/buscar nesta categoria/i), 'xyz');

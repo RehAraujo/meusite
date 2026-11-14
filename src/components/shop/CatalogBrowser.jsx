@@ -10,7 +10,14 @@ import { ProductCard } from './ProductCard';
  */
 const ALL = 'todas';
 
-export function CatalogBrowser({ products, categories, filters, filterKey, filterLabel }) {
+export function CatalogBrowser({
+  products,
+  categories,
+  filters,
+  filterKey,
+  filterLabel,
+  showPriceSort = true,
+}) {
   const searchId = useId();
   const sortId = useId();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -58,11 +65,13 @@ export function CatalogBrowser({ products, categories, filters, filterKey, filte
         <div className="rj-shop-toolbar__field">
           <label htmlFor={sortId}>Ordenar por</label>
           <select id={sortId} value={sort} onChange={(event) => setSort(event.target.value)}>
-            {shoppingSortOptions.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
+            {shoppingSortOptions
+              .filter((option) => showPriceSort || !option.id.includes('preco'))
+              .map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
           </select>
         </div>
         {filters ? (
