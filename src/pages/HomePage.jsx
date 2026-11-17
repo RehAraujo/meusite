@@ -11,7 +11,6 @@ import {
   useTransform,
 } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { AtelieSection } from '../components/atelie/AtelieSection';
 import { HeroCosmos, HeroWords } from '../components/home/HeroNetwork';
 import { ProjectFlipCard } from '../components/home/ProjectFlipCard';
 import { ScrollCharacters, ScrollDepth, ScrollRise } from '../components/home/ScrollMotion';
@@ -30,7 +29,6 @@ import {
   shoppingCategories,
   solutions,
 } from '../data/home';
-import { atelieSection, atelieWorks } from '../data/atelie';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { useRjReveal } from '../hooks/useRjReveal';
 import { useScrollMotionReady } from '../hooks/useScrollMotionReady';
@@ -727,9 +725,7 @@ export default function HomePage() {
             </form>
           </div>
         </section>
-
-        {/* ATELIÊ: última seção de conteúdo, antes do rodapé */}
-        <AtelieSection section={atelieSection} works={atelieWorks} />
+        {/* Ateliê saiu da Home: a galeria fica só na página /atelie/ (link no menu). */}
       </div>
     </LazyMotion>
   );

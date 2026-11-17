@@ -147,23 +147,19 @@ describe('rotas essenciais', () => {
     );
   });
 
-  it('integra o Ateliê como última seção da Home e último item do menu', () => {
+  it('mantém o Ateliê só no menu, fora da Home', () => {
     const { container } = renderRoute('/');
     const nav = screen.getByRole('navigation', { name: /navegação principal/i });
     const navLinks = [...nav.querySelectorAll('a.rj-nav__link')];
     expect(navLinks.at(-1)).toHaveTextContent('Ateliê');
     expect(navLinks.at(-1)).toHaveAttribute('href', '/atelie/');
 
+    // A galeria saiu da Home; a última seção volta a ser a de contato.
+    expect(container.querySelector('#atelie')).toBeNull();
+    expect(screen.queryByRole('heading', { level: 2, name: 'Ateliê' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /explorar o ateliê/i })).not.toBeInTheDocument();
     const sections = container.querySelectorAll('.rj-home > section');
-    expect(sections[sections.length - 1]).toHaveAttribute('id', 'atelie');
-    expect(screen.getByRole('heading', { level: 2, name: 'Ateliê' })).toBeInTheDocument();
-    expect(
-      screen.getByText('Entre o que crio, o que vejo e o que me inspira.'),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /explorar o ateliê/i })).toHaveAttribute(
-      'href',
-      '/atelie/',
-    );
+    expect(sections[sections.length - 1]).toHaveAttribute('id', 'contato');
   });
 
   it('abre a página provisória do Ateliê sem 404', () => {
