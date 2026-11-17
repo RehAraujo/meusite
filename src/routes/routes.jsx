@@ -10,6 +10,7 @@ import NotFoundPage from '../pages/NotFoundPage';
 import ProjectsPage from '../pages/ProjectsPage';
 import CheckoutPage from '../pages/CheckoutPage';
 import ProductPage from '../pages/ProductPage';
+import FinanceProductPage from '../pages/FinanceProductPage';
 import ResumePage from '../pages/ResumePage';
 import ServicesPage from '../pages/ServicesPage';
 import ThoughtsPage from '../pages/ThoughtsPage';
@@ -36,6 +37,7 @@ export const routes = createRoutesFromElements(
     <Route path="embaixadora" element={<MediaKitPage />} />
     <Route path="guia-alimentar" element={<ProductPage type="guide" />} />
     <Route path="planner-treino" element={<ProductPage type="training" />} />
+    <Route path="meu-dinheiro-minhas-regras" element={<FinanceProductPage />} />
     <Route path="checkout" element={<CheckoutPage />} />
     <Route path="diagnostico" element={<DiagnosticIntakePage />} />
     <Route path="diagnostico/pedido/:orderId" element={<DiagnosticOrderPage />} />

@@ -12,6 +12,7 @@ const routes = [
   '/pensamentos',
   '/ferramentas',
   '/checkout',
+  '/meu-dinheiro-minhas-regras',
   '/carreira',
   '/career',
   '/curriculo',
@@ -30,6 +31,7 @@ const routes = [
 ];
 
 const metadata = {
+  '/meu-dinheiro-minhas-regras': ['Meu Dinheiro, Minhas Regras | Shopping Join', 'Template financeiro para Notion. Organize entradas, despesas, saldos e parcelas. Pagamento único de R$ 47.'],
   '/': [
     'Renata Join — Soluções Digitais, Estratégia e Tecnologia',
     'Transformo problemas complexos em soluções digitais bem estruturadas. Tecnologia, negócio, processos e experiência do usuário, com Design como diferencial.',
@@ -129,7 +131,7 @@ const createHead = (route) => {
   const [title, description] = metadata[route];
   const canonicalRoute = route === '/career' || route === '/curriculo' ? '/carreira' : route;
   const canonical = `https://renatajoin.com${canonicalRoute === '/' ? '/' : canonicalRoute}`;
-  const noindex = route === '/checkout' || route === '/404' || route.startsWith('/operacao/');
+  const noindex = route === '/checkout' || route === '/meu-dinheiro-minhas-regras' || route === '/404' || route.startsWith('/operacao/');
   return `
     <title>${title}</title>
     <meta name="description" content="${escapeAttribute(description)}" />
