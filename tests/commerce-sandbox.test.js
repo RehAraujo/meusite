@@ -56,7 +56,7 @@ it('exercises the Worker offline with disposable storage and synthetic credentia
     COMMERCE_ENVIRONMENT: 'staging',
     COMMERCE_MODE: 'test',
     COMMERCE_ORIGIN: origin,
-    MERCADOPAGO_ACCESS_TOKEN: `TEST-${randomBytes(32).toString('hex')}`,
+    MERCADOPAGO_ACCESS_TOKEN: `APP_USR-${randomBytes(32).toString('hex')}`,
     MERCADOPAGO_WEBHOOK_SECRET: randomBytes(32).toString('hex'),
     DIAGNOSTICS_DB: {
       prepare() {
@@ -89,6 +89,7 @@ it('exercises the Worker offline with disposable storage and synthetic credentia
         Origin: origin,
         Authorization: `Bearer ${access}`,
         'Idempotency-Key': id,
+        'X-Download-Attempt': randomUUID(),
         'Content-Type': 'application/json',
         ...options.headers,
       },
@@ -123,7 +124,7 @@ it('exercises the Worker offline with disposable storage and synthetic credentia
     diagnosticsDb.exec(
       readFileSync(new URL('../migrations/0001_controlled_mvp.sql', import.meta.url), 'utf8'),
     );
-    for (const migration of ['commerce/0001_orders.sql', 'commerce/0002_delivery_safety.sql']) {
+    for (const migration of ['commerce/0001_orders.sql', 'commerce/0002_delivery_safety.sql', 'commerce/0003_download_attempts.sql']) {
       const sql = readFileSync(new URL(`../migrations/${migration}`, import.meta.url), 'utf8');
       db.exec(sql);
       db.exec(sql);
@@ -134,7 +135,10 @@ it('exercises the Worker offline with disposable storage and synthetic credentia
     // Every provider request terminates HERE. There is intentionally no real-fetch fallback.
     globalThis.fetch = async (url, options = {}) => {
       assert.equal(options.headers.Authorization, `Bearer ${env.MERCADOPAGO_ACCESS_TOKEN}`);
-      assert.equal(options.redirect, 'error');
+      assert.equal(options.redirect, 'manual');
+      if (url === 'https://api.mercadolibre.com/users/me') {
+        return Response.json({ id: 3792015931, site_id: 'MLB', tags: ['test_user'] });
+      }
       providerCalls++;
       if (url === 'https://api.mercadopago.com/v1/orders' && options.method === 'POST') {
         const input = JSON.parse(options.body);
@@ -162,7 +166,7 @@ it('exercises the Worker offline with disposable storage and synthetic credentia
     assert.equal(await (await run('/')).text(), 'isolated-static-fixture');
     assert.equal((await run('/wrangler.jsonc')).status, 404);
     assert.equal((await run('/api/commerce/catalog')).status, 200);
-    for (const credential of ['', 'APP_USR-unverified']) {
+    for (const credential of ['', 'Bearer APP_USR-invalid']) {
       const original = env.MERCADOPAGO_ACCESS_TOKEN;
       env.MERCADOPAGO_ACCESS_TOKEN = credential;
       assert.equal(

@@ -16,5 +16,15 @@ export const CATALOG = Object.freeze({
     key: 'products/planner-treino/v1.zip',
     filename: 'planner-treino.zip',
   }),
+  'meu-dinheiro-minhas-regras': Object.freeze({
+    id: 'meu-dinheiro-minhas-regras',
+    title: 'Meu Dinheiro, Minhas Regras',
+    cents: 4700,
+    currency: 'BRL',
+    format: 'Template Notion',
+    description: 'Fácil de começar, completo para evoluir. Registre suas movimentações, acompanhe seus saldos e explore os recursos conforme suas necessidades. O template inclui exemplos e orientações para ajudar você a começar.',
+    key: 'products/meu-dinheiro-minhas-regras/v1.zip',
+    filename: 'meu-dinheiro-minhas-regras.zip',
+  }),
 });
 export const money = (cents) => (cents / 100).toFixed(2);

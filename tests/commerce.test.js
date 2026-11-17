@@ -18,6 +18,7 @@ function request(path, { method = 'GET', payload, headers = {} } = {}) {
       Origin: origin,
       'Content-Type': 'application/json',
       'Idempotency-Key': id,
+      'X-Download-Attempt': webcrypto.randomUUID(),
       ...headers,
     },
     ...(payload !== undefined ? { body: JSON.stringify(payload) } : {}),
@@ -43,6 +44,8 @@ async function checkout() {
     new Response(
       JSON.stringify({
         id: mpId,
+        status: 'created',
+        status_detail: 'created',
         checkout_url: `https://www.mercadopago.com.br/checkout/v1/redirect?order_id=${mpId}`,
       }),
     ),
@@ -90,11 +93,12 @@ beforeEach(() => {
       'utf8',
     ),
   );
+  db.exec(readFileSync(new URL('../migrations/commerce/0003_download_attempts.sql', import.meta.url), 'utf8'));
   env = {
     COMMERCE_ENVIRONMENT: 'staging',
     COMMERCE_MODE: 'test',
     COMMERCE_ORIGIN: origin,
-    MERCADOPAGO_ACCESS_TOKEN: 'TEST-fixture-only',
+    MERCADOPAGO_ACCESS_TOKEN: 'APP_USR-fixture-only',
     MERCADOPAGO_WEBHOOK_SECRET: 'fixture-webhook-secret',
     COMMERCE_DB: {
       prepare(sql) {
@@ -117,7 +121,11 @@ beforeEach(() => {
   provider = vi.fn(() => {
     throw new Error('Unexpected outbound call');
   });
-  vi.stubGlobal('fetch', provider);
+  vi.stubGlobal('fetch', (url, options) =>
+    url === 'https://api.mercadolibre.com/users/me'
+      ? Promise.resolve(Response.json({ id: 3792015931, site_id: 'MLB', tags: ['test_user'] }))
+      : provider(url, options),
+  );
 });
 afterEach(() => {
   db.close();
@@ -137,7 +145,7 @@ describe('commerce integration with real SQLite persistence and mocked network',
     expect(response.headers.get('Cache-Control')).toContain('no-store');
     expect(provider).not.toHaveBeenCalled();
   });
-  it.each(['APP_USR-real', 'USR-unverified', '', undefined])(
+  it.each(['Bearer APP_USR-invalid', 'APP_USR-invalid\n', '', undefined])(
     'blocks unverified credentials before any calls: %s',
     async (key) => {
       env.MERCADOPAGO_ACCESS_TOKEN = key;
@@ -148,6 +156,7 @@ describe('commerce integration with real SQLite persistence and mocked network',
   it('blocks disabled mode, missing secret, missing bucket, invalid origin configuration', async () => {
     for (const [key, value] of [
       ['COMMERCE_MODE', 'disabled'],
+      ['COMMERCE_ENVIRONMENT', 'production'],
       ['MERCADOPAGO_WEBHOOK_SECRET', ''],
       ['DIGITAL_PRODUCTS', null],
       ['COMMERCE_ORIGIN', 'http://staging.example.com'],
@@ -499,5 +508,176 @@ describe('durable delivery safety for fraud, chargebacks and refunds', () => {
     db.exec('DROP TABLE commerce_risk_events');
     expect((await handleCommerce(await risk('stop_delivery_op_wh'), env)).status).toBe(503);
     expect(provider).not.toHaveBeenCalled();
+  });
+});
+
+describe('identity authorization before order operations', () => {
+  it.each(['APP_USR-real-synthetic', 'TEST-unverified-synthetic'])(
+    'blocks order creation for unverified identity regardless of prefix: %s',
+    async (credential) => {
+      env.MERCADOPAGO_ACCESS_TOKEN = credential;
+      const outbound = vi.fn(async () =>
+        Response.json({ id: 3792015931, site_id: 'MLB', tags: [] }),
+      );
+      vi.stubGlobal('fetch', outbound);
+      expect((await checkout()).status).toBe(503);
+      expect(provider).not.toHaveBeenCalled();
+      expect(outbound).toHaveBeenCalledTimes(1);
+      expect(outbound.mock.calls[0][0]).toBe('https://api.mercadolibre.com/users/me');
+    },
+  );
+  it('rejects Orders redirects with a Workers-compatible fetch and no credential forwarding', async () => {
+    provider.mockImplementation(async (_url, options) => {
+      if (options.redirect !== 'manual') throw new TypeError('Unsupported redirect mode');
+      return new Response(null, { status: 302, headers: { Location: 'https://evil.invalid' } });
+    });
+    const response = await run('/checkout', {
+      method: 'POST',
+      payload: { product_id: 'planner-treino' },
+    });
+    expect(response.status).toBe(503);
+    expect(provider).toHaveBeenCalledTimes(1);
+    expect(await response.text()).not.toMatch(/APP_USR|evil|Location/);
+  });
+  it('revalidates identity before returning an existing checkout URL', async () => {
+    expect((await checkout()).status).toBe(200);
+    const outbound = vi.fn(async () =>
+      Response.json({ id: 1, site_id: 'MLB', tags: ['test_user'] }),
+    );
+    vi.stubGlobal('fetch', outbound);
+    expect(
+      (await run('/checkout', { method: 'POST', payload: { product_id: 'planner-treino' } }))
+        .status,
+    ).toBe(503);
+    expect(outbound).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('download identity safety', () => {
+  it('denies a previously paid download when current identity no longer qualifies', async () => {
+    expect((await checkout()).status).toBe(200);
+    expect((await notify()).status).toBe(200);
+    const outbound = vi.fn(async () => Response.json({ id: 3792015931, site_id: 'MLB', tags: [] }));
+    vi.stubGlobal('fetch', outbound);
+    expect((await run(`/orders/${id}/download`)).status).toBe(503);
+    expect(env.DIGITAL_PRODUCTS.get).not.toHaveBeenCalled();
+    expect(db.prepare('SELECT downloads FROM commerce_orders WHERE id=?').get(id).downloads).toBe(
+      0,
+    );
+    expect(outbound).toHaveBeenCalledTimes(1);
+    expect(outbound.mock.calls[0][0]).toBe('https://api.mercadolibre.com/users/me');
+  });
+});
+
+describe('creation bookkeeping does not imply payment', () => {
+  it('records accepted creation without granting digital delivery', async () => {
+    const response = await checkout();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      status: 'created',
+      status_detail: 'created',
+      paid: false,
+    });
+    const row = db
+      .prepare(
+        'SELECT status,status_detail,downloads,remote_updated FROM commerce_orders WHERE id=?',
+      )
+      .get(id);
+    expect(row).toMatchObject({
+      status: 'created',
+      status_detail: 'created',
+      downloads: 0,
+      remote_updated: 0,
+    });
+    expect(env.DIGITAL_PRODUCTS.get).not.toHaveBeenCalled();
+    provider.mockResolvedValue(
+      Response.json(
+        snapshot({ status: 'created', status_detail: 'created', total_paid_amount: '0.00' }),
+      ),
+    );
+    expect((await run(`/orders/${id}/download`)).status).toBe(403);
+    expect(env.DIGITAL_PRODUCTS.get).not.toHaveBeenCalled();
+  });
+  it('does not overwrite newer state when the creation response arrives late', async () => {
+    provider.mockImplementation(async () => {
+      db.prepare(
+        "UPDATE commerce_orders SET status='canceled',status_detail='canceled',remote_updated=? WHERE id=?",
+      ).run(Date.now(), id);
+      return Response.json({
+        id: mpId,
+        status: 'created',
+        status_detail: 'created',
+        checkout_url: `https://www.mercadopago.com.br/checkout/v1/redirect?order_id=${mpId}`,
+      });
+    });
+    const response = await run('/checkout', {
+      method: 'POST',
+      payload: { product_id: 'planner-treino' },
+    });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      status: 'canceled',
+      status_detail: 'canceled',
+      paid: false,
+    });
+  });
+});
+
+// Production launch restrictions are tested with in-memory D1/R2 and synthetic credentials.
+function productionConfig() {
+  Object.assign(env, {
+    COMMERCE_ENVIRONMENT: 'production', COMMERCE_MODE: 'production',
+    COMMERCE_ORIGIN: 'https://shopping.renatajoin.com',
+    COMMERCE_PRODUCTION_ORIGIN: 'https://shopping.renatajoin.com',
+    COMMERCE_SELLER_ID: '123456789', COMMERCE_APPLICATION_ID: '987654321',
+  });
+}
+function launchRequest(productId) {
+  return new Request(env.COMMERCE_ORIGIN + '/api/commerce/checkout', {
+    method: 'POST',
+    headers: { Origin: env.COMMERCE_ORIGIN, Authorization: `Bearer ${bearer}`,
+      'Content-Type': 'application/json', 'Idempotency-Key': id },
+    body: JSON.stringify({ product_id: productId }),
+  });
+}
+describe('production launch allowlist', () => {
+  it.each(['planner-alimentar', 'planner-treino'])('rejects direct API purchases of %s before creating orders or calling the provider', async (productId) => {
+    productionConfig();
+    const outbound = vi.fn(() => { throw new Error('Outbound calls forbidden'); });
+    vi.stubGlobal('fetch', outbound);
+    const response = await handleCommerce(launchRequest(productId), env);
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({ message: 'Produto ainda não disponível para compra.' });
+    expect(db.prepare('SELECT count(*) AS n FROM commerce_orders').get().n).toBe(0);
+    expect(outbound).not.toHaveBeenCalled();
+    expect(env.DIGITAL_PRODUCTS.head).not.toHaveBeenCalled();
+  });
+  it('retains all products but only advertises the finance template when production is enabled', async () => {
+    productionConfig();
+    const catalog = await (await run('/catalog')).json();
+    expect(catalog.products).toHaveLength(3);
+    expect(catalog.products.filter(p => p.available)).toMatchObject([{ id: 'meu-dinheiro-minhas-regras', amount: '47.00' }]);
+    expect(catalog.products.filter(p => p.coming_soon).map(p => p.id)).toEqual(['planner-alimentar', 'planner-treino']);
+    env.COMMERCE_MODE = 'disabled';
+    const disabled = await (await run('/catalog')).json();
+    expect(disabled.products.every(p => !p.available)).toBe(true);
+    expect((await handleCommerce(launchRequest('meu-dinheiro-minhas-regras'), env)).status).toBe(503);
+  });
+  it('allows only the finance product at the server price through the existing production flow', async () => {
+    productionConfig();
+    const calls = vi.fn(async (url, options) => {
+      if (url.endsWith('/users/me')) return Response.json({ id: 123456789, site_id: 'MLB', tags: [] });
+      expect(url).toBe('https://api.mercadopago.com/v1/orders');
+      const payload = JSON.parse(options.body);
+      expect(payload.total_amount).toBe('47.00');
+      return Response.json({ ...payload, currency: 'BRL', id: 'ORD01KS5AJ6HTK2HRQ3XJ3C2JCKP9',
+        user_id: 123456789, integration_data: { application_id: 987654321 },
+        status: 'created', live_mode: true,
+        checkout_url: 'https://www.mercadopago.com.br/checkout/v1/redirect?order_id=ORD01KS5AJ6HTK2HRQ3XJ3C2JCKP9' });
+    });
+    vi.stubGlobal('fetch', calls);
+    expect((await handleCommerce(launchRequest('meu-dinheiro-minhas-regras'), env)).status).toBe(200);
+    expect(db.prepare('SELECT product_id,amount_cents FROM commerce_orders').get()).toMatchObject({ product_id: 'meu-dinheiro-minhas-regras', amount_cents: 4700 });
+    expect(calls).toHaveBeenCalledTimes(2);
   });
 });

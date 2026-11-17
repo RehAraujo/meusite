@@ -1,9 +1,12 @@
+import { commerceMode, verifiedCredential, validProviderOrder, productionMode } from './credentials.js';
+import { reserveDownload, validDownloadAttempt } from './downloads.js';
+export { testMode } from './credentials.js';
 import { BLOCKED_SQL, RISK_TOPICS, persistRisk, captureSafety, riskResource } from './safety.js';
 import { CATALOG, money } from './catalog.js';
+import { isLaunchProduct } from '../../src/data/commerce-launch.js';
 
 const encoder = new TextEncoder();
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const TEST_ORDER = /^ORDTST[A-Z0-9]{10,64}$/;
 const security = {
   'Cache-Control': 'private, no-store',
   'X-Content-Type-Options': 'nosniff',
@@ -27,18 +30,11 @@ function token(request) {
   const value = request.headers.get('Authorization') || '';
   return /^Bearer [a-f0-9]{64}$/.test(value) ? value.slice(7) : null;
 }
-export function testMode(env) {
-  // Fail closed, including USR/APP_USR credentials for unverified test accounts.
-  return (
-    env.COMMERCE_MODE === 'test' && /^TEST-[A-Za-z0-9-]+$/.test(env.MERCADOPAGO_ACCESS_TOKEN || '')
-  );
-}
 function configured(env) {
   try {
     const origin = new URL(env.COMMERCE_ORIGIN);
     return (
-      env.COMMERCE_ENVIRONMENT === 'staging' &&
-      testMode(env) &&
+      commerceMode(env) &&
       env.COMMERCE_DB &&
       env.DIGITAL_PRODUCTS &&
       !!env.MERCADOPAGO_WEBHOOK_SECRET &&
@@ -87,19 +83,22 @@ async function limited(request, env, scope, maximum) {
   return row.count > maximum;
 }
 async function mp(env, path, options = {}) {
-  if (!testMode(env)) throw new Error('test-only');
+  const credential = await verifiedCredential(env);
   const response = await fetch(`https://api.mercadopago.com/v1/orders${path}`, {
     ...options,
     headers: {
-      Authorization: `Bearer ${env.MERCADOPAGO_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${credential}`,
       'Content-Type': 'application/json',
       ...options.headers,
     },
     signal: AbortSignal.timeout(8000),
-    redirect: 'error',
+    redirect: 'manual',
   });
   // Never log or return provider bodies, headers, tokens or payer data.
-  if (!response.ok) throw new Error('provider');
+  if (!response.ok || (response.status >= 300 && response.status < 400)) {
+    await response.body?.cancel();
+    throw new Error('provider');
+  }
   return response.json();
 }
 export function checkoutUrl(value, orderId) {
@@ -166,6 +165,15 @@ async function owned(request, env, id) {
     ? row
     : null;
 }
+// Opt-in prototype: never active in production or disabled environments.
+const complementaryReconciliation = (env) =>
+  env.COMMERCE_ENVIRONMENT === 'staging' && env.COMMERCE_MODE === 'test' &&
+  env.COMMERCE_RECONCILIATION === 'test';
+async function confirmedWebhook(env, row) {
+  return !!(await env.COMMERCE_DB.prepare(
+    'SELECT order_id FROM commerce_webhook_confirmations WHERE order_id=? AND remote_updated=?',
+  ).bind(row.id, row.remote_updated).first());
+}
 function view(row) {
   return {
     order_id: row.id,
@@ -175,25 +183,33 @@ function view(row) {
     currency: row.currency,
     status: row.status,
     status_detail: row.status_detail,
-    paid: row.status === 'processed' && row.status_detail === 'accredited' && !row.delivery_blocked,
+    paid: row.status === 'processed' && row.status_detail === 'accredited' && !row.delivery_blocked && row.webhook_confirmed !== false,
     delivery_blocked: !!row.delivery_blocked,
     access_expires: row.access_expires,
   };
 }
-export function matchesOrder(remote, row) {
+export function matchesOrder(remote, row, env = { COMMERCE_ENVIRONMENT: 'staging' }) {
   return (
     remote.id === row.mp_id &&
-    TEST_ORDER.test(remote.id) &&
-    remote.live_mode !== true &&
+    validProviderOrder(remote, env) &&
     remote.type === 'online' &&
     remote.external_reference === row.id &&
     remote.currency === row.currency &&
-    remote.total_amount === money(row.amount_cents)
+    remote.total_amount === money(row.amount_cents) &&
+    (!productionMode(env) || (
+      String(remote.user_id) === env.COMMERCE_SELLER_ID &&
+      String(remote.integration_data?.application_id) === env.COMMERCE_APPLICATION_ID &&
+      remote.processing_mode === 'manual' &&
+      Array.isArray(remote.items) && remote.items.length === 1 &&
+      remote.items[0].title === row.product_title &&
+      remote.items[0].quantity === 1 &&
+      remote.items[0].unit_price === money(row.amount_cents)
+    ))
   );
 }
 async function reconcile(env, row) {
   const remote = await mp(env, `/${encodeURIComponent(row.mp_id)}`);
-  if (!matchesOrder(remote, row)) throw new Error('mismatch');
+  if (!matchesOrder(remote, row, env)) throw new Error('mismatch');
   await captureSafety(env, row, remote);
   const updated = Date.parse(remote.last_updated_date);
   if (!Number.isFinite(updated) || updated > Date.now() + 60000) throw new Error('version');
@@ -231,6 +247,8 @@ async function checkout(request, env) {
   const product = Object.hasOwn(CATALOG, input?.product_id) ? CATALOG[input.product_id] : null;
   if (!product || Object.keys(input).some((key) => key !== 'product_id'))
     return json({ message: 'Produto inválido.' }, 400);
+  if (productionMode(env) && !isLaunchProduct(product.id))
+    return json({ message: 'Produto ainda não disponível para compra.' }, 403);
   const digest = await hash(bearer);
   let row = await byId(env, id);
   if (!row) {
@@ -262,7 +280,10 @@ async function checkout(request, env) {
     row.created_at + 86400000 <= Date.now()
   )
     return json({ message: 'Sessão incompatível.' }, 409);
-  if (row.checkout_url) return json({ ...view(row), checkout_url: row.checkout_url });
+  if (row.checkout_url) {
+    await verifiedCredential(env);
+    return json({ ...view(row), checkout_url: row.checkout_url, environment: env.COMMERCE_ENVIRONMENT });
+  }
   // Identical payload and key for all retries, including timeouts and concurrent requests.
   const returnUrl = `${env.COMMERCE_ORIGIN}/checkout?pedido=${id}`;
   const remote = await mp(env, '', {
@@ -286,15 +307,25 @@ async function checkout(request, env) {
     }),
   });
   const redirect = checkoutUrl(remote.checkout_url, remote.id);
-  if (!TEST_ORDER.test(remote.id || '') || remote.live_mode === true || !redirect)
+  if (!validProviderOrder(remote, env) || !redirect || (productionMode(env) && !matchesOrder(remote, { ...row, mp_id: remote.id }, env)))
     throw new Error('test-order');
   await env.COMMERCE_DB.prepare(
-    'UPDATE commerce_orders SET mp_id=?,checkout_url=? WHERE id=? AND mp_id IS NULL',
+    `UPDATE commerce_orders SET mp_id=?,checkout_url=?,
+      status=CASE WHEN status='creating' AND ? THEN 'created' ELSE status END,
+      status_detail=CASE WHEN status='creating' AND ? THEN 'created' ELSE status_detail END
+      WHERE id=? AND mp_id IS NULL`,
   )
-    .bind(remote.id, redirect, id)
+    // Creation is not payment approval. Preserve any newer webhook state.
+    .bind(
+      remote.id,
+      redirect,
+      remote.status === 'created' ? 1 : 0,
+      remote.status === 'created' ? 1 : 0,
+      id,
+    )
     .run();
   row = await byId(env, id);
-  return json({ ...view(row), checkout_url: row.checkout_url });
+  return json({ ...view(row), checkout_url: row.checkout_url, environment: env.COMMERCE_ENVIRONMENT });
 }
 async function webhook(request, env, url) {
   if (!(await verifySignature(request, url, env.MERCADOPAGO_WEBHOOK_SECRET)))
@@ -309,7 +340,7 @@ async function webhook(request, env, url) {
   const topic = input?.type;
   const queryType = url.searchParams.get('type');
   if (
-    input?.live_mode !== false ||
+    input?.live_mode !== productionMode(env) ||
     (queryType && queryType !== topic) ||
     url.searchParams.getAll('type').length > 1
   )
@@ -319,14 +350,19 @@ async function webhook(request, env, url) {
     await persistRisk(env, topic, id);
     return json({ received: true });
   }
-  if (topic !== 'order' || input.data?.id !== id || !TEST_ORDER.test(id))
+  if (topic !== 'order' || input.data?.id !== id || !validProviderOrder({ id, live_mode: input.live_mode }, env))
     return json({ message: 'Evento incompatível.' }, 400);
   const row = await env.COMMERCE_DB.prepare('SELECT * FROM commerce_orders WHERE mp_id=?')
     .bind(id)
     .first();
   // A notification can precede persistence of the provider ID: ask for a retry.
   if (!row) return json({ message: 'Pedido ainda não disponível.' }, 503);
-  await reconcile(env, row);
+  const verified = await reconcile(env, row);
+  if (complementaryReconciliation(env) && verified.verified_paid && view(verified).paid) {
+    await env.COMMERCE_DB.prepare(
+      'INSERT INTO commerce_webhook_confirmations (order_id,remote_updated) VALUES (?,?) ON CONFLICT(order_id) DO UPDATE SET remote_updated=MAX(remote_updated,excluded.remote_updated)',
+    ).bind(verified.id, verified.remote_updated).run();
+  }
   return json({ received: true });
 }
 export async function handleCommerce(request, env, url = new URL(request.url)) {
@@ -335,15 +371,25 @@ export async function handleCommerce(request, env, url = new URL(request.url)) {
     if (path === '/catalog' && request.method === 'GET') {
       const available = configured(env);
       return json({
-        mode: 'test',
-        products: Object.values(CATALOG).map(({ id, title, cents, currency }) => ({
+        mode: productionMode(env) ? 'production' : 'test',
+        products: Object.values(CATALOG).map(({ id, title, cents, currency, format, description }) => ({
           id,
           title,
           amount: money(cents),
+          ...(format ? { format, description } : {}),
           currency,
-          available,
+          coming_soon: productionMode(env) && !isLaunchProduct(id),
+          available: available && (!productionMode(env) || isLaunchProduct(id)),
         })),
       });
+    }
+    // Disabled production may acknowledge authenticity, never process the event.
+    // Keep this before configuration checks and independent of all commercial bindings.
+    if (path === '/webhook' && request.method === 'POST' &&
+        env.COMMERCE_ENVIRONMENT === 'production' && env.COMMERCE_MODE === 'disabled') {
+      if (!(await verifySignature(request, url, env.MERCADOPAGO_WEBHOOK_SECRET)))
+        return json({ message: 'Assinatura inválida.' }, 401);
+      return json({ received: true, signature_verified: true, commerce_processed: false, mode: 'disabled' });
     }
     if (!configured(env)) return json({ message: 'Checkout temporariamente indisponível.' }, 503);
     if (path === '/checkout' && request.method === 'POST') return await checkout(request, env);
@@ -355,7 +401,15 @@ export async function handleCommerce(request, env, url = new URL(request.url)) {
       return json({ message: 'Aguarde um minuto.' }, 429);
     let row = await owned(request, env, match[1]);
     if (!row) return json({ message: 'Acesso inválido ou expirado.' }, 404);
-    if (!match[2]) return json(view(row));
+    if (!match[2]) {
+      if (complementaryReconciliation(env) && row.mp_id) {
+        row = await reconcile(env, row);
+        row.webhook_confirmed = await confirmedWebhook(env, row);
+      }
+      return json(view(row));
+    }
+    if (!validDownloadAttempt(request.headers.get('X-Download-Attempt')))
+      return json({ message: 'Tentativa de download inválida. Atualize a página.' }, 400);
     if (row.delivery_blocked)
       return json(
         { message: 'Entrega suspensa para revisão. Entre em contato com o suporte.' },
@@ -366,13 +420,11 @@ export async function handleCommerce(request, env, url = new URL(request.url)) {
     row = await reconcile(env, row);
     if (!view(row).paid || !row.verified_paid)
       return json({ message: 'Pagamento não confirmado.' }, 403);
+    if (complementaryReconciliation(env) && !(await confirmedWebhook(env, row)))
+      return json({ message: 'Aguardando confirmação do pagamento por notificação.' }, 403);
     const asset = await env.DIGITAL_PRODUCTS.get(row.asset_key);
     if (!asset) return json({ message: 'Arquivo temporariamente indisponível.' }, 503);
-    const updated = await env.COMMERCE_DB.prepare(
-      `UPDATE commerce_orders SET downloads=downloads+1 WHERE id=? AND status='processed' AND status_detail='accredited' AND access_expires>? AND downloads<10 AND NOT ${BLOCKED_SQL} RETURNING id`,
-    )
-      .bind(row.id, Date.now())
-      .first();
+    const updated = await reserveDownload(env, row.id, request.headers.get('X-Download-Attempt'));
     if (!updated) return json({ message: 'Limite de acesso atingido.' }, 403);
     return new Response(asset.body, {
       headers: {
