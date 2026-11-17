@@ -25,15 +25,14 @@ const counts = shoppingProducts.reduce((total, item) => {
 }, {});
 const tools = shoppingProducts.filter((item) => item.category === 'ferramentas-digitais');
 const papelaria = papelariaHighlights.map((id) => shoppingProducts.find((item) => item.id === id));
-const otherUniverses = shoppingCategories.filter((item) => item.status === 'em-breve');
 const toolsPage = categoryById['ferramentas-digitais'].path;
 const papelariaPage = categoryById['papelaria-impressos'].path;
 
 /*
  * /shopping: vitrine de curadoria do Shopping JOIN (não o catálogo completo).
  * Ordem: hero editorial → universos (coverflow) → Ferramentas Digitais →
- * Papelaria & Impressos → próximos universos → como comprar.
- * Cada universo tem página própria em /shopping/{id}. Nada aqui inicia compra.
+ * Papelaria & Impressos → como comprar. Os universos "Em breve" aparecem no
+ * coverflow e têm página própria em /shopping/{id}. Nada aqui inicia compra.
  */
 export default function ShoppingPage() {
   useDocumentMeta({
@@ -149,8 +148,8 @@ export default function ShoppingPage() {
             {visibleTools.length > 0 ? (
               <ul className="rj-products rj-products--tools" aria-label="Ferramentas em destaque">
                 {visibleTools.map((item) => (
-                  <li key={item.id}>
-                    <ProductCard product={item} />
+                  <li key={item.id} className={item.featured ? 'rj-products__lead' : undefined}>
+                    <ProductCard product={item} highlight={item.featured} />
                   </li>
                 ))}
               </ul>
@@ -197,45 +196,7 @@ export default function ShoppingPage() {
           </div>
         </section>
 
-        {/* 5. OUTROS UNIVERSOS */}
-        <section
-          className="rj-section rj-section--paper rj-shop-universes"
-          id="universos"
-          aria-labelledby="universos-title"
-        >
-          <div className="rj-container">
-            <header className="rj-heading" data-rj-reveal>
-              <div>
-                <Eyebrow number="04">Outros universos JOIN</Eyebrow>
-                <h2 id="universos-title" className="rj-display-italic">
-                  Próximos lançamentos.
-                </h2>
-              </div>
-              <p className="rj-heading__copy">
-                Cada universo abre com produtos, fotos e preços reais. Entre na página para receber
-                o aviso.
-              </p>
-            </header>
-            <ul className="rj-universes" aria-label="Universos em breve">
-              {otherUniverses.map((category, index) => (
-                <li key={category.id} data-rj-reveal style={{ '--rj-i': index % 3 }}>
-                  <Link className={`rj-universe rj-tone--${category.tone}`} to={category.path}>
-                    <span className="rj-universe__number">{category.number}</span>
-                    <span className="rj-universe__body">
-                      <strong>{category.label}</strong>
-                      <span>{category.description}</span>
-                    </span>
-                    <span className="rj-universe__status">
-                      Em breve <i aria-hidden="true">→</i>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        {/* 6. COMO COMPRAR */}
+        {/* 5. COMO COMPRAR */}
         <section
           className="rj-section rj-section--white rj-shop-guide"
           id="como-comprar"
@@ -244,7 +205,7 @@ export default function ShoppingPage() {
           <div className="rj-container">
             <header className="rj-heading" data-rj-reveal>
               <div>
-                <Eyebrow number="05">Como comprar</Eyebrow>
+                <Eyebrow number="04">Como comprar</Eyebrow>
                 <h2 id="guia-title" className="rj-display-italic">
                   Simples, do primeiro clique à entrega.
                 </h2>

@@ -32,14 +32,16 @@ function ProductAction({ product }) {
   );
 }
 
-export function ProductCard({ product, showCategory = false, categories = [] }) {
+export function ProductCard({ product, showCategory = false, categories = [], highlight = false }) {
   const category = showCategory ? categories.find((item) => item.id === product.category) : null;
   const { image } = product;
   // Produtos e mockups aparecem inteiros (contain) sobre a cor do próprio fundo.
   const mediaStyle = image?.bg ? { background: image.bg } : undefined;
   return (
     <article
-      className={`rj-product rj-product--${product.kind} rj-product--${product.pricing}`}
+      className={`rj-product rj-product--${product.kind} rj-product--${product.pricing}${
+        highlight ? ' rj-product--featured' : ''
+      }`}
       aria-labelledby={`p-${product.id}`}
     >
       <figure className="rj-product__media" style={mediaStyle}>
@@ -62,6 +64,7 @@ export function ProductCard({ product, showCategory = false, categories = [] }) 
             <em>{product.coverNote ?? 'Capa provisória'}</em>
           </span>
         )}
+        {highlight ? <span className="rj-product__flag">Destaque da loja</span> : null}
         {/* Um único selo, só quando o estado muda a decisão de compra. */}
         {product.status !== 'disponivel' ? (
           <span className="rj-product__badges">
