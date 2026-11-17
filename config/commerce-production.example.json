@@ -1,0 +1,26 @@
+{
+  "name": "shopping-join-production",
+  "main": "../worker/commerce/production.js",
+  "compatibility_date": "2026-07-09",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "observability": { "enabled": false },
+  "assets": {
+    "directory": "../dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  "vars": {
+    "COMMERCE_MODE": "disabled",
+    "COMMERCE_ENVIRONMENT": "production",
+    "COMMERCE_ORIGIN": "",
+    "COMMERCE_PRODUCTION_ORIGIN": "",
+    "COMMERCE_SELLER_ID": "",
+    "COMMERCE_APPLICATION_ID": ""
+  },
+  "d1_databases": [],
+  "r2_buckets": []
+}
