@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ButtonLink } from '../components/ui/ButtonLink';
 import { tools } from '../data/tools';
+import { isLaunchProduct } from '../data/commerce-launch';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 
 export default function ToolsPage() {
@@ -52,9 +53,9 @@ export default function ToolsPage() {
                 <p>{tool.description}</p>
                 <strong>O que resolve</strong>
                 <p>{tool.problem}</p>
-                <p className="price">{tool.price}</p>
+                <p className="price">{isLaunchProduct(tool.id) ? tool.price : 'Em breve'}</p>
                 <div className="button-group">
-                  <ButtonLink to={tool.buyUrl}>Comprar</ButtonLink>
+                  {isLaunchProduct(tool.id) ? <ButtonLink to={tool.buyUrl}>Comprar</ButtonLink> : <button className="button" type="button" disabled>Indisponível</button>}
                   <ButtonLink to={tool.detailUrl} secondary>
                     Saiba mais
                   </ButtonLink>

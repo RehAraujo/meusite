@@ -1,26 +1,17 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import '../styles/finance-checkout.css';
 import { ButtonLink } from '../components/ui/ButtonLink';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
+import {
+  readCommerceSession as readSession,
+  prepareCommerceSession,
+  paymentTarget,
+  navigatePayment,
+  prepareDownloadAttempt,
+  completeDownloadAttempt,
+} from '../lib/commerce-session';
 
-const storageKey = (id) => `commerce:${id}`;
-function readSession(id) {
-  try {
-    return JSON.parse(sessionStorage.getItem(storageKey(id)));
-  } catch {
-    return null;
-  }
-}
-function newSession(product) {
-  const id = crypto.randomUUID();
-  const token = Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) =>
-    b.toString(16).padStart(2, '0'),
-  ).join('');
-  const value = { id, token, product, created: Date.now() };
-  sessionStorage.setItem(storageKey(id), JSON.stringify(value));
-  sessionStorage.setItem(`commerce:pending:${product}`, id);
-  return value;
-}
 async function api(path, session, options = {}) {
   const response = await fetch(`/api/commerce${path}`, {
     ...options,
@@ -32,8 +23,10 @@ async function api(path, session, options = {}) {
 }
 export default function CheckoutPage() {
   const [params] = useSearchParams();
+  const downloading = useRef(false);
   const productId = params.get('produto'),
     orderId = params.get('pedido');
+  const [catalogMode, setCatalogMode] = useState('test');
   const [products, setProducts] = useState([]),
     [order, setOrder] = useState(null);
   const [busy, setBusy] = useState(false),
@@ -72,7 +65,7 @@ export default function CheckoutPage() {
           return r.json();
         })
         .then((data) => {
-          if (active) setProducts(data.products);
+          if (active) { setProducts(data.products); setCatalogMode(data.mode); }
         })
         .catch(() => {
           if (active) setMessage('Checkout temporariamente indisponível.');
@@ -84,25 +77,23 @@ export default function CheckoutPage() {
   }, [orderId, productId]);
   const product = products.find((item) => item.id === productId);
   async function buy() {
+    if (!product?.available || product.coming_soon) return;
     setBusy(true);
     setMessage('');
     try {
-      const previous = sessionStorage.getItem(`commerce:pending:${productId}`);
-      const pending = readSession(previous);
-      const session = pending?.created > Date.now() - 86400000 ? pending : newSession(productId);
+      const session = prepareCommerceSession(productId);
       const response = await api('/checkout', session, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Idempotency-Key': session.id },
         body: JSON.stringify({ product_id: productId }),
       });
       const result = await response.json();
-      const target = new URL(result.checkout_url);
-      if (target.protocol !== 'https:' || target.hostname !== 'www.mercadopago.com.br')
-        throw new Error('redirect');
-      window.location.assign(target.href);
-    } catch {
+      navigatePayment(paymentTarget(result, session));
+    } catch (error) {
       setMessage(
-        'Não foi possível iniciar o pagamento. Tente novamente; a tentativa será reutilizada.',
+        error.message === 'commerce-session-unavailable'
+          ? 'Não foi possível preservar o acesso nesta aba. Não iniciamos outro pagamento. Mantenha esta aba aberta e fale pelo contato do site.'
+          : 'Não foi possível iniciar o pagamento. Tente novamente; a tentativa será reutilizada.',
       );
     } finally {
       setBusy(false);
@@ -124,31 +115,78 @@ export default function CheckoutPage() {
     }
   }
   async function download() {
+    if (downloading.current) return;
+    downloading.current = true;
     setBusy(true);
     setMessage('');
     try {
       const session = readSession(orderId);
       if (!session) throw new Error('session');
-      const response = await api(`/orders/${orderId}/download`, session);
+      const attempt = prepareDownloadAttempt(orderId);
+      const response = await api(`/orders/${orderId}/download`, session, { headers: { 'X-Download-Attempt': attempt } });
       const objectUrl = URL.createObjectURL(await response.blob());
       const link = document.createElement('a');
       link.href = objectUrl;
       link.download = `${order.product_id}.zip`;
       link.click();
+      completeDownloadAttempt(orderId);
       setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
     } catch {
       setMessage(
         'O arquivo ainda não está disponível. Atualize o status ou fale pelo contato do site.',
       );
     } finally {
+      downloading.current = false;
       setBusy(false);
     }
+  }
+  // Product-specific presentation only: reuse the existing availability guard and buy handler.
+  if (productId === 'meu-dinheiro-minhas-regras' && !orderId) {
+    return (
+      <div className="finance-checkout">
+        <header className="fc-header">
+          <Link to="/meu-dinheiro-minhas-regras">RENATAJOIN <span>/ SHOPPING JOIN</span></Link>
+          <span>Seu pedido</span>
+        </header>
+        <main id="conteudo" className="fc-grid">
+          <section className="fc-intro">
+            <p className="fc-eyebrow">CONFIRA. CONTINUE. ORGANIZE.</p>
+            <h1>Um passo para organizar seu dinheiro.</h1>
+            <p className="fc-lead">Confira seu produto antes de continuar para o pagamento.</p>
+            <div className="fc-payment-info">
+              <h2>Pagamento pelo Mercado Pago</h2>
+              <p>Você continuará para o ambiente do Mercado Pago para finalizar o pagamento.</p>
+              {catalogMode === 'test' && <p className="fc-test">Homologação: use somente conta e meios de pagamento de teste.</p>}
+            </div>
+            <details className="fc-help">
+              <summary>Como recebo meu template?</summary>
+              <p>Após a confirmação do pagamento, o download fica disponível na página do pedido. O pacote contém o link do template e as instruções para duplicá-lo na sua conta Notion.</p>
+              <p>Continue no mesmo navegador e mantenha esta aba aberta para preservar seu acesso. Prazo de acesso: 7 dias após iniciar a compra, com limite de 10 downloads.</p>
+            </details>
+            <Link className="fc-back" to="/meu-dinheiro-minhas-regras">← Voltar ao produto</Link>
+          </section>
+          <section className="fc-summary" aria-labelledby="fc-summary-title" aria-busy={busy}>
+            <h2 id="fc-summary-title">Resumo do pedido</h2>
+            <img className="fc-thumbnail" src="/assets/finance-template/visao-geral.jpg" width="2000" height="893" alt="Captura real do template Meu Dinheiro, Minhas Regras no Notion, com dados demonstrativos." />
+            <p className="fc-eyebrow">TEMPLATE NOTION · PRODUTO DIGITAL</p>
+            <h3>{product?.title || 'Meu Dinheiro, Minhas Regras'}</h3>
+            <p className="fc-format">Requer conta no Notion. Sem produto físico.</p>
+            <div className="fc-total"><span>Total <small>Pagamento único</small></span><strong>{product ? `R$ ${product.amount.replace('.', ',')}` : 'R$ 47,00'}</strong></div>
+            <button className="fc-submit" type="button" disabled={busy || !product?.available} onClick={buy} aria-describedby="fc-availability">{busy ? 'Preparando…' : 'Continuar para pagamento'}<span aria-hidden="true">↗</span></button>
+            <p id="fc-availability" className="fc-availability" role="status">{!product ? 'Carregando disponibilidade…' : !product.available ? 'Checkout temporariamente desativado.' : catalogMode === 'test' ? 'Pagamento processado no ambiente de teste.' : 'Pagamento processado pelo Mercado Pago.'}</p>
+            {message && <p className="fc-error" role="alert">{message}</p>}
+            <Link className="fc-terms" to="/produtos-digitais">Condições dos produtos digitais</Link>
+          </section>
+        </main>
+        <footer className="fc-footer">RENATAJOIN · Produtos digitais feitos no Brasil.</footer>
+      </div>
+    );
   }
   return (
     <section className="page-hero">
       <div className="container narrow">
         <p className="eyebrow">Produtos digitais</p>
-        <h1>{orderId ? 'Seu pedido.' : 'Leve mais estrutura para sua rotina.'}</h1>
+        <h1>{orderId ? 'Seu pedido.' : product?.coming_soon ? 'Em breve.' : 'Leve mais estrutura para sua rotina.'}</h1>
         {orderId ? (
           <>
             <p>Número do pedido: {orderId}</p>
@@ -191,9 +229,12 @@ export default function CheckoutPage() {
         ) : product ? (
           <>
             <h2>{product.title}</h2>
+            {product.format && <p>{product.format}</p>}
+            {product.description && <p>{product.description}</p>}
+            {product.coming_soon ? <p role="status">Este produto ainda não está disponível para compra.</p> : <>
             <p className="price">R$ {product.amount.replace('.', ',')} · pagamento único</p>
             <p>
-              Ambiente de teste. Use apenas uma conta e meios de pagamento de teste do Mercado Pago.
+              {catalogMode === 'test' ? 'Ambiente de teste. Use apenas uma conta e meios de pagamento de teste do Mercado Pago.' : 'Pagamento processado pelo Mercado Pago.'}
             </p>
             <p>
               Após a confirmação, volte a esta aba para baixar o produto. Mantenha esta aba aberta
@@ -211,6 +252,7 @@ export default function CheckoutPage() {
                   ? 'Continuar no Mercado Pago'
                   : 'Checkout temporariamente indisponível'}
             </button>
+            </>}
             <p>
               <ButtonLink to="/produtos-digitais" secondary>
                 Condições dos produtos digitais

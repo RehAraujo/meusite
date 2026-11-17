@@ -92,7 +92,7 @@ describe('interações críticas', () => {
     });
   });
 
-  it('filtra ferramentas e mantém o checkout', async () => {
+  it('filtra ferramentas e sinaliza o produto futuro', async () => {
     const user = userEvent.setup();
     render(
       <MemoryRouter>
@@ -101,9 +101,8 @@ describe('interações críticas', () => {
     );
     await user.click(screen.getByRole('button', { name: 'guias' }));
     expect(screen.getByRole('heading', { name: 'Planner Anti-Inflamatório' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Comprar' })).toHaveAttribute(
-      'href',
-      '/checkout?produto=planner-alimentar',
-    );
+    expect(screen.queryByRole('link', { name: 'Comprar' })).not.toBeInTheDocument();
+    expect(screen.getByText('Em breve')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Indisponível' })).toBeDisabled();
   });
 });

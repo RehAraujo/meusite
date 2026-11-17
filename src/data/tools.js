@@ -23,4 +23,15 @@ export const tools = [
       '/checkout?produto=planner-treino',
     detailUrl: '/planner-treino',
   },
+  {
+    id: 'meu-dinheiro-minhas-regras',
+    category: ['templates'],
+    format: 'Template Notion',
+    name: 'Meu Dinheiro, Minhas Regras',
+    description: 'Fácil de começar, completo para evoluir. Registre suas movimentações, acompanhe seus saldos e explore os recursos conforme suas necessidades. O template inclui exemplos e orientações para ajudar você a começar.',
+    problem: 'Organize suas movimentações e acompanhe seus saldos.',
+    price: 'R$ 47',
+    buyUrl: '/checkout?produto=meu-dinheiro-minhas-regras',
+    detailUrl: '/meu-dinheiro-minhas-regras',
+  },
 ];

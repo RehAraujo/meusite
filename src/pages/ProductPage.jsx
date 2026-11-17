@@ -1,5 +1,6 @@
 import { ButtonLink } from '../components/ui/ButtonLink';
 import { processSteps } from '../data/site';
+import { isLaunchProduct } from '../data/commerce-launch';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 
 export default function ProductPage({ type }) {
@@ -9,6 +10,7 @@ export default function ProductPage({ type }) {
   const description = guide
     ? 'Um sistema editável para organizar cardápio, compras, substituições, chás e hidratação sem reinventar a rotina.'
     : 'Registre treinos, cargas, frequência e evolução com mais consciência e menos improviso.';
+  const launching = isLaunchProduct(guide ? 'planner-alimentar' : 'planner-treino');
   const buyUrl = `/checkout?produto=${guide ? 'planner-alimentar' : 'planner-treino'}`;
   useDocumentMeta({ title: `${title} | Renata Join`, description, path });
 
@@ -22,8 +24,8 @@ export default function ProductPage({ type }) {
               Treino bom é treino que você consegue <em>acompanhar.</em>
             </h1>
             <p className="lead">{description}</p>
-            <p className="price">R$ 25</p>
-            <ButtonLink to={buyUrl}>Comprar agora</ButtonLink>
+            <p className="price">{launching ? 'R$ 25' : 'Em breve · ainda não disponível para compra'}</p>
+            {launching ? <ButtonLink to={buyUrl}>Comprar agora</ButtonLink> : <button className="button" type="button" disabled>Indisponível</button>}
           </div>
         </section>
         <section>
@@ -60,14 +62,14 @@ export default function ProductPage({ type }) {
         <div className="container">
           <p className="eyebrow">Planner Anti-Inflamatório · Notion + PDF</p>
           <h1>
-            Fiz pra mim. Agora pode ser <em>seu.</em>
+            Fiz pra mim. {launching ? <>Agora pode ser <em>seu.</em></> : <>Em breve, para <em>você.</em></>}
           </h1>
           <p className="lead">
             {description} Você adapta às suas preferências e às orientações do profissional que
             acompanha você.
           </p>
-          <p className="price">R$ 67 · pagamento único</p>
-          <ButtonLink to={buyUrl}>Comprar agora</ButtonLink>
+          <p className="price">{launching ? 'R$ 67 · pagamento único' : 'Em breve · ainda não disponível para compra'}</p>
+          {launching ? <ButtonLink to={buyUrl}>Comprar agora</ButtonLink> : <button className="button" type="button" disabled>Indisponível</button>}
         </div>
       </section>
       <section className="surface-section">
@@ -112,7 +114,7 @@ export default function ProductPage({ type }) {
       </section>
       <section className="surface-section">
         <div className="container">
-          <h2>Da compra à rotina.</h2>
+          <h2>{launching ? 'Da compra à rotina.' : 'Como usar o template.'}</h2>
           <ol className="process-grid">
             {processSteps.slice(0, 4).map(([name, text], index) => (
               <li key={name}>
@@ -134,7 +136,7 @@ export default function ProductPage({ type }) {
             doenças e não substitui consulta, prescrição ou acompanhamento de nutricionista ou
             médico.
           </p>
-          <ButtonLink to={buyUrl}>Quero o planner</ButtonLink>
+          {launching ? <ButtonLink to={buyUrl}>Quero o planner</ButtonLink> : <button className="button" type="button" disabled>Indisponível</button>}
         </div>
       </section>
     </>

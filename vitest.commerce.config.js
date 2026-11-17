@@ -12,6 +12,12 @@ export default defineConfig({
     restoreMocks: true,
     include: [
       'tests/commerce.test.js',
+      'tests/commerce-reconciliation.test.js',
+      'tests/commerce-downloads.test.js',
+      'tests/commerce-production.test.js',
+      'tests/commerce-launch.test.jsx',
+      'tests/commerce-credentials.test.js',
+      'tests/commerce-session.test.js',
       'tests/checkout.test.jsx',
       'tests/commerce-sandbox.test.js',
       'tests/commerce-staging.test.js',

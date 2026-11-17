@@ -1,0 +1,37 @@
+.finance-checkout { min-height: 100vh; background: #f5f1e9; color: #302d29; font-family: var(--font-body); line-height: 1.6; }
+.finance-checkout a { color: inherit; }
+.fc-header { max-width: 1150px; margin: auto; padding: 27px 32px; display: flex; justify-content: space-between; align-items: center; gap: 20px; border-bottom: 1px solid #d5cdc1; }
+.fc-header a { font-size: 15px; font-weight: 700; text-decoration: none; letter-spacing: .06em; }
+.fc-header a span { font-size: 10px; margin-left: 10px; font-weight: 500; }
+.fc-header > span { font-size: 11px; color: #665d53; }
+.fc-grid { max-width: 1086px; padding: 65px 32px; margin: auto; display: grid; grid-template-columns: 1.1fr 1fr; gap: 90px; align-items: start; }
+.finance-checkout section { padding: 0; }
+.finance-checkout h1, .finance-checkout h2, .finance-checkout h3, .finance-checkout p { margin: 0; color: inherit; }
+.finance-checkout .fc-eyebrow { font-size: 9px; letter-spacing: .12em; font-weight: 600; color: #93452e; }
+.finance-checkout h1 { font-family: var(--font-heading); font-size: clamp(37px, 4vw, 53px); font-weight: 500; letter-spacing: -.035em; line-height: 1.08; margin: 22px 0; max-width: 440px; }
+.finance-checkout .fc-lead { font-size: 15px; max-width: 365px; color: #62594f; }
+.fc-payment-info { border-top: 1px solid #d5cdc1; margin-top: 35px; padding-top: 24px; }
+.fc-payment-info h2 { font-family: var(--font-body); font-size: 13px; font-weight: 600; letter-spacing: 0; }
+.fc-payment-info p, .fc-help p { font-size: 12px; margin-top: 10px; max-width: 390px; }
+.finance-checkout .fc-test { color: #7d3b28; font-size: 11px; }
+.fc-help { margin-top: 22px; padding-block: 16px; border-block: 1px solid #d5cdc1; font-size: 12px; }
+.fc-help summary { cursor: pointer; font-weight: 600; }
+.fc-back { display: inline-block; margin-top: 26px; font-size: 12px; text-underline-offset: 4px; }
+.finance-checkout .fc-summary { padding: 28px; background: #fcfaf5; border: 1px solid #d9d0c4; border-radius: 8px; }
+.fc-summary h2 { font-family: var(--font-body); font-size: 13px; letter-spacing: 0; font-weight: 600; margin-bottom: 20px; }
+.fc-thumbnail { width: 100%; height: auto; border: 1px solid #e0d8cd; border-radius: 3px; margin-bottom: 22px; }
+.fc-summary h3 { font-family: var(--font-heading); font-size: 29px; font-weight: 500; letter-spacing: -.02em; line-height: 1.15; margin: 10px 0; }
+.finance-checkout .fc-format { font-size: 11px; color: #665d53; }
+.fc-total { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-block: 20px; margin-top: 20px; border-top: 1px solid #d9d0c4; font-size: 13px; }
+.fc-total small { display: block; color: #665d53; font-size: 10px; }
+.fc-total strong { font-size: 24px; font-weight: 500; white-space: nowrap; }
+.fc-submit { width: 100%; padding: 16px 18px; border: 0; border-radius: 6px; background: #a34e34; color: #fffaf2; display: flex; justify-content: space-between; gap: 16px; align-items: center; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 180ms ease; }
+.fc-submit:hover:not(:disabled) { background: #803b27; }
+.fc-submit:disabled { background: #866457; color: #fffaf2; cursor: not-allowed; }
+.fc-availability { font-size: 11px; margin-top: 12px !important; color: #665d53 !important; }
+.fc-error { font-size: 12px; color: #8b2d22 !important; margin-top: 14px !important; }
+.fc-terms { display: inline-block; font-size: 10px; margin-top: 20px; text-underline-offset: 4px; }
+.fc-footer { max-width: 1086px; margin: auto; padding: 20px 32px; font-size: 10px; color: #665d53; }
+.finance-checkout :is(a, button, summary):focus-visible { outline: 3px solid #306859; outline-offset: 4px; }
+@media (max-width: 760px) { .fc-grid { grid-template-columns: 1fr; gap: 30px; padding: 35px 22px; } .fc-header { padding: 23px 22px; } .fc-header a { font-size: 13px; } .fc-header a span { display: block; margin: 3px 0 0; font-size: 8px; } .fc-header > span { font-size: 10px; } .finance-checkout h1 { font-size: 40px; max-width: 400px; } .fc-payment-info { margin-top: 24px; } .finance-checkout .fc-summary { padding: 24px; } .fc-footer { padding-inline: 22px; } }
+@media (prefers-reduced-motion: reduce) { .fc-submit { transition: none; } }
