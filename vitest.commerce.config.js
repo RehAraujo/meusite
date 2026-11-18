@@ -21,6 +21,7 @@ export default defineConfig({
       'tests/checkout.test.jsx',
       'tests/commerce-sandbox.test.js',
       'tests/commerce-staging.test.js',
+      'tests/commerce-config.test.js',
     ],
   },
 });

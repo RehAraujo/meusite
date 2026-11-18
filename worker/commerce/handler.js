@@ -365,9 +365,20 @@ async function webhook(request, env, url) {
   }
   return json({ received: true });
 }
+const MODES = ['disabled', 'test', 'production'];
+export function health(env) {
+  const build = typeof env.COMMERCE_BUILD === 'string' && /^[0-9a-f]{7,40}$/.test(env.COMMERCE_BUILD) ? env.COMMERCE_BUILD : 'unknown';
+  return {
+    build,
+    environment: ['staging', 'production'].includes(env.COMMERCE_ENVIRONMENT) ? env.COMMERCE_ENVIRONMENT : 'unknown',
+    mode: MODES.includes(env.COMMERCE_MODE) ? env.COMMERCE_MODE : 'unknown',
+  };
+}
 export async function handleCommerce(request, env, url = new URL(request.url)) {
   try {
     const path = url.pathname.replace(/^\/api\/commerce/, '');
+    // Build stamp only: never secrets, bindings, counters or customer data.
+    if (path === '/health' && request.method === 'GET') return json(health(env));
     if (path === '/catalog' && request.method === 'GET') {
       const available = configured(env);
       return json({

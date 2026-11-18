@@ -8,6 +8,8 @@ import globals from 'globals';
 export default [
   {
     ignores: [
+      // Local agent worktrees/settings: copies of other branches, not project source.
+      '.claude',
       'dist',
       '.prerender',
       '.wrangler',

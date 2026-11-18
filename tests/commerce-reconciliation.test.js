@@ -11,8 +11,8 @@ const provider = 'ORDTST01KS5AJ6HTK2HRQ3XJ3C2JCKP9';
 const origin = 'https://reconciliation.local.invalid';
 beforeEach(async () => {
   db = new DatabaseSync(':memory:');
-  for (const file of ['0001_orders', '0002_delivery_safety', '0003_download_attempts', '0004_webhook_confirmations'])
-    db.exec(readFileSync(new URL(`../migrations/commerce/${file}.sql`, import.meta.url), 'utf8'));
+  for (const file of ['commerce/0001_orders', 'commerce/0002_delivery_safety', 'commerce/0003_download_attempts', 'commerce-prototypes/0004_webhook_confirmations'])
+    db.exec(readFileSync(new URL(`../migrations/${file}.sql`, import.meta.url), 'utf8'));
   id = randomUUID();
   db.prepare(`INSERT INTO commerce_orders (id,token_hash,product_id,product_title,amount_cents,currency,asset_key,filename,mp_id,created_at,access_expires) VALUES (?,?,'product','Template',4700,'BRL','private/key','test.zip',?, ?,?)`).run(id, await hash(bearer), provider, Date.now(), Date.now()+60000);
   remote = { id: provider, type: 'online', external_reference: id, currency: 'BRL', total_amount: '47.00', total_paid_amount: '47.00', live_mode: false, status: 'processed', status_detail: 'accredited', last_updated_date: new Date(Date.now()-10000).toISOString() };

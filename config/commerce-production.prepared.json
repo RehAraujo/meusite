@@ -24,9 +24,7 @@
     "COMMERCE_MODE": "disabled",
     "COMMERCE_ENVIRONMENT": "production",
     "COMMERCE_ORIGIN": "https://shopping.renatajoin.com",
-    "COMMERCE_PRODUCTION_ORIGIN": "https://shopping.renatajoin.com",
-    "COMMERCE_SELLER_ID": "",
-    "COMMERCE_APPLICATION_ID": ""
+    "COMMERCE_PRODUCTION_ORIGIN": "https://shopping.renatajoin.com"
   },
   "d1_databases": [
     {
