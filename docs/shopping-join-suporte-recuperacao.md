@@ -16,10 +16,13 @@ Regras gerais:
 
 Antes de qualquer ação manual, oriente:
 1. Abrir **Minhas compras** (`/minhas-compras`) no navegador e dispositivo onde
-   iniciou a compra. O acesso fica salvo ali por 7 dias.
-2. Se guardou o **link pessoal de acesso**, abri-lo em qualquer navegador.
+   iniciou a compra. Pedidos confirmados ficam ali por 12 meses; pedidos em
+   aberto, por 7 dias.
+2. Se usou **Salvar meu acesso** na página do pedido, abrir o link pessoal
+   copiado em qualquer navegador.
 
-Só siga adiante se nenhum dos dois funcionar.
+Só siga adiante se nenhum dos dois funcionar. O site **não oferece recuperação
+automática** nesta versão: não prometa envio automático por e-mail ao comprador.
 
 ## 2. Identificar e validar a compra
 
@@ -65,8 +68,10 @@ execução depende de decisão explícita da responsável.
    ```bash
    TOKEN=$(openssl rand -hex 32); HASH=$(printf %s "$TOKEN" | shasum -a 256 | cut -d' ' -f1)
    ```
-2. Grave o novo hash, invalidando o link anterior, com nova validade de 7 dias.
-   O contador de downloads (limite de 10) é mantido:
+2. Grave o novo hash, invalidando o link anterior. A validade gravada é curta
+   (7 dias), mas para pedidos confirmados o servidor estende o acesso até 12
+   meses desde a compra na primeira consulta. O contador de downloads (limite
+   de 10) é mantido:
    ```bash
    npx wrangler d1 execute shopping-join-commerce-production --remote --config config/commerce-production.prepared.json --command "UPDATE commerce_orders SET token_hash = '$HASH', access_expires = $(( $(date +%s) * 1000 + 7 * 86400000 )) WHERE id = '<PEDIDO>' AND status = 'processed' AND status_detail = 'accredited' AND id NOT IN (SELECT order_id FROM commerce_delivery_holds)"
    ```
