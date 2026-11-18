@@ -10,8 +10,16 @@ import {
   navigatePayment,
   prepareDownloadAttempt,
   completeDownloadAttempt,
+  parseAccessFragment,
+  stripAccessFragment,
+  importCommerceSession,
+  settleCommerceSession,
 } from '../lib/commerce-session';
+import { PersonalAccess } from '../components/commerce/PersonalAccess';
+import { orderStatusText } from '../lib/commerce-status';
 
+const LOST_ACCESS =
+  'Não encontramos o acesso a este pedido neste navegador. Abra Minhas compras no navegador em que iniciou a compra ou use seu link pessoal de acesso. Se perdeu os dois, fale pelo contato do site com o número do pedido.';
 async function api(path, session, options = {}) {
   const response = await fetch(`/api/commerce${path}`, {
     ...options,
@@ -42,22 +50,34 @@ export default function CheckoutPage() {
     setOrder(null);
     setMessage('');
     if (orderId) {
+      // Read and remove a personal-link credential before any request is made.
+      const linked = parseAccessFragment(window.location.hash);
+      stripAccessFragment();
       const session = readSession(orderId);
-      if (!session) {
-        setMessage(
-          'Abra este pedido no mesmo navegador e aba em que iniciou a compra. Se perdeu o acesso, fale pelo contato do site com o número do pedido.',
-        );
+      if (linked && linked !== session?.token) {
+        api(`/orders/${orderId}`, { token: linked })
+          .then((r) => r.json())
+          .then((data) => {
+            importCommerceSession({ id: orderId, token: linked, product: data.product_id, expires: data.access_expires });
+            if (active) setOrder(data);
+          })
+          .catch(() => {
+            if (active) setMessage(`Este link de acesso é inválido ou expirou. ${LOST_ACCESS}`);
+          });
+      } else if (!session) {
+        setMessage(LOST_ACCESS);
         return;
+      } else {
+        api(`/orders/${orderId}`, session)
+          .then((r) => r.json())
+          .then((data) => {
+            if (active) setOrder(data);
+          })
+          .catch(() => {
+            if (active)
+              setMessage('Não foi possível consultar seu pedido. Tente atualizar o status.');
+          });
       }
-      api(`/orders/${orderId}`, session)
-        .then((r) => r.json())
-        .then((data) => {
-          if (active) setOrder(data);
-        })
-        .catch(() => {
-          if (active)
-            setMessage('Não foi possível consultar seu pedido. Tente atualizar o status.');
-        });
     } else {
       fetch('/api/commerce/catalog', { cache: 'no-store' })
         .then((r) => {
@@ -75,6 +95,9 @@ export default function CheckoutPage() {
       active = false;
     };
   }, [orderId, productId]);
+  useEffect(() => {
+    if (order?.paid && orderId) settleCommerceSession(orderId);
+  }, [order, orderId]);
   const product = products.find((item) => item.id === productId);
   async function buy() {
     if (!product?.available || product.coming_soon) return;
@@ -92,7 +115,7 @@ export default function CheckoutPage() {
     } catch (error) {
       setMessage(
         error.message === 'commerce-session-unavailable'
-          ? 'Não foi possível preservar o acesso nesta aba. Não iniciamos outro pagamento. Mantenha esta aba aberta e fale pelo contato do site.'
+          ? 'Não foi possível preservar o acesso neste navegador. Não iniciamos outro pagamento. Mantenha esta aba aberta e fale pelo contato do site.'
           : 'Não foi possível iniciar o pagamento. Tente novamente; a tentativa será reutilizada.',
       );
     } finally {
@@ -107,9 +130,7 @@ export default function CheckoutPage() {
       if (!session) throw new Error('session');
       setOrder(await (await api(`/orders/${orderId}`, session)).json());
     } catch {
-      setMessage(
-        'Acesso indisponível ou expirado. Fale pelo contato do site com o número do pedido.',
-      );
+      setMessage(LOST_ACCESS);
     } finally {
       setBusy(false);
     }
@@ -161,7 +182,7 @@ export default function CheckoutPage() {
             <details className="fc-help">
               <summary>Como recebo meu template?</summary>
               <p>Após a confirmação do pagamento, o download fica disponível na página do pedido. O pacote contém o link do template e as instruções para duplicá-lo na sua conta Notion.</p>
-              <p>Continue no mesmo navegador e mantenha esta aba aberta para preservar seu acesso. Prazo de acesso: 7 dias após iniciar a compra, com limite de 10 downloads.</p>
+              <p>Use o mesmo navegador: seu acesso fica salvo em Minhas compras. Prazo de acesso: 7 dias após iniciar a compra, com limite de 10 downloads.</p>
             </details>
             <Link className="fc-back" to="/meu-dinheiro-minhas-regras">← Voltar ao produto</Link>
           </section>
@@ -194,16 +215,7 @@ export default function CheckoutPage() {
               <>
                 <h2>{order.title}</h2>
                 <p className="price">R$ {order.amount.replace('.', ',')}</p>
-                <p role="status">
-                  {order.delivery_blocked
-                    ? 'Entrega suspensa para revisão. Fale pelo contato do site com o número do pedido.'
-                    : order.paid
-                      ? 'Pagamento confirmado. Seu arquivo está disponível.'
-                      : ['refunded', 'canceled', 'failed', 'charged_back'].includes(order.status) ||
-                          order.status_detail === 'partially_refunded'
-                        ? 'Pagamento não concluído ou estornado.'
-                        : 'Aguardando confirmação do pagamento. Atualize o status em alguns instantes.'}
-                </p>
+                <p role="status">{orderStatusText(order)}</p>
                 {order.paid && !order.delivery_blocked && (
                   <>
                     <p>
@@ -225,6 +237,7 @@ export default function CheckoutPage() {
             >
               Atualizar status
             </button>
+            {order && <PersonalAccess orderId={orderId} />}
           </>
         ) : product ? (
           <>
@@ -237,8 +250,8 @@ export default function CheckoutPage() {
               {catalogMode === 'test' ? 'Ambiente de teste. Use apenas uma conta e meios de pagamento de teste do Mercado Pago.' : 'Pagamento processado pelo Mercado Pago.'}
             </p>
             <p>
-              Após a confirmação, volte a esta aba para baixar o produto. Mantenha esta aba aberta
-              para preservar seu acesso.
+              Após a confirmação, baixe o produto na página do pedido. Seu acesso fica salvo
+              neste navegador em Minhas compras.
             </p>
             <button
               className="button"

@@ -25,7 +25,7 @@ function page(query) {
   );
 }
 beforeEach(() => {
-  sessionStorage.clear();
+  localStorage.clear();
 });
 afterEach(() => {
   cleanup();
@@ -58,13 +58,13 @@ describe('checkout experience', () => {
     expect(attempts).toHaveLength(2);
     expect(attempts[0][1]).toEqual(attempts[1][1]);
     const key = attempts[0][1].headers['Idempotency-Key'];
-    const session = JSON.parse(sessionStorage.getItem(`commerce:${key}`));
+    const session = JSON.parse(localStorage.getItem(`commerce:${key}`));
     expect(session.token).toMatch(/^[a-f0-9]{64}$/);
     expect(attempts[0][0]).not.toContain(session.token);
     expect(attempts[0][1].body).toBe('{"product_id":"planner-treino"}');
   });
   it('ignores forged redirect approval and shows the authenticated server state', async () => {
-    sessionStorage.setItem(
+    localStorage.setItem(
       `commerce:${id}`,
       JSON.stringify({ id, token, product: product.id, created: Date.now() }),
     );
@@ -82,7 +82,7 @@ describe('checkout experience', () => {
     const fetch = vi.fn();
     vi.stubGlobal('fetch', fetch);
     page(`pedido=${id}&status=approved`);
-    expect(await screen.findByRole('alert')).toHaveTextContent('mesmo navegador e aba');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Minhas compras');
     expect(fetch).not.toHaveBeenCalled();
     expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
       'content',
@@ -90,7 +90,7 @@ describe('checkout experience', () => {
     );
   });
   it('shows delivery only for the confirmed order', async () => {
-    sessionStorage.setItem(
+    localStorage.setItem(
       `commerce:${id}`,
       JSON.stringify({ id, token, product: product.id, created: Date.now() }),
     );
@@ -105,7 +105,7 @@ describe('checkout experience', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Pagamento confirmado');
   });
   it('shows suspended delivery without a download button even if stale paid=true arrives', async () => {
-    sessionStorage.setItem(
+    localStorage.setItem(
       `commerce:${id}`,
       JSON.stringify({ id, token, product: product.id, created: Date.now() }),
     );
@@ -137,7 +137,7 @@ describe('normal same-tab checkout lifecycle, entirely offline', () => {
       if (url.endsWith('/catalog')) return response({ products: [product] });
       if (url.endsWith('/checkout')) {
         const orderId = options.headers['Idempotency-Key'];
-        saved = JSON.parse(sessionStorage.getItem(`commerce:${orderId}`));
+        saved = JSON.parse(localStorage.getItem(`commerce:${orderId}`));
         expect(saved).toMatchObject({ id: orderId, product: product.id });
         expect(options.headers.Authorization).toBe(`Bearer ${saved.token}`);
         return response({
@@ -176,11 +176,11 @@ describe('normal same-tab checkout lifecycle, entirely offline', () => {
         `https://www.mercadopago.com.br/checkout/v1/redirect?order_id=${mpId}`,
       ),
     );
-    const sessionBeforeReturn = sessionStorage.getItem(`commerce:${saved.id}`);
+    const sessionBeforeReturn = localStorage.getItem(`commerce:${saved.id}`);
     cleanup(); // Recreate the page as after top-level navigation; preserve this tab's storage.
     page(`pedido=${saved.id}&status=approved`);
     expect(await screen.findByRole('status')).toHaveTextContent('Aguardando confirmação');
-    expect(sessionStorage.getItem(`commerce:${saved.id}`)).toBe(sessionBeforeReturn);
+    expect(localStorage.getItem(`commerce:${saved.id}`)).toBe(sessionBeforeReturn);
     expect(screen.queryByRole('button', { name: 'Baixar produto' })).not.toBeInTheDocument();
     paid = true; // Simulated signed/provider-verified backend confirmation, not a payment call.
     await user.click(screen.getByRole('button', { name: 'Atualizar status' }));
@@ -204,8 +204,8 @@ describe('normal same-tab checkout lifecycle, entirely offline', () => {
   });
   it('fails closed rather than replacing a corrupt pending order', async () => {
     const user = userEvent.setup();
-    sessionStorage.setItem(`commerce:pending:${product.id}`, id);
-    sessionStorage.setItem(`commerce:${id}`, '{broken');
+    localStorage.setItem(`commerce:pending:${product.id}`, id);
+    localStorage.setItem(`commerce:${id}`, '{broken');
     const fetch = vi.fn(async () => response({ products: [product] }));
     vi.stubGlobal('fetch', fetch);
     page('produto=planner-treino');

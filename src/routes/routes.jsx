@@ -9,6 +9,7 @@ import MediaKitPage from '../pages/MediaKitPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import ProjectsPage from '../pages/ProjectsPage';
 import CheckoutPage from '../pages/CheckoutPage';
+import PurchasesPage from '../pages/PurchasesPage';
 import ProductPage from '../pages/ProductPage';
 import FinanceProductPage from '../pages/FinanceProductPage';
 import ResumePage from '../pages/ResumePage';
@@ -39,6 +40,7 @@ export const routes = createRoutesFromElements(
     <Route path="planner-treino" element={<ProductPage type="training" />} />
     <Route path="meu-dinheiro-minhas-regras" element={<FinanceProductPage />} />
     <Route path="checkout" element={<CheckoutPage />} />
+    <Route path="minhas-compras" element={<PurchasesPage />} />
     <Route path="diagnostico" element={<DiagnosticIntakePage />} />
     <Route path="diagnostico/pedido/:orderId" element={<DiagnosticOrderPage />} />
     <Route path="operacao/diagnosticos" element={<DiagnosticQaPage />} />

@@ -22,6 +22,7 @@ export default defineConfig({
       'tests/commerce-sandbox.test.js',
       'tests/commerce-staging.test.js',
       'tests/commerce-config.test.js',
+      'tests/commerce-recovery.test.jsx',
     ],
   },
 });

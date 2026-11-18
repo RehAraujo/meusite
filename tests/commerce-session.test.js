@@ -14,7 +14,7 @@ const valid = () => ({
   product: 'planner-treino',
   created: Date.now(),
 });
-beforeEach(() => sessionStorage.clear());
+beforeEach(() => localStorage.clear());
 afterEach(() => vi.restoreAllMocks());
 it.each([
   { id: 'other' },
@@ -22,7 +22,7 @@ it.each([
   { created: Date.now() + 86400000 },
   { created: 0 },
 ])('rejects invalid stored authorization: %j', (override) => {
-  sessionStorage.setItem(`commerce:${id}`, JSON.stringify({ ...valid(), ...override }));
+  localStorage.setItem(`commerce:${id}`, JSON.stringify({ ...valid(), ...override }));
   expect(readCommerceSession(id)).toBeNull();
 });
 it('blocks storage silently dropping the session before any checkout', () => {
@@ -30,8 +30,8 @@ it('blocks storage silently dropping the session before any checkout', () => {
   expect(() => prepareCommerceSession('planner-treino')).toThrow('commerce-session-unavailable');
 });
 it('refuses to reuse a session from another product', () => {
-  sessionStorage.setItem('commerce:pending:planner-treino', id);
-  sessionStorage.setItem(
+  localStorage.setItem('commerce:pending:planner-treino', id);
+  localStorage.setItem(
     `commerce:${id}`,
     JSON.stringify({ ...valid(), product: 'planner-alimentar' }),
   );
@@ -58,8 +58,8 @@ it('binds provider response to the session that actually created this order', ()
 });
 
 it('allows a new explicit purchase after an expired pending session without reopening old access', () => {
-  sessionStorage.setItem('commerce:pending:planner-treino', id);
-  sessionStorage.setItem(
+  localStorage.setItem('commerce:pending:planner-treino', id);
+  localStorage.setItem(
     `commerce:${id}`,
     JSON.stringify({ ...valid(), created: Date.now() - 8 * 86400000 }),
   );
@@ -70,7 +70,7 @@ it('allows a new explicit purchase after an expired pending session without reop
 });
 
 it('reuses an interrupted download attempt and creates a new attempt after receipt', () => {
-  sessionStorage.setItem(`commerce:${id}`, JSON.stringify(valid()));
+  localStorage.setItem(`commerce:${id}`, JSON.stringify(valid()));
   const attempt = prepareDownloadAttempt(id);
   expect(prepareDownloadAttempt(id)).toBe(attempt);
   completeDownloadAttempt(id);
