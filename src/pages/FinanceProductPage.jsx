@@ -1,55 +1,447 @@
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import SpotlightCard from '../components/ui/SpotlightCard';
+import { ArrowButton } from '../components/ui/ArrowButton';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
+import { useRjReveal } from '../hooks/useRjReveal';
 import { createWhatsAppUrl } from '../utils/whatsapp';
 import '../styles/finance-product.css';
 
+// Checkout aprovado nesta fase. A entrega automática ainda não está ativa em produção.
 const paymentLink = 'https://mpago.la/2rHeNqX';
-const deliveryContact = createWhatsAppUrl('Olá! Comprei o template Meu Dinheiro, Minhas Regras. Meu e-mail para entrega é: [preencher]. Número da transação Mercado Pago: [preencher].');
-const manualDeliveryNotice = 'Após o pagamento, informe seu e-mail de entrega e o número da transação pelo WhatsApp. Seu template será enviado por e-mail em até 24 horas após a confirmação do pagamento.';
-const manualServiceNotice = 'Pagamento no Mercado Pago. Atendimento e entrega manuais nesta fase.';
-const areas = ['Contas e bancos', 'Entradas e saídas', 'Despesas e categorias', 'Compras parceladas', 'Metas e objetivos', 'Resumos financeiros'];
-const included = ['Template financeiro para Notion, pronto para duplicar.', 'Organização de entradas e saídas.', 'Acompanhamento de contas e saldos.', 'Registro de despesas e categorias.', 'Controle de compras parceladas.', 'Espaço para metas e objetivos.', 'Exemplos e orientações para começar.'];
+const brandHome = 'https://renatajoin.com/';
+const deliveryContact = createWhatsAppUrl(
+  'Olá! Comprei o template Meu Dinheiro, Minhas Regras. Meu e-mail para entrega é: [preencher]. Número da transação Mercado Pago: [preencher].',
+);
+const secureNote = 'Pagamento seguro via Mercado Pago';
+const closeup = (name) => `/assets/finance-template/closeups/${name}.webp`;
+
+const benefits = [
+  [
+    'Veja o todo',
+    'Reúna as informações financeiras em um sistema único e mais fácil de acompanhar.',
+  ],
+  [
+    'Entenda o mês',
+    'Visualize entradas, despesas e parcelamentos com contexto, não como dados soltos.',
+  ],
+  [
+    'Decida com clareza',
+    'Use o que você registra para orientar escolhas mais conscientes no dia a dia.',
+  ],
+];
+
+const steps = [
+  ['Duplique', 'Receba o template e faça uma cópia no seu próprio espaço de trabalho do Notion.'],
+  ['Registre', 'Preencha suas informações usando os exemplos e as orientações já incluídos.'],
+  ['Personalize', 'Ajuste categorias, páginas e visualizações para acompanhar a sua realidade.'],
+];
+
+// Fluxo real desta fase: pagamento no Mercado Pago e envio do acesso por e-mail.
+const purchaseSteps = [
+  ['Compre', 'Finalize o pagamento único de R$ 47 no ambiente seguro do Mercado Pago.'],
+  ['Identificação', 'Informe seu e-mail de entrega e o número da transação do Mercado Pago.'],
+  [
+    'Acesso',
+    'Você recebe o link do template por e-mail em até 24 horas após a confirmação do pagamento.',
+  ],
+];
+
+/*
+ * Recortes reais da V.3. `w` é a largura de exibição em CSS px: metade da largura
+ * do arquivo nos recortes 2x e a própria largura nos recortes 1x — nunca ampliados.
+ */
+const showcase = [
+  {
+    id: 'contas',
+    number: '01',
+    title: 'Contas bancárias e saldos',
+    text: 'Cada conta mostra o que entrou, o que saiu e o saldo — com a soma de tudo no rodapé.',
+    shots: [
+      {
+        src: closeup('contas-movimentacoes'),
+        w: 780,
+        h: 378,
+        alt: 'Recorte real do Notion: tabela Contas e movimentações com Caixa, NuBank e Nubank, entradas, saídas, saldo e limite de crédito, e a soma de R$ 30.030,00 em saldo',
+      },
+    ],
+  },
+  {
+    id: 'movimentos',
+    number: '02',
+    title: 'Entradas e saídas',
+    text: 'Registre o que entra por categoria, data, competência e conta. Para cada conta paga, uma orientação curta mostra o que preencher.',
+    shots: [
+      {
+        src: closeup('entradas'),
+        w: 1000,
+        h: 308,
+        alt: 'Recorte real do Notion: lista de entradas com Saldo Inicial de R$ 20.000,00, Salário Mensal de R$ 10.000,00 e exemplos, com competência, banco e frequência',
+      },
+      {
+        src: closeup('adicionar-despesa'),
+        w: 914,
+        h: 224,
+        alt: 'Recorte real do Notion: orientação “Pagou uma conta?” e tabela de despesas com o exemplo Compra de mercado de R$ 120,00',
+      },
+    ],
+  },
+  {
+    id: 'parcelas',
+    number: '03',
+    title: 'Parcelamentos',
+    text: 'Compras parceladas ficam ligadas ao cartão e à conta que paga, com o vencimento da próxima parcela e a situação calculada.',
+    shots: [
+      {
+        src: closeup('compras-parceladas'),
+        w: 686,
+        h: 307,
+        alt: 'Recorte real do Notion: tabela Compras Parceladas com os exemplos Viagem, Roupas e Notebook, cartão, conta que paga e primeiro vencimento',
+      },
+      {
+        src: closeup('situacao-automatica'),
+        w: 410,
+        h: 103,
+        alt: 'Recorte real do Notion: colunas Vencimento da próxima, November 5, 2026, e Situação automática, Em atraso',
+      },
+    ],
+  },
+  {
+    id: 'mensal',
+    number: '04',
+    title: 'Detalhamento mensal',
+    text: 'Abra uma competência e veja o total de entradas, de despesas e o resultado do mês.',
+    shots: [
+      {
+        src: closeup('detalhamento-mensal'),
+        w: 938,
+        h: 232,
+        alt: 'Recorte real do Notion: Detalhamento Mensal com a competência Novembro/2026, total de entradas de R$ 100,00, despesas de R$ 0,00 e resultado 100',
+      },
+    ],
+  },
+  {
+    id: 'patrimonio',
+    number: '05',
+    title: 'Balanço patrimonial e hábitos',
+    text: 'Liste o que você possui e o que deve. Ao lado, acompanhe hábitos financeiros por frequência e status.',
+    shots: [
+      {
+        src: closeup('balanco-patrimonial'),
+        w: 882,
+        h: 185,
+        alt: 'Recorte real do Notion: Balanço Patrimonial com o ativo Imóvel - Casa de R$ 250.000,00 e o passivo Empréstimo pessoal de R$ 5.000,00',
+      },
+      {
+        src: closeup('habitos-financeiros'),
+        w: 566,
+        h: 144,
+        alt: 'Recorte real do Notion: Hábitos Financeiros com Economizar 10% da renda, mensal e concluído, e Monitorar gastos diários, diária e não iniciada',
+      },
+    ],
+  },
+];
+
 function NotionLabel() {
-  return <span className="fj-notion"><img src="/assets/notion-platform.ico" width="25" height="25" alt="" /> Para Notion</span>;
+  return (
+    <span className="fj-notion">
+      <img src="/assets/notion-platform.ico" width="25" height="25" alt="" /> Para Notion
+    </span>
+  );
 }
-function Preview({ label, hero = false }) {
-  return <figure className={`fj-preview ${hero ? 'fj-preview--hero' : ''}`}>
-    <div className="fj-window" aria-hidden="true"><i /><i /><i /><span>MEU DINHEIRO, MINHAS REGRAS</span></div>
-    <a className="fj-preview-image" href={hero ? '/assets/finance-template/visao-geral.jpg' : label.startsWith('Contas') ? '/assets/finance-template/contas-entradas.jpg' : '/assets/finance-template/parcelas-resumo.jpg'} target="_blank" rel="noopener noreferrer" aria-label={`Ampliar captura real: ${label}`}>
-      <img src={hero ? '/assets/finance-template/visao-geral.jpg' : label.startsWith('Contas') ? '/assets/finance-template/contas-entradas.jpg' : '/assets/finance-template/parcelas-resumo.jpg'} alt={hero ? 'Captura real da página Meu Dinheiro, Minhas Regras no Notion, com índice, ações rápidas e entradas do mês.' : label.startsWith('Contas') ? 'Captura real das contas bancárias e entradas demonstrativas no Notion.' : 'Captura real dos parcelamentos e resumos mensais demonstrativos no Notion.'} width="2000" height={hero ? 893 : label.startsWith('Contas') ? 937 : 894} loading={hero ? 'eager' : 'lazy'} />
-    </a>
-    <figcaption>{hero ? 'Uma estrutura para organizar. Liberdade para fazer do seu jeito.' : label}</figcaption>
-  </figure>;
+
+function BuyButton({ children, className = '' }) {
+  return (
+    <div className={`fj-buy ${className}`.trim()}>
+      <ArrowButton variant="pink" href={paymentLink}>
+        {children}
+        <span className="fj-sr"> (abre o pagamento em nova aba)</span>
+      </ArrowButton>
+      <p className="fj-secure">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
+          <path
+            d="M7 10V7a5 5 0 0 1 10 0v3M5 10h14v10H5z"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinejoin="round"
+          />
+        </svg>
+        {secureNote}
+      </p>
+    </div>
+  );
 }
+
 export default function FinanceProductPage() {
-  useDocumentMeta({ title: 'Meu Dinheiro, Minhas Regras | Shopping Join', description: 'Organize entradas, despesas, saldos e parcelas com um template financeiro para Notion. Pagamento único de R$ 47.', path: '/meu-dinheiro-minhas-regras', noindex: true });
-  return <div className="finance-landing">
-    <a className="fj-skip" href="#conteudo">Pular para o conteúdo</a>
-    <header className="fj-header fj-wrap"><Link to="/" className="fj-brand">RENATAJOIN<span>/ SHOPPING JOIN / PRODUTOS DIGITAIS</span></Link><span className="fj-brazil"><span aria-hidden="true">🇧🇷</span> Feito no Brasil</span></header>
-    <main id="conteudo">
-      <section className="fj-hero fj-wrap">
-        <div className="fj-hero-copy"><p className="fj-kicker">ORGANIZAÇÃO FINANCEIRA NO NOTION</p><h1>O governo muda.<br /><em>Suas contas continuam chegando.</em></h1><p>Independentemente de quem esteja no poder, a responsabilidade de cuidar do seu dinheiro é sua.</p><p>O primeiro passo para ter mais controle sobre sua vida financeira é saber o que entra, o que sai e para onde vai cada real.</p><a className="fj-cta" href={paymentLink}>Comprar agora — R$ 47 <span aria-hidden="true">↗</span></a><small>Pagamento único · Template digital · Para Notion</small><small>{manualServiceNotice}</small><small>{manualDeliveryNotice}</small><a className="fj-delivery-link" href={deliveryContact}>Informar dados para entrega</a></div>
-        <div className="fj-hero-art"><div className="fj-art-label"><span>MEU DINHEIRO,<br /><strong>MINHAS REGRAS.</strong></span><NotionLabel /></div><Preview hero label="Seu dinheiro, em perspectiva." /><div className="fj-art-foot"><span>MENOS IMPROVISO.</span><span>MAIS CONSCIÊNCIA.</span></div></div>
-      </section>
-      <section className="fj-benefits fj-wrap" aria-label="Benefícios">{[['Clareza','Enxergue seu orçamento com facilidade.'],['Controle','Reúna contas, despesas e parcelas em um só lugar.'],['Planejamento','Defina metas e acompanhe sua evolução.'],['Autonomia','Tome decisões com base em informações organizadas.']].map(([title, text], i)=><div key={title}><svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.3">{i===0?<><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></>:i===1?<><path d="M4 6h16M4 12h16M4 18h16M8 3v6M16 9v6M10 15v6"/></>:i===2?<><rect x="4" y="5" width="16" height="15" rx="1"/><path d="M8 3v4M16 3v4M4 10h16m-11 5 2 2 4-4"/></>:<><path d="m4 18 14-14M8 4h10v10M4 10v10h10"/></>}</svg><h2>{title}</h2><p>{text}</p></div>)}</section>
-      <section className="fj-context fj-wrap"><div><p className="fj-kicker">O QUE ESTÁ AO SEU ALCANCE</p><h2>Você não controla todas as decisões econômicas do país.<br /><em>Mas pode organizar aquilo que está ao seu alcance.</em></h2><p>Impostos, inflação, contas, compras parceladas… tudo isso afeta o seu orçamento.</p><p>O Meu Dinheiro, Minhas Regras é a estrutura que ajuda você a manter suas informações financeiras organizadas, mesmo em cenários incertos.</p></div><blockquote><span aria-hidden="true">“</span>Você não precisa de mais uma promessa de enriquecimento. Precisa saber o que está acontecendo com o dinheiro que já passa pelas suas mãos.<footer>CLAREZA ANTES DE QUALQUER PRÓXIMO PASSO.</footer></blockquote></section>
-      <section className="fj-inside fj-wrap"><div className="fj-section-head"><div><p className="fj-kicker">POR DENTRO DO TEMPLATE</p><h2>Um sistema completo<br /><em>e pronto para usar.</em></h2></div><p>Organize sua vida financeira de forma prática, visual e personalizada.</p></div><div className="fj-preview-grid"><Preview label="Contas, entradas e saídas" /><Preview label="Despesas e compras parceladas" /></div><ul className="fj-areas">{areas.map((area,i)=><li key={area}><span>0{i+1}</span>{area}</li>)}</ul><p className="fj-caption">Capturas reais do template com dados demonstrativos. Selecione uma imagem para ampliar.</p></section>
-      <section className="fj-freedom fj-wrap" aria-labelledby="fj-freedom-title">
-        <p className="fj-kicker">FEITO PARA SUA REALIDADE</p>
-        <h2 id="fj-freedom-title">A estrutura está pronta.<br /><em>As regras são suas.</em></h2>
-        <p className="fj-freedom-intro">Você começa com um sistema organizado e tem liberdade para transformar cada parte dele. Sem precisar construir tudo do zero.</p>
-        <div className="fj-freedom-grid">{[
-          ['Modifique', 'Personalize páginas, informações e categorias.'],
-          ['Acrescente', 'Crie novos espaços e funcionalidades conforme precisar.'],
-          ['Comece grátis', 'Não é necessário contratar um plano pago do Notion para o uso inicial previsto.'],
-          ['Evolua', 'Adapte o sistema conforme suas necessidades mudarem.'],
-        ].map(([title, text], i) => <article key={title}><span className="fj-freedom-number" aria-hidden="true">0{i + 1}</span><h3>{title}</h3><p>{text}</p></article>)}</div>
-        <p className="fj-freedom-note">A personalização acontece na sua própria cópia, depois de duplicar o template. O template custa R$ 47, em pagamento único; o plano gratuito do Notion é separado dessa compra. Recursos avançados podem exigir um plano pago e não estão incluídos nesta promessa de uso inicial.</p>
-        <p className="fj-freedom-close">Você não precisa começar do zero.<br /><span>Precisa começar a ter controle.</span></p>
-      </section>
-      <section className="fj-included fj-wrap"><div><p className="fj-kicker">MEU DINHEIRO, MINHAS REGRAS</p><h2>O que você recebe.</h2><NotionLabel /><p>Um template digital com exemplos e orientações para começar.</p></div><div><ul>{included.map((item,i)=><li key={item}><span aria-hidden="true">{String(i+1).padStart(2,'0')}</span>{item}</li>)}</ul><p className="fj-disclaimer">Os registros são feitos por você. O template não movimenta dinheiro, não se conecta automaticamente aos bancos e não oferece consultoria financeira.</p></div></section>
-      <section className="fj-closing"><div className="fj-wrap fj-offer-grid"><div><p className="fj-kicker">ORGANIZAÇÃO É UM COMEÇO.</p><h2>Seu dinheiro.<br /><em>Suas regras.</em></h2><p>Mais organização, clareza e autonomia para decidir seu próximo passo.</p><ol className="fj-steps">{[['Compre','Pague pelo link oficial do Mercado Pago. Depois, informe seu e-mail de entrega e o número da transação pelo WhatsApp.'],['Receba','Após a confirmação manual do pagamento aprovado, receba por e-mail as instruções de acesso em até 24 horas.'],['Duplique','Copie o template para seu espaço de trabalho no Notion e personalize.']].map(([title,text],i)=><li key={title}><span>0{i+1}</span><div><h3>{title}</h3><p>{text}</p></div></li>)}</ol></div><SpotlightCard as="aside" className="fj-offer"><NotionLabel /><p className="fj-kicker">TEMPLATE NOTION</p><p className="fj-offer-name">Meu Dinheiro,<br />Minhas Regras</p><p className="fj-price">R$ 47<span>,00</span></p><a href={paymentLink} className="fj-cta fj-cta--light">Comprar agora — R$ 47 <span aria-hidden="true">↗</span></a><p className="fj-offer-details">Pagamento único · Produto digital<br />Requer conta no Notion.</p><p className="fj-stage-note">{manualServiceNotice}</p><p className="fj-offer-details">{manualDeliveryNotice}</p><a className="fj-delivery-link" href={deliveryContact}>Informar dados para entrega</a></SpotlightCard></div></section>
-    </main><footer className="fj-footer fj-wrap"><Link to="/">RENATAJOIN</Link><span>Organização com personalidade. Feito no Brasil.</span><Link to="/produtos-digitais">Condições dos produtos digitais</Link></footer>
-  </div>;
+  useDocumentMeta({
+    title: 'Meu Dinheiro, Minhas Regras | Shopping Join',
+    description:
+      'Organize entradas, despesas, saldos e parcelas com um template financeiro para Notion. Pagamento único de R$ 47.',
+    path: '/meu-dinheiro-minhas-regras',
+    noindex: true,
+  });
+
+  const rootRef = useRef(null);
+  useRjReveal(rootRef);
+
+  return (
+    <div className="finance-landing" ref={rootRef}>
+      <a className="fj-skip" href="#conteudo">
+        Pular para o conteúdo
+      </a>
+      <header className="fj-header">
+        <div className="fj-wrap fj-header-inner">
+          <a
+            href={brandHome}
+            className="fj-brand"
+            aria-label="Renata Join — ir para renatajoin.com"
+          >
+            Renata <em>Join</em>
+            <span aria-hidden="true">/ Shopping Join</span>
+          </a>
+          <span className="fj-header-note">Produto digital · Feito no Brasil</span>
+        </div>
+      </header>
+
+      <main id="conteudo">
+        {/* Hero claro: o fundo #f4f4f4 é o mesmo incorporado à FOTO2. */}
+        <section className="fj-hero" aria-labelledby="fj-title">
+          <figure className="fj-hero-art">
+            <img
+              src="/assets/finance-template/foto2-organizacao-notion.jpg"
+              alt="Rê Araujo segurando um tablet, cercada por elementos do template no Notion: índice, categorias de gastos, contas e entradas"
+              width="2400"
+              height="1349"
+              fetchPriority="high"
+            />
+          </figure>
+          <div className="fj-wrap fj-hero-inner">
+            <div className="fj-hero-copy">
+              <p className="fj-eyebrow rj-enter" style={{ '--rj-d': 0 }}>
+                Organização financeira no Notion
+              </p>
+              <h1 id="fj-title" className="rj-enter" style={{ '--rj-d': 1 }}>
+                Meu Dinheiro,
+                <br />
+                <em>Minhas Regras</em>
+              </h1>
+              <p className="fj-promise rj-enter" style={{ '--rj-d': 2 }}>
+                Você trabalha o mês inteiro para ganhar dinheiro. Está na hora de saber para onde
+                ele vai.
+              </p>
+              <p className="fj-intro">
+                Um sistema de organização financeira no Notion que reúne informações e facilita o
+                acompanhamento do seu dinheiro.
+              </p>
+              <div className="fj-hero-actions rj-enter" style={{ '--rj-d': 3 }}>
+                <ArrowButton variant="pink" href={paymentLink}>
+                  Quero organizar meu dinheiro
+                  <span className="fj-sr"> — R$ 47, abre o pagamento em nova aba</span>
+                </ArrowButton>
+                <a className="fj-text-link" href="#como-funciona">
+                  Ver como funciona <span aria-hidden="true">↓</span>
+                </a>
+              </div>
+              <p className="fj-hero-note">
+                <strong>R$ 47</strong> · pagamento único · {secureNote}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section
+          className="fj-band fj-band--ink fj-band--tight"
+          aria-labelledby="fj-benefits-title"
+          data-rj-reveal
+        >
+          <div className="fj-wrap fj-benefits">
+            <div className="fj-benefits-head">
+              <p className="fj-eyebrow">Clareza antes do próximo passo</p>
+              <h2 id="fj-benefits-title" className="fj-h2">
+                Informação organizada muda a forma como você <em>decide.</em>
+              </h2>
+              <BuyButton className="fj-benefits-cta">Quero meu template por R$ 47</BuyButton>
+            </div>
+            <ol className="fj-benefit-list">
+              {benefits.map(([title, text], index) => (
+                <li key={title}>
+                  <span className="fj-num" aria-hidden="true">
+                    0{index + 1}
+                  </span>
+                  <div>
+                    <h3 className="fj-h3">{title}</h3>
+                    <p>{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section
+          id="como-funciona"
+          className="fj-band fj-band--paper fj-demo"
+          aria-labelledby="fj-demo-title"
+        >
+          <div className="fj-wrap">
+            <div className="fj-heading" data-rj-reveal>
+              <div>
+                <p className="fj-eyebrow">Por dentro do sistema</p>
+                <h2 id="fj-demo-title" className="fj-h2">
+                  Uma visão real.
+                  <br />
+                  <em>Sem promessas abstratas.</em>
+                </h2>
+              </div>
+              <p className="fj-lead">
+                Recortes da versão V.3, com os dados de exemplo que já vêm no template. Você duplica
+                para o seu Notion e substitui pelos seus.
+              </p>
+            </div>
+
+            <ol className="fj-showcase">
+              {showcase.map(({ id, number, title, text, shots }) => (
+                <li key={id} className={`fj-feature fj-feature--${id}`} data-rj-reveal>
+                  <div className="fj-feature-copy">
+                    <span className="fj-num">{number}</span>
+                    <h3 className="fj-h3">{title}</h3>
+                    <p>{text}</p>
+                  </div>
+                  <div className="fj-feature-stage">
+                    {shots.map(({ src, w, h, alt }, index) => (
+                      <div key={src} className={`fj-crop${index ? ' fj-crop--accent' : ''}`}>
+                        <img
+                          src={src}
+                          alt={alt}
+                          width={w}
+                          height={h}
+                          loading="lazy"
+                          style={{ '--fj-w': `${w}px` }}
+                        />
+                      </div>
+                    ))}
+                    <p className="fj-swipe" aria-hidden="true">
+                      Deslize para ver todas as colunas →
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            <aside className="fj-transparency">
+              <p className="fj-eyebrow">Transparência</p>
+              <p>
+                Os resultados dependem dos dados registrados por você. O sistema não acessa contas
+                bancárias, não identifica pagamentos automaticamente e não oferece consultoria
+                financeira.
+              </p>
+            </aside>
+
+            <div className="fj-demo-close" data-rj-reveal>
+              <p>
+                Tudo pronto para duplicar.{' '}
+                <span>Recortes reais do template com dados de exemplo.</span>
+              </p>
+              <BuyButton>Começar a organizar meu dinheiro</BuyButton>
+            </div>
+          </div>
+        </section>
+
+        <section className="fj-band fj-band--paper" aria-labelledby="fj-start-title" data-rj-reveal>
+          <div className="fj-wrap fj-start">
+            <div>
+              <p className="fj-eyebrow">Comece sem construir do zero</p>
+              <h2 id="fj-start-title" className="fj-h2">
+                A estrutura está pronta.
+                <br />
+                <em>As escolhas continuam suas.</em>
+              </h2>
+            </div>
+            <ol className="fj-steps">
+              {steps.map(([title, text], index) => (
+                <li key={title}>
+                  <span className="fj-num">0{index + 1}</span>
+                  <div>
+                    <h3 className="fj-h3">{title}</h3>
+                    <p>{text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section
+          className="fj-band fj-band--white fj-final"
+          aria-labelledby="fj-final-title"
+          data-rj-reveal
+        >
+          <div className="fj-wrap fj-final-grid">
+            <div className="fj-final-art">
+              <figure className="fj-final-photo">
+                <img
+                  src="/assets/finance-template/foto3-template.webp"
+                  alt="Rê Araujo, de óculos, segurando um tablet, cercada por elementos do template no Notion: progresso por categoria, índice, contas e entradas"
+                  width="1400"
+                  height="1445"
+                  loading="lazy"
+                />
+              </figure>
+              <div className="fj-cover-meta">
+                <NotionLabel />
+                <span>Estruturado · Editável · Seu</span>
+              </div>
+            </div>
+            <div className="fj-final-copy">
+              <p className="fj-eyebrow">Template para Notion</p>
+              <h2 id="fj-final-title" className="fj-h2">
+                Seu dinheiro. Suas decisões. <em>Suas regras.</em>
+              </h2>
+              <div className="fj-final-offer">
+                <p className="fj-price">
+                  R$ 47<span>,00</span>
+                </p>
+                <p>
+                  Pagamento único
+                  <br />
+                  Template digital para Notion
+                </p>
+              </div>
+              <BuyButton>Comprar meu template</BuyButton>
+
+              <div className="fj-purchase" aria-labelledby="fj-purchase-title">
+                <h3 id="fj-purchase-title" className="fj-h3">
+                  Como funciona a compra
+                </h3>
+                <ol className="fj-purchase-steps">
+                  {purchaseSteps.map(([title, text], index) => (
+                    <li key={title}>
+                      <span className="fj-num">0{index + 1}</span>
+                      <p>
+                        <strong>{title}.</strong> {text}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+                <p className="fj-purchase-note">
+                  Nesta fase de lançamento, o envio do acesso é feito por nós.{' '}
+                  <a href={deliveryContact}>Informar e-mail e número da transação</a>
+                </p>
+              </div>
+              <p className="fj-legal-note">
+                A compra não inclui assinatura paga do Notion. Os registros e a personalização são
+                feitos por você.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="fj-footer fj-wrap">
+        <a href={brandHome}>RENATAJOIN</a>
+        <span>Organização com personalidade. Feito no Brasil.</span>
+        <Link to="/produtos-digitais">Condições dos produtos digitais</Link>
+      </footer>
+    </div>
+  );
 }
