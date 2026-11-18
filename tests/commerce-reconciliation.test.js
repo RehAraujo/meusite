@@ -52,7 +52,8 @@ it('consults the official API but does not grant access until a valid signed web
 });
 it('rejects unauthorized or expired sessions before provider calls and refuses production/disabled execution', async () => {
   expect((await run('', { token:'b'.repeat(64) })).status).toBe(404);
-  db.prepare('UPDATE commerce_orders SET access_expires=1').run();
+  // Beyond the 12-month paid window: refused before any provider call.
+  db.prepare('UPDATE commerce_orders SET access_expires=1, created_at=1').run();
   expect((await run()).status).toBe(404); expect(fetchMock).not.toHaveBeenCalled();
   env.COMMERCE_MODE='disabled'; expect((await run()).status).toBe(503);
   env.COMMERCE_MODE='test'; env.COMMERCE_ENVIRONMENT='production'; expect((await run()).status).toBe(503);

@@ -55,7 +55,7 @@ describe('browser-persistent buyer access', () => {
     store(id, { product: 'planner-treino', created: Date.now() - DAY });
     store(other, { token: otherToken, created: Date.now() });
     const expired = '7c9d1e2f-4a5b-4c6d-8e7f-9a0b1c2d3e4f';
-    store(expired, { created: Date.now() - 8 * DAY });
+    store(expired, { created: Date.now() - 400 * DAY });
     localStorage.setItem('commerce:pending:meu-dinheiro-minhas-regras', expired);
     localStorage.setItem(`commerce:download:${expired}`, other);
     expect(listCommerceSessions().map((s) => s.id)).toEqual([other, id]);
@@ -85,22 +85,33 @@ describe('browser-persistent buyer access', () => {
     expect(readCommerceSession(id)).not.toBeNull();
   });
 
-  it('keeps unconfirmed orders at 7 days and adopts the longer expiry only from the server', () => {
-    store(id, { created: Date.now() - 6 * DAY });
-    extendCommerceSession(id, Number.NaN);
-    expect(readCommerceSession(id).expires).toBeUndefined();
-    extendCommerceSession(id, Date.now() + 200 * DAY);
-    const extended = readCommerceSession(id);
-    expect(extended.expires).toBeGreaterThan(Date.now() + 199 * DAY);
-    extendCommerceSession(id, Date.now() + 2 * DAY); // never shortens
-    expect(readCommerceSession(id).expires).toBe(extended.expires);
-    extendCommerceSession(id, Date.now() + 900 * DAY); // never beyond 12 months of the purchase
-    expect(readCommerceSession(id).expires).toBeLessThanOrEqual(extended.created + 365 * DAY);
+  it('keeps a purchase in this browser for up to 12 months and lets the server decide', () => {
+    store(id, { created: Date.now() - 10 * DAY });
+    expect(readCommerceSession(id)).not.toBeNull();
+    store(id, { created: Date.now() - 366 * DAY });
+    expect(readCommerceSession(id)).toBeNull();
   });
 
-  it('lets an unconfirmed order expire after 7 days in this browser', () => {
-    store(id, { created: Date.now() - 8 * DAY });
-    expect(readCommerceSession(id)).toBeNull();
+  it('adopts a longer server expiry for an imported session, never shortening it', () => {
+    const base = { id, token, product: 'meu-dinheiro-minhas-regras' };
+    importCommerceSession({ ...base, expires: Date.now() + 5 * DAY });
+    extendCommerceSession(id, Date.now() + 200 * DAY);
+    const extended = readCommerceSession(id).expires;
+    expect(extended).toBeGreaterThan(Date.now() + 199 * DAY);
+    extendCommerceSession(id, Date.now() + DAY);
+    expect(readCommerceSession(id).expires).toBe(extended);
+  });
+
+  it('Minhas compras forgets an order the server refuses after 7 days, and keeps paid ones', async () => {
+    store(id, { created: Date.now() - 10 * DAY });
+    store(other, { token: otherToken, created: Date.now() - 10 * DAY });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url) => (url.includes(id) ? json({ message: 'x' }, 404) : json(order({ order_id: other })))),
+    );
+    renderAt('/minhas-compras', <PurchasesPage />);
+    await waitFor(() => expect(localStorage.getItem(`commerce:${id}`)).toBeNull());
+    expect(localStorage.getItem(`commerce:${other}`)).not.toBeNull();
   });
 });
 

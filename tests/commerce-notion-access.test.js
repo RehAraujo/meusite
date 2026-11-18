@@ -225,7 +225,7 @@ describe('Notion template access after payment', () => {
     await notify();
     expect((await access({ token: null })).status).toBe(404);
     expect((await access({ token: 'cd'.repeat(32) })).status).toBe(404);
-    db.prepare('UPDATE commerce_orders SET access_expires=?').run(Date.now() - 1);
+    db.prepare('UPDATE commerce_orders SET access_expires=1, created_at=1').run();
     expect((await access()).status).toBe(404);
   });
 
@@ -332,10 +332,74 @@ describe('12-month access for confirmed payments', () => {
     expect((await access()).status).toBe(403);
   });
 
-  it('lets an unpaid order expire at day 7', async () => {
+  it('lets an unpaid order expire at day 7, after asking the provider once', async () => {
     await checkout();
     db.prepare('UPDATE commerce_orders SET access_expires=?').run(Date.now() - 1);
+    const unpaid = snapshot({
+      status: 'created',
+      status_detail: 'created',
+      total_paid_amount: '0.00',
+    });
+    provide(unpaid);
     expect((await access()).status).toBe(404);
+    expect((await run(`/orders/${id}`)).status).toBe(404);
+    expect(expiresIn().access_expires).toBeLessThan(Date.now());
+  });
+
+  it('recovers a paid buyer after day 7 even if no webhook was ever processed', async () => {
+    await checkout(); // D1 still says "created": the payment notification was lost.
+    db.prepare('UPDATE commerce_orders SET created_at=created_at-?, access_expires=?').run(
+      10 * DAY,
+      Date.now() - 1,
+    );
+    provide(snapshot());
+    const view = await (await run(`/orders/${id}`)).json();
+    expect(view.paid).toBe(true);
+    const row = expiresIn();
+    expect(row.access_expires).toBe(row.created_at + 365 * DAY);
+    expect((await access()).status).toBe(200);
+  });
+
+  it('never queries the provider for a wrong token, even after day 7', async () => {
+    await checkout();
+    db.prepare('UPDATE commerce_orders SET access_expires=?').run(Date.now() - 1);
+    provider.mockClear();
+    expect((await access({ token: 'cd'.repeat(32) })).status).toBe(404);
+    expect(provider).not.toHaveBeenCalled();
+  });
+});
+
+describe('closing sales keeps existing buyers served', () => {
+  it('blocks new orders and marks the catalog unavailable, while access and the ZIP keep working', async () => {
+    await checkout();
+    await notify();
+    env.COMMERCE_SALES = 'closed';
+    const catalog = await (await run('/catalog')).json();
+    expect(catalog.products.every((product) => product.available === false)).toBe(true);
+    provider.mockClear();
+    const attempt = await run('/checkout', { method: 'POST', payload: { product_id: PRODUCT } });
+    expect(attempt.status).toBe(503);
+    expect(
+      provider.mock.calls.some(([url]) => url === 'https://api.mercadopago.com/v1/orders'),
+    ).toBe(false);
+    provide(snapshot());
+    expect((await run(`/orders/${id}`)).status).toBe(200);
+    expect((await access()).status).toBe(200);
+    expect((await run(`/orders/${id}/download`)).status).toBe(200);
+  });
+
+  it('still processes refunds while sales are closed', async () => {
+    await checkout();
+    await notify();
+    env.COMMERCE_SALES = 'closed';
+    const refunded = snapshot({
+      status: 'refunded',
+      status_detail: 'refunded',
+      last_updated_date: new Date().toISOString(),
+    });
+    expect((await notify(refunded)).status).toBe(200);
+    provide(refunded);
+    expect((await access()).status).toBe(403);
   });
 });
 

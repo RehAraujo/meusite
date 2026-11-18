@@ -163,10 +163,16 @@ async function owned(request, env, id) {
   const bearer = token(request);
   if (!bearer) return null;
   const row = await byId(env, id);
-  return row && row.token_hash === (await hash(bearer)) && row.access_expires > Date.now()
-    ? row
-    : null;
+  if (!row || row.token_hash !== (await hash(bearer))) return null;
+  if (row.access_expires > Date.now()) return row;
+  // Past the 7-day window a paid order keeps its 12-month right even if no webhook was
+  // processed: ask the provider once. reconcile() extends only verified paid orders.
+  if (!row.mp_id || row.created_at + PAID_ACCESS_MS <= Date.now()) return null;
+  const checked = await reconcile(env, row);
+  return checked.access_expires > Date.now() ? checked : null;
 }
+// Closing sales stops new orders only; buyers keep status, access and downloads.
+const salesClosed = (env) => env.COMMERCE_SALES === 'closed';
 // Opt-in prototype: never active in production or disabled environments.
 const complementaryReconciliation = (env) =>
   env.COMMERCE_ENVIRONMENT === 'staging' && env.COMMERCE_MODE === 'test' &&
@@ -420,7 +426,7 @@ export async function handleCommerce(request, env, url = new URL(request.url)) {
           ...(format ? { format, description } : {}),
           currency,
           coming_soon: productionMode(env) && !isLaunchProduct(id),
-          available: available && (!productionMode(env) || isLaunchProduct(id)),
+          available: available && !salesClosed(env) && (!productionMode(env) || isLaunchProduct(id)),
         })),
       });
     }
@@ -433,7 +439,10 @@ export async function handleCommerce(request, env, url = new URL(request.url)) {
       return json({ received: true, signature_verified: true, commerce_processed: false, mode: 'disabled' });
     }
     if (!configured(env)) return json({ message: 'Checkout temporariamente indisponível.' }, 503);
-    if (path === '/checkout' && request.method === 'POST') return await checkout(request, env);
+    if (path === '/checkout' && request.method === 'POST')
+      return salesClosed(env)
+        ? json({ message: 'Vendas temporariamente encerradas.' }, 503)
+        : await checkout(request, env);
     if (path === '/webhook' && request.method === 'POST') return await webhook(request, env, url);
     const match = path.match(/^\/orders\/([a-f0-9-]{36})(\/download|\/access)?$/i);
     if (!match || !UUID.test(match[1])) return json({ message: 'Não encontrado.' }, 404);

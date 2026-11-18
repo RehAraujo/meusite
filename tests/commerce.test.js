@@ -316,7 +316,7 @@ describe('commerce integration with real SQLite persistence and mocked network',
       (await run(`/orders/${id}`, { headers: { Authorization: `Bearer ${'cd'.repeat(32)}` } }))
         .status,
     ).toBe(404);
-    db.prepare('UPDATE commerce_orders SET access_expires=1').run();
+    db.prepare('UPDATE commerce_orders SET access_expires=1, created_at=1').run();
     expect((await run(`/orders/${id}`)).status).toBe(404);
   });
   it('delivers private files only after authoritative payment, with atomic download limits', async () => {

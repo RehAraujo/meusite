@@ -6,7 +6,6 @@ const PRODUCT = /^[a-z0-9-]{1,64}$/;
 const DAY = 86400000;
 export const ACCESS_DAYS = 7;
 export const PAID_ACCESS_MONTHS = 12;
-const ACCESS = ACCESS_DAYS * DAY;
 // Mirrors the server: a confirmed order may be kept for up to 365 days from its creation.
 const PAID_ACCESS = 365 * DAY;
 const key = (id) => `commerce:${id}`;
@@ -14,7 +13,8 @@ const downloadKey = (id) => `commerce:download:${id}`;
 const PENDING = 'commerce:pending:';
 const storage = () => window.localStorage;
 
-const expiresAt = (session) => (Number.isFinite(session.expires) ? session.expires : session.created + ACCESS);
+// Kept up to the 12-month paid window; the server decides whether an order is still valid.
+const expiresAt = (session) => (Number.isFinite(session.expires) ? session.expires : session.created + PAID_ACCESS);
 function readStoredSession(id) {
   try {
     if (!UUID.test(id || '')) return null;

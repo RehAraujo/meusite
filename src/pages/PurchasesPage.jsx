@@ -32,6 +32,9 @@ export default function PurchasesPage() {
         cache: 'no-store',
       })
         .then((response) => {
+          // The server refuses an unpaid order after 7 days: stop listing it here.
+          if (response.status === 404 && session.created + ACCESS_DAYS * 86400000 < Date.now())
+            forgetCommerceSession(session.id);
           if (!response.ok) throw new Error('request');
           return response.json();
         })

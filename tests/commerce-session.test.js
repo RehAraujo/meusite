@@ -61,7 +61,7 @@ it('allows a new explicit purchase after an expired pending session without reop
   localStorage.setItem('commerce:pending:planner-treino', id);
   localStorage.setItem(
     `commerce:${id}`,
-    JSON.stringify({ ...valid(), created: Date.now() - 8 * 86400000 }),
+    JSON.stringify({ ...valid(), created: Date.now() - 400 * 86400000 }),
   );
   expect(readCommerceSession(id)).toBeNull();
   const next = prepareCommerceSession('planner-treino');
