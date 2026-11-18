@@ -1,8 +1,10 @@
 .spotlight-card {
   position: relative;
   isolation: isolate;
+
   --spotlight-x: 50%;
   --spotlight-y: 20%;
+
   box-shadow: inset 0 0 0 1px rgb(255 195 150 / 34%);
 }
 
@@ -24,7 +26,11 @@
     z-index: -1;
     border-radius: inherit;
     pointer-events: none;
-    background: radial-gradient(230px circle at var(--spotlight-x) var(--spotlight-y), rgb(255 177 99 / 32%), transparent 75%);
+    background: radial-gradient(
+      230px circle at var(--spotlight-x) var(--spotlight-y),
+      rgb(255 177 99 / 32%),
+      transparent 75%
+    );
     opacity: 0;
     transition: opacity 180ms ease;
   }
