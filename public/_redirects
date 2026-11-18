@@ -6,7 +6,9 @@
 /negocios.html /negocios 301
 /clientes.html /clientes 301
 /pensamentos.html /pensamentos 301
-/ferramentas.html /ferramentas 301
+/ferramentas.html /shopping/ferramentas-digitais 301
+/ferramentas /shopping/ferramentas-digitais 301
+/ferramentas/ /shopping/ferramentas-digitais 301
 /curriculo.html /carreira 301
 /curriculo /carreira 301
 /career /carreira 301
@@ -15,10 +17,10 @@
 /processo.html /processo 301
 /guia-alimentar.html /guia-alimentar 301
 /planner-treino.html /planner-treino 301
-/templates /ferramentas 301
-/templates.html /ferramentas 301
-/loja /ferramentas 301
-/loja.html /ferramentas 301
+/templates /shopping/ferramentas-digitais 301
+/templates.html /shopping/ferramentas-digitais 301
+/loja /shopping 301
+/loja.html /shopping 301
 /wrangler.jsonc /arquivo-interno-indisponivel 302
 /data/curriculo.json /arquivo-interno-indisponivel 302
 /scripts/build-curriculo.py /arquivo-interno-indisponivel 302
@@ -30,3 +32,6 @@
 /acessibilidade.html /acessibilidade 301
 /projetos /clientes 301
 /projetos/ /clientes 301
+/shopping/arte-design /shopping 301
+/shopping/colecoes-especiais /shopping/atelie-join 301
+/shopping/rejoin-brecho /shopping 301

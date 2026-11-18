@@ -1,0 +1,227 @@
+import { useEffect, useRef } from 'react';
+import { LazyMotion, domAnimation } from 'motion/react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArchiveFolders } from '../components/shop/ArchiveFolders';
+import { ProductCard } from '../components/shop/ProductCard';
+import { RevealHeadline } from '../components/shop/RevealHeadline';
+import { ArrowButton } from '../components/ui/ArrowButton';
+import { Eyebrow } from '../components/ui/Eyebrow';
+import {
+  categoryById,
+  legacyCategoryIds,
+  papelariaHighlights,
+  shoppingCategories,
+  shoppingHero,
+  shoppingProducts,
+} from '../data/shopping';
+import { useDocumentMeta } from '../hooks/useDocumentMeta';
+import { useRjReveal } from '../hooks/useRjReveal';
+
+const counts = shoppingProducts.reduce((total, item) => {
+  total[item.category] = (total[item.category] ?? 0) + 1;
+  return total;
+}, {});
+const tools = shoppingProducts.filter((item) => item.category === 'ferramentas-digitais');
+const papelaria = papelariaHighlights.map((id) => shoppingProducts.find((item) => item.id === id));
+const toolsPage = categoryById['ferramentas-digitais'].path;
+const papelariaPage = categoryById['papelaria-impressos'].path;
+
+/*
+ * /shopping: vitrine de curadoria do Shopping JOIN (não o catálogo completo).
+ * Ordem: hero editorial → universos (coverflow) → Ferramentas Digitais →
+ * Papelaria & Impressos → como comprar. Os universos "Em breve" aparecem no
+ * coverflow e têm página própria em /shopping/{id}. Nada aqui inicia compra.
+ */
+export default function ShoppingPage() {
+  useDocumentMeta({
+    title: 'Shopping JOIN | Renata Join',
+    description: shoppingHero.description,
+    path: '/shopping',
+  });
+
+  const rootRef = useRef(null);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  useRjReveal(rootRef);
+
+  // Links antigos (?categoria=) seguem para a página da categoria.
+  const legacy = legacyCategoryIds[searchParams.get('categoria')];
+  useEffect(() => {
+    if (legacy) navigate(categoryById[legacy].path, { replace: true });
+  }, [legacy, navigate]);
+
+  return (
+    <LazyMotion features={domAnimation} strict>
+      <div className="rj-home rj-shopping" ref={rootRef}>
+        {/* 1. HERO EDITORIAL */}
+        <section className="rj-shop-hero" aria-labelledby="shopping-title">
+          <div className="rj-container rj-shop-hero__grid">
+            <div className="rj-shop-hero__copy">
+              <Eyebrow>{shoppingHero.eyebrow}</Eyebrow>
+              <RevealHeadline id="shopping-title" parts={shoppingHero.title} />
+              <p className="rj-shop-hero__lead">{shoppingHero.description}</p>
+              <div className="rj-shop-hero__actions">
+                <ArrowButton variant="ink" href="#ferramentas">
+                  Explorar a loja
+                </ArrowButton>
+                <a className="rj-link rj-link--ink" href="#arquivo">
+                  Ver categorias <i aria-hidden="true">→</i>
+                </a>
+              </div>
+            </div>
+            <figure className="rj-shop-hero__visual">
+              <img
+                className="rj-shop-hero__photo"
+                src={shoppingHero.image.src}
+                srcSet={shoppingHero.image.srcSet}
+                sizes="(width <= 48rem) 100vw, 44vw"
+                width={shoppingHero.image.width}
+                height={shoppingHero.image.height}
+                alt={shoppingHero.image.alt}
+                fetchPriority="high"
+              />
+              <figcaption className="rj-shop-hero__caption">
+                Renata Join · Curadoria Shopping JOIN
+              </figcaption>
+            </figure>
+          </div>
+        </section>
+
+        {/* 2. ARQUIVO JOIN */}
+        <section
+          className="rj-section rj-section--paper rj-shop-archive"
+          id="arquivo"
+          aria-labelledby="arquivo-title"
+        >
+          <div className="rj-container">
+            <header className="rj-heading" data-rj-reveal>
+              <div>
+                <Eyebrow number="01">Universos JOIN</Eyebrow>
+                <h2 id="arquivo-title" className="rj-display-italic">
+                  Cinco universos. Diferentes formas de viver o seu estilo.
+                </h2>
+              </div>
+              <p className="rj-heading__copy">Deslize ou use as setas para explorar.</p>
+            </header>
+            <ArchiveFolders categories={shoppingCategories} counts={counts} />
+          </div>
+        </section>
+
+        {/* 3. FERRAMENTAS DIGITAIS */}
+        <section
+          className="rj-section rj-section--ink rj-shop-tools"
+          id="ferramentas"
+          aria-labelledby="ferramentas-title"
+        >
+          <div className="rj-container">
+            <header className="rj-shop-tools__head" data-rj-reveal>
+              <div>
+                <Eyebrow number="02">Ferramentas Digitais</Eyebrow>
+                <h2 id="ferramentas-title">Ferramentas para colocar a vida em ordem.</h2>
+              </div>
+              <Link className="rj-link rj-shop-tools__all" to={toolsPage}>
+                Ver todas as ferramentas <i aria-hidden="true">→</i>
+              </Link>
+            </header>
+            {/* Vitrine editorial: o destaque à esquerda e as demais em linhas à direita.
+                Busca e filtros ficam na página da categoria. */}
+            <ul className="rj-products rj-products--tools" aria-label="Ferramentas em destaque">
+              {tools.map((item, index) => (
+                <li
+                  key={item.id}
+                  className={item.featured ? 'rj-products__lead' : undefined}
+                  data-rj-reveal
+                  style={{ '--rj-i': index + 1 }}
+                >
+                  <span className="rj-tools__index" aria-hidden="true">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <ProductCard product={item} highlight={item.featured} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* 4. PAPELARIA & IMPRESSOS */}
+        <section
+          className="rj-section rj-section--white rj-shop-paper"
+          id="papelaria"
+          aria-labelledby="papelaria-title"
+        >
+          <div className="rj-container">
+            <header className="rj-heading" data-rj-reveal>
+              <div>
+                <Eyebrow number="03">Papelaria & Impressos · Studio Goods</Eyebrow>
+                <h2 id="papelaria-title" className="rj-display-italic">
+                  Impressos com a sua cara, arte inclusa.
+                </h2>
+              </div>
+              <p className="rj-heading__copy">
+                Peças com a identidade da sua marca e arte inclusa. Cada pedido começa por um
+                orçamento.
+              </p>
+            </header>
+            <ul className="rj-products rj-products--paper" aria-label="Seleção de papelaria">
+              {papelaria.map((item, index) => (
+                <li key={item.id} data-rj-reveal style={{ '--rj-i': index % 3 }}>
+                  <ProductCard product={item} />
+                </li>
+              ))}
+            </ul>
+            <div className="rj-shop-section-cta">
+              <ArrowButton variant="pink" to={papelariaPage}>
+                Ver toda a papelaria
+              </ArrowButton>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. COMO COMPRAR */}
+        <section
+          className="rj-section rj-section--white rj-shop-guide"
+          id="como-comprar"
+          aria-labelledby="guia-title"
+        >
+          <div className="rj-container">
+            <header className="rj-heading" data-rj-reveal>
+              <div>
+                <Eyebrow number="04">Como comprar</Eyebrow>
+                <h2 id="guia-title" className="rj-display-italic">
+                  Simples, do primeiro clique à entrega.
+                </h2>
+              </div>
+            </header>
+            <ol className="rj-shop-steps">
+              <li data-rj-reveal>
+                <strong>Ferramentas digitais</strong>
+                <p>
+                  Cada ferramenta tem página própria, com o que está incluído, o preço e a forma de
+                  acesso.
+                </p>
+              </li>
+              <li data-rj-reveal style={{ '--rj-i': 1 }}>
+                <strong>Papelaria & Impressos</strong>
+                <p>
+                  Você pede o orçamento e recebe a proposta com valores e prazo antes da produção.
+                </p>
+              </li>
+              <li data-rj-reveal style={{ '--rj-i': 2 }}>
+                <strong>Ainda em dúvida?</strong>
+                <p>Conte o que você precisa e eu indico o caminho que faz mais sentido.</p>
+              </li>
+            </ol>
+            <div className="rj-shop-guide__actions">
+              <ArrowButton variant="ink" to="/#contato">
+                Quero orientação
+              </ArrowButton>
+              <Link className="rj-link rj-link--ink" to="/produtos-digitais">
+                Política de produtos digitais <i aria-hidden="true">→</i>
+              </Link>
+            </div>
+          </div>
+        </section>
+      </div>
+    </LazyMotion>
+  );
+}

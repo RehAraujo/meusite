@@ -2,6 +2,31 @@ import { readFile, rm, writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+// Páginas próprias de cada universo do Shopping JOIN (ids em src/data/shopping.js).
+const shoppingCategoryMeta = {
+  'papelaria-impressos': [
+    'Papelaria & Impressos',
+    'Certificados, tags, etiquetas, adesivos, cartões, blocos e impressões fotográficas, com arte inclusa.',
+  ],
+  'ferramentas-digitais': [
+    'Ferramentas Digitais',
+    'Templates Notion, sistemas, planners e recursos de produtividade.',
+  ],
+  'atelie-join': [
+    'Ateliê JOIN',
+    'Criações autorais em pequenos lotes: velas, aromatizantes, presentes, objetos artesanais e coleções limitadas.',
+  ],
+  'join-active': [
+    'JOIN Active',
+    'Moda fitness e acessórios esportivos. Fornecedores em definição.',
+  ],
+  lifestyle: [
+    'Lifestyle JOIN',
+    'Favoritos, recomendações pessoais e marcas parceiras, sempre com a relação comercial identificada.',
+  ],
+};
+const shoppingCategoryRoutes = Object.keys(shoppingCategoryMeta).map((id) => `/shopping/${id}`);
+
 const routes = [
   '/',
   '/sobre',
@@ -10,7 +35,8 @@ const routes = [
   '/clientes',
   '/clientes/ted-tec',
   '/pensamentos',
-  '/ferramentas',
+  '/shopping',
+  ...shoppingCategoryRoutes,
   '/carreira',
   '/career',
   '/curriculo',
@@ -56,10 +82,16 @@ const metadata = {
     'Pensamentos | Renata Join',
     'Textos sobre identidade, design, tecnologia, comunicação, fé e trabalho.',
   ],
-  '/ferramentas': [
-    'Ferramentas | Renata Join',
-    'Templates, sistemas e guias desenvolvidos para organizar pessoas, projetos e negócios.',
+  '/shopping': [
+    'Shopping JOIN | Renata Join',
+    'Ferramentas, criações e descobertas para diferentes momentos da sua vida.',
   ],
+  ...Object.fromEntries(
+    Object.entries(shoppingCategoryMeta).map(([id, [label, description]]) => [
+      `/shopping/${id}`,
+      [`${label} | Shopping JOIN`, description],
+    ]),
+  ),
   '/curriculo': [
     'Currículo | Renata Gomes Araujo',
     'Currículo profissional de Renata Gomes Araujo.',

@@ -4,6 +4,7 @@ import App from './App';
 import './styles/index.css';
 import './styles/rj-2026.css';
 import './components/atelie/atelie.css';
+import './components/shop/shop.css';
 
 export const render = (url) =>
   renderToString(
