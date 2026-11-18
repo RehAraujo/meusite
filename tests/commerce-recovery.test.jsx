@@ -177,12 +177,13 @@ describe('personal access link', () => {
     renderAt(`/checkout?pedido=${id}`, <CheckoutPage />);
     await screen.findByRole('button', { name: 'Baixar produto' });
     expect(document.body.innerHTML).not.toContain(token);
-    await user.click(screen.getByText('Abrir em outro navegador ou dispositivo'));
-    await user.click(screen.getByRole('button', { name: 'Mostrar link pessoal' }));
+    expect(screen.getByRole('heading', { name: 'Salvar meu acesso' })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Copiar link de acesso' }));
     const field = screen.getByLabelText('Seu link pessoal de acesso');
     expect(field.value).toBe(`${window.location.origin}/checkout?pedido=${id}#acesso=${token}`);
-    await user.click(screen.getByRole('button', { name: 'Copiar link' }));
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(field.value);
+    await user.click(screen.getByRole('button', { name: 'Copiar link' }));
+    expect(navigator.clipboard.writeText).toHaveBeenCalledTimes(2);
     await user.click(screen.getByRole('button', { name: 'Ocultar link' }));
     expect(document.body.innerHTML).not.toContain(token);
     // A confirmed order is no longer reused as the pending purchase.

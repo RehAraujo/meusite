@@ -1,16 +1,16 @@
 import { useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ArrowButton } from '../components/ui/ArrowButton';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { useRjReveal } from '../hooks/useRjReveal';
 import { startCheckout } from '../lib/commerce-checkout';
+import { CommerceFooter, CommerceHeader } from '../components/commerce/CommerceChrome';
 import '../styles/finance-product.css';
 
 // Checkout integrado: cria o pedido no servidor e só libera o acesso após o Mercado Pago
 // confirmar o pagamento. Em produção ele segue desativado até a homologação.
 const PRODUCT_ID = 'meu-dinheiro-minhas-regras';
 const checkoutPath = `/checkout?produto=${PRODUCT_ID}`;
-const brandHome = 'https://renatajoin.com/';
 const secureNote = 'Pagamento seguro via Mercado Pago';
 const closeup = (name) => `/assets/finance-template/closeups/${name}.webp`;
 
@@ -218,22 +218,7 @@ export default function FinanceProductPage() {
 
   return (
     <div className="finance-landing" ref={rootRef}>
-      <a className="fj-skip" href="#conteudo">
-        Pular para o conteúdo
-      </a>
-      <header className="fj-header">
-        <div className="fj-wrap fj-header-inner">
-          <a
-            href={brandHome}
-            className="fj-brand"
-            aria-label="Renata Join — ir para renatajoin.com"
-          >
-            Renata <em>Join</em>
-            <span aria-hidden="true">/ Shopping Join</span>
-          </a>
-          <span className="fj-header-note">Produto digital · Feito no Brasil</span>
-        </div>
-      </header>
+      <CommerceHeader />
 
       <main id="conteudo">
         {/* Hero claro: o fundo #f4f4f4 é o mesmo incorporado à FOTO2. */}
@@ -465,11 +450,7 @@ export default function FinanceProductPage() {
         </section>
       </main>
 
-      <footer className="fj-footer fj-wrap">
-        <a href={brandHome}>RENATAJOIN</a>
-        <span>Organização com personalidade. Feito no Brasil.</span>
-        <Link to="/produtos-digitais">Condições dos produtos digitais</Link>
-      </footer>
+      <CommerceFooter />
     </div>
   );
 }

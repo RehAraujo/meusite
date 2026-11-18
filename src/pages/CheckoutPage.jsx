@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import '../styles/finance-checkout.css';
-import { ButtonLink } from '../components/ui/ButtonLink';
+import '../styles/commerce-pages.css';
+import { ArrowButton } from '../components/ui/ArrowButton';
+import { CommerceShell } from '../components/commerce/CommerceChrome';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import {
   readCommerceSession as readSession,
-  prepareCommerceSession,
-  paymentTarget,
-  navigatePayment,
   navigateTemplate,
   prepareDownloadAttempt,
   completeDownloadAttempt,
@@ -17,11 +15,19 @@ import {
   settleCommerceSession,
   extendCommerceSession,
 } from '../lib/commerce-session';
+import { restartCheckout, retryCheckout, startCheckout } from '../lib/commerce-checkout';
 import { PersonalAccess } from '../components/commerce/PersonalAccess';
-import { orderStatusText } from '../lib/commerce-status';
+import { orderState, orderStatusText } from '../lib/commerce-status';
 
+const FINANCE = 'meu-dinheiro-minhas-regras';
 const LOST_ACCESS =
   'Não encontramos o acesso a este pedido neste navegador. Abra Minhas compras no navegador em que iniciou a compra ou use seu link pessoal de acesso. Se perdeu os dois, fale pelo contato do site com o número do pedido.';
+const PAYMENT_ERROR =
+  'Não foi possível iniciar o pagamento. Tente novamente; a tentativa será reutilizada.';
+const SESSION_ERROR =
+  'Não foi possível preservar o acesso neste navegador. Não iniciamos outro pagamento. Mantenha esta aba aberta e fale pelo contato do site.';
+const money = (amount) => `R$ ${amount.replace('.', ',')}`;
+
 async function api(path, session, options = {}) {
   const response = await fetch(`/api/commerce${path}`, {
     ...options,
@@ -31,6 +37,7 @@ async function api(path, session, options = {}) {
   if (!response.ok) throw new Error('request');
   return response;
 }
+
 export default function CheckoutPage() {
   const [params] = useSearchParams();
   const downloading = useRef(false);
@@ -60,7 +67,12 @@ export default function CheckoutPage() {
         api(`/orders/${orderId}`, { token: linked })
           .then((r) => r.json())
           .then((data) => {
-            importCommerceSession({ id: orderId, token: linked, product: data.product_id, expires: data.access_expires });
+            importCommerceSession({
+              id: orderId,
+              token: linked,
+              product: data.product_id,
+              expires: data.access_expires,
+            });
             if (active) setOrder(data);
           })
           .catch(() => {
@@ -87,7 +99,10 @@ export default function CheckoutPage() {
           return r.json();
         })
         .then((data) => {
-          if (active) { setProducts(data.products); setCatalogMode(data.mode); }
+          if (active) {
+            setProducts(data.products);
+            setCatalogMode(data.mode);
+          }
         })
         .catch(() => {
           if (active) setMessage('Checkout temporariamente indisponível.');
@@ -97,36 +112,35 @@ export default function CheckoutPage() {
       active = false;
     };
   }, [orderId, productId]);
+  const state = order ? orderState(order) : null;
   useEffect(() => {
-    if (order?.paid && orderId) {
+    if (!order || !orderId) return;
+    if (order.paid) {
       settleCommerceSession(orderId);
       extendCommerceSession(orderId, order.access_expires);
     }
-  }, [order, orderId]);
+    // A definitive outcome is never reopened as the pending purchase of this browser.
+    if (state === 'failed' || state === 'refunded') settleCommerceSession(orderId);
+  }, [order, orderId, state]);
   const product = products.find((item) => item.id === productId);
-  async function buy() {
-    if (!product?.available || product.coming_soon) return;
+
+  async function pay(action) {
     setBusy(true);
     setMessage('');
     try {
-      const session = prepareCommerceSession(productId);
-      const response = await api('/checkout', session, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': session.id },
-        body: JSON.stringify({ product_id: productId }),
-      });
-      const result = await response.json();
-      navigatePayment(paymentTarget(result, session));
+      await action();
     } catch (error) {
-      setMessage(
-        error.message === 'commerce-session-unavailable'
-          ? 'Não foi possível preservar o acesso neste navegador. Não iniciamos outro pagamento. Mantenha esta aba aberta e fale pelo contato do site.'
-          : 'Não foi possível iniciar o pagamento. Tente novamente; a tentativa será reutilizada.',
-      );
-    } finally {
+      setMessage(error.message === 'commerce-session-unavailable' ? SESSION_ERROR : PAYMENT_ERROR);
       setBusy(false);
     }
   }
+  const buy = () => {
+    if (!product?.available || product.coming_soon) return;
+    pay(() => startCheckout(productId));
+  };
+  const retry = () => pay(() => retryCheckout(orderId, order.product_id));
+  const restart = () => pay(() => restartCheckout(orderId, order.product_id));
+
   async function refresh() {
     setBusy(true);
     setMessage('');
@@ -149,7 +163,9 @@ export default function CheckoutPage() {
       const session = readSession(orderId);
       if (!session) throw new Error('session');
       const attempt = prepareDownloadAttempt(orderId);
-      const response = await api(`/orders/${orderId}/download`, session, { headers: { 'X-Download-Attempt': attempt } });
+      const response = await api(`/orders/${orderId}/download`, session, {
+        headers: { 'X-Download-Attempt': attempt },
+      });
       const objectUrl = URL.createObjectURL(await response.blob());
       const link = document.createElement('a');
       link.href = objectUrl;
@@ -187,146 +203,222 @@ export default function CheckoutPage() {
       setBusy(false);
     }
   }
-  // Product-specific presentation only: reuse the existing availability guard and buy handler.
-  if (productId === 'meu-dinheiro-minhas-regras' && !orderId) {
+
+  if (orderId) {
+    const ready = state === 'approved';
     return (
-      <div className="finance-checkout">
-        <header className="fc-header">
-          <Link to="/meu-dinheiro-minhas-regras">RENATAJOIN <span>/ SHOPPING JOIN</span></Link>
-          <span>Seu pedido</span>
-        </header>
-        <main id="conteudo" className="fc-grid">
-          <section className="fc-intro">
-            <p className="fc-eyebrow">CONFIRA. CONTINUE. ORGANIZE.</p>
-            <h1>Um passo para organizar seu dinheiro.</h1>
-            <p className="fc-lead">Confira seu produto antes de continuar para o pagamento.</p>
-            <div className="fc-payment-info">
-              <h2>Pagamento pelo Mercado Pago</h2>
-              <p>Você continuará para o ambiente do Mercado Pago para finalizar o pagamento.</p>
-              {catalogMode === 'test' && <p className="fc-test">Homologação: use somente conta e meios de pagamento de teste.</p>}
-            </div>
-            <details className="fc-help">
-              <summary>Como recebo meu template?</summary>
-              <p>Assim que o Mercado Pago confirma o pagamento, a página do pedido libera o botão “Acessar meu template no Notion”. Lá, use Duplicar para copiar o template para a sua conta. O pacote com o link e as instruções continua disponível como alternativa.</p>
-              <p>Seu acesso fica salvo neste navegador em Minhas compras e vale por 12 meses após a confirmação do pagamento. Abrir o template não tem limite nesse prazo; o pacote pode ser baixado até 10 vezes.</p>
-            </details>
-            <Link className="fc-back" to="/meu-dinheiro-minhas-regras">← Voltar ao produto</Link>
-          </section>
-          <section className="fc-summary" aria-labelledby="fc-summary-title" aria-busy={busy}>
-            <h2 id="fc-summary-title">Resumo do pedido</h2>
-            <img className="fc-thumbnail" src="/assets/finance-template/visao-geral.jpg" width="2000" height="893" alt="Captura real do template Meu Dinheiro, Minhas Regras no Notion, com dados demonstrativos." />
-            <p className="fc-eyebrow">TEMPLATE NOTION · PRODUTO DIGITAL</p>
-            <h3>{product?.title || 'Meu Dinheiro, Minhas Regras'}</h3>
-            <p className="fc-format">Requer conta no Notion. Sem produto físico.</p>
-            <div className="fc-total"><span>Total <small>Pagamento único</small></span><strong>{product ? `R$ ${product.amount.replace('.', ',')}` : 'R$ 47,00'}</strong></div>
-            <button className="fc-submit" type="button" disabled={busy || !product?.available} onClick={buy} aria-describedby="fc-availability">{busy ? 'Preparando…' : 'Continuar para pagamento'}<span aria-hidden="true">↗</span></button>
-            <p id="fc-availability" className="fc-availability" role="status">{!product ? 'Carregando disponibilidade…' : !product.available ? 'Checkout temporariamente desativado.' : catalogMode === 'test' ? 'Pagamento processado no ambiente de teste.' : 'Pagamento processado pelo Mercado Pago.'}</p>
-            {message && <p className="fc-error" role="alert">{message}</p>}
-            <Link className="fc-terms" to="/produtos-digitais">Condições dos produtos digitais</Link>
-          </section>
-        </main>
-        <footer className="fc-footer">RENATAJOIN · Produtos digitais feitos no Brasil.</footer>
-      </div>
+      <CommerceShell note="Seu pedido">
+        <section className="fc-main" aria-busy={busy}>
+          <div className="fj-wrap fc-narrow">
+            <p className="fj-eyebrow">Seu pedido</p>
+            <h1 className="fj-h2">{order?.title || 'Seu pedido.'}</h1>
+            <p className="fc-meta">
+              Número do pedido: <span className="fc-code">{orderId}</span>
+              {order && <> · {money(order.amount)}</>}
+            </p>
+            {order && (
+              <div className={`fc-status is-${state}`}>
+                <p role="status">{orderStatusText(order)}</p>
+              </div>
+            )}
+            {order && ready && order.delivery === 'notion' && (
+              <div className="fc-actions">
+                <p className="fc-hint">
+                  Abra o template e use <strong>Duplicar</strong> para copiá-lo para a sua conta
+                  Notion. O acesso fica disponível por 12 meses após a confirmação do pagamento.
+                </p>
+                <ArrowButton variant="pink" type="button" disabled={busy} onClick={openTemplate}>
+                  Acessar meu template no Notion
+                </ArrowButton>
+                <button className="fc-ghost" type="button" disabled={busy} onClick={download}>
+                  Baixar link e instruções (ZIP)
+                </button>
+              </div>
+            )}
+            {order && ready && order.delivery !== 'notion' && (
+              <div className="fc-actions">
+                <p className="fc-hint">
+                  Baixe seu pacote em até 12 meses após a confirmação do pagamento. Limite de 10
+                  downloads. Para templates, as instruções de duplicação estão no pacote.
+                </p>
+                <ArrowButton variant="pink" type="button" disabled={busy} onClick={download}>
+                  Baixar produto
+                </ArrowButton>
+              </div>
+            )}
+            {order && state === 'retry' && (
+              <div className="fc-actions">
+                <ArrowButton variant="pink" type="button" disabled={busy} onClick={retry}>
+                  Tentar novamente
+                </ArrowButton>
+              </div>
+            )}
+            {order && state === 'failed' && (
+              <div className="fc-actions">
+                <ArrowButton variant="pink" type="button" disabled={busy} onClick={restart}>
+                  Fazer novo pedido
+                </ArrowButton>
+              </div>
+            )}
+            {message && (
+              <p className="fc-error" role="alert">
+                {message}
+              </p>
+            )}
+            {order && state !== 'refunded' && (
+              <button className="fc-text" type="button" disabled={busy} onClick={refresh}>
+                Atualizar status
+              </button>
+            )}
+            {order && state !== 'refunded' && state !== 'failed' && (
+              <PersonalAccess orderId={orderId} />
+            )}
+            <p className="fc-links">
+              <Link className="fj-text-link" to="/minhas-compras">
+                Minhas compras
+              </Link>
+            </p>
+          </div>
+        </section>
+      </CommerceShell>
     );
   }
+
+  const finance = productId === FINANCE;
+  const available = !!product?.available && !product.coming_soon;
   return (
-    <section className="page-hero">
-      <div className="container narrow">
-        <p className="eyebrow">Produtos digitais</p>
-        <h1>{orderId ? 'Seu pedido.' : product?.coming_soon ? 'Em breve.' : 'Leve mais estrutura para sua rotina.'}</h1>
-        {orderId ? (
-          <>
-            <p>Número do pedido: {orderId}</p>
-            {order && (
+    <CommerceShell note="Pagamento seguro">
+      <section className="fc-main">
+        <div className="fj-wrap fc-grid">
+          <div className="fc-intro">
+            <p className="fj-eyebrow">Resumo do pedido</p>
+            <h1 className="fj-h2">
+              {finance ? (
+                <>
+                  Um passo para organizar <em>seu dinheiro.</em>
+                </>
+              ) : product?.coming_soon ? (
+                'Em breve.'
+              ) : (
+                product?.title || 'Produtos digitais.'
+              )}
+            </h1>
+            <p className="fj-lead">
+              Você continuará no ambiente seguro do Mercado Pago para concluir o pagamento.
+            </p>
+            {catalogMode === 'test' && (
+              <p className="fc-test">
+                Homologação: use somente conta e meios de pagamento de teste.
+              </p>
+            )}
+            <ol className="fc-steps">
+              <li>
+                <span className="fj-num">01</span>
+                <p>
+                  <strong>Pagamento</strong> no Mercado Pago, em pagamento único.
+                </p>
+              </li>
+              <li>
+                <span className="fj-num">02</span>
+                <p>
+                  <strong>Confirmação</strong> automática assim que o pagamento é aprovado.
+                </p>
+              </li>
+              <li>
+                <span className="fj-num">03</span>
+                <p>
+                  <strong>Acesso</strong> liberado na página do pedido e salvo em Minhas compras.
+                </p>
+              </li>
+            </ol>
+            {finance && (
+              <details className="fc-help">
+                <summary>Como recebo meu template?</summary>
+                <p>
+                  Assim que o Mercado Pago confirma o pagamento, a página do pedido libera o botão
+                  “Acessar meu template no Notion”. Lá, use Duplicar para copiar o template para a
+                  sua conta. O pacote com o link e as instruções continua disponível como
+                  alternativa.
+                </p>
+                <p>
+                  Seu acesso fica salvo neste navegador em Minhas compras e vale por 12 meses após a
+                  confirmação do pagamento. Abrir o template não tem limite nesse prazo; o pacote
+                  pode ser baixado até 10 vezes.
+                </p>
+              </details>
+            )}
+            <Link
+              className="fj-text-link"
+              to={finance ? '/meu-dinheiro-minhas-regras' : '/ferramentas'}
+            >
+              ← {finance ? 'Voltar ao produto' : 'Voltar às ferramentas'}
+            </Link>
+          </div>
+          <aside className="fc-card" aria-labelledby="fc-summary-title" aria-busy={busy}>
+            {finance && (
+              <img
+                className="fc-thumbnail"
+                src="/assets/finance-template/closeups/contas-movimentacoes.webp"
+                width="780"
+                height="378"
+                alt="Recorte real do template Meu Dinheiro, Minhas Regras no Notion: contas, entradas, saídas e saldo com dados de exemplo"
+              />
+            )}
+            <p className="fj-eyebrow">{product?.format || 'Produto digital'}</p>
+            <h2 id="fc-summary-title" className="fc-product">
+              {product?.title || (finance ? 'Meu Dinheiro, Minhas Regras' : 'Carregando produto…')}
+            </h2>
+            {product?.description && !finance && <p className="fc-hint">{product.description}</p>}
+            <p className="fc-meta">Requer conta no Notion. Sem produto físico.</p>
+            {product?.coming_soon ? (
+              <p className="fc-status is-pending" role="status">
+                Este produto ainda não está disponível para compra.
+              </p>
+            ) : (
               <>
-                <h2>{order.title}</h2>
-                <p className="price">R$ {order.amount.replace('.', ',')}</p>
-                <p role="status">{orderStatusText(order)}</p>
-                {order.paid && !order.delivery_blocked && order.delivery === 'notion' && (
-                  <>
-                    <p>
-                      Abra o template e use Duplicar para copiá-lo para a sua conta Notion. O acesso
-                      fica disponível por 12 meses após a confirmação do pagamento.
-                    </p>
-                    <button className="button" type="button" disabled={busy} onClick={openTemplate}>
-                      Acessar meu template no Notion
-                    </button>
-                    <button
-                      className="button button--secondary"
-                      type="button"
-                      disabled={busy}
-                      onClick={download}
-                    >
-                      Baixar link e instruções (ZIP)
-                    </button>
-                  </>
-                )}
-                {order.paid && !order.delivery_blocked && order.delivery !== 'notion' && (
-                  <>
-                    <p>
-                      Baixe seu pacote em até 12 meses após a confirmação do pagamento. Limite de 10 downloads.
-                      Para templates, as instruções de duplicação estão no pacote.
-                    </p>
-                    <button className="button" type="button" disabled={busy} onClick={download}>
-                      Baixar produto
-                    </button>
-                  </>
-                )}
+                <div className="fc-total">
+                  <span>
+                    Total <small>Pagamento único</small>
+                  </span>
+                  <strong>{product ? money(product.amount) : finance ? 'R$ 47,00' : '—'}</strong>
+                </div>
+                <ArrowButton
+                  variant="pink"
+                  type="button"
+                  disabled={busy || !available}
+                  onClick={buy}
+                  aria-describedby="fc-availability"
+                >
+                  {busy
+                    ? 'Preparando…'
+                    : !product || available
+                      ? finance
+                        ? 'Continuar para o pagamento'
+                        : 'Continuar no Mercado Pago'
+                      : 'Checkout temporariamente indisponível'}
+                </ArrowButton>
+                <p id="fc-availability" className="fc-note" aria-live="polite">
+                  {!product
+                    ? 'Carregando disponibilidade…'
+                    : !available
+                      ? 'Checkout temporariamente desativado.'
+                      : catalogMode === 'test'
+                        ? 'Pagamento processado no ambiente de teste.'
+                        : 'Pagamento seguro via Mercado Pago.'}
+                </p>
               </>
             )}
-            <button
-              className="button button--secondary"
-              type="button"
-              disabled={busy}
-              onClick={refresh}
-            >
-              Atualizar status
-            </button>
-            {order && <PersonalAccess orderId={orderId} />}
-          </>
-        ) : product ? (
-          <>
-            <h2>{product.title}</h2>
-            {product.format && <p>{product.format}</p>}
-            {product.description && <p>{product.description}</p>}
-            {product.coming_soon ? <p role="status">Este produto ainda não está disponível para compra.</p> : <>
-            <p className="price">R$ {product.amount.replace('.', ',')} · pagamento único</p>
-            <p>
-              {catalogMode === 'test' ? 'Ambiente de teste. Use apenas uma conta e meios de pagamento de teste do Mercado Pago.' : 'Pagamento processado pelo Mercado Pago.'}
-            </p>
-            <p>
-              Após a confirmação, baixe o produto na página do pedido. Seu acesso fica salvo
-              neste navegador em Minhas compras.
-            </p>
-            <button
-              className="button"
-              type="button"
-              disabled={busy || !product.available}
-              onClick={buy}
-            >
-              {busy
-                ? 'Preparando…'
-                : product.available
-                  ? 'Continuar no Mercado Pago'
-                  : 'Checkout temporariamente indisponível'}
-            </button>
-            </>}
-            <p>
-              <ButtonLink to="/produtos-digitais" secondary>
-                Condições dos produtos digitais
-              </ButtonLink>
-            </p>
-          </>
-        ) : (
-          <p>Selecione um produto no catálogo ou aguarde o carregamento.</p>
-        )}
-        {message && <p role="alert">{message}</p>}
-        <p>
-          <ButtonLink to="/ferramentas" secondary>
-            Voltar às ferramentas
-          </ButtonLink>
-        </p>
-      </div>
-    </section>
+            {message && (
+              <p className="fc-error" role="alert">
+                {message}
+              </p>
+            )}
+            <Link className="fc-terms" to="/produtos-digitais">
+              Condições dos produtos digitais
+            </Link>
+          </aside>
+        </div>
+      </section>
+    </CommerceShell>
   );
 }

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import '../styles/commerce-access.css';
-import { ButtonLink } from '../components/ui/ButtonLink';
+import '../styles/commerce-pages.css';
+import { ArrowButton } from '../components/ui/ArrowButton';
+import { CommerceShell } from '../components/commerce/CommerceChrome';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import {
   ACCESS_DAYS,
@@ -10,7 +11,7 @@ import {
   forgetCommerceSession,
   listCommerceSessions,
 } from '../lib/commerce-session';
-import { orderStatusText } from '../lib/commerce-status';
+import { orderState, orderStatusText } from '../lib/commerce-status';
 
 // Lists every purchase stored in this browser, for any digital product in the catalog.
 export default function PurchasesPage() {
@@ -60,71 +61,91 @@ export default function PurchasesPage() {
     setPurchases((current) => current.filter((item) => item.session.id !== id));
   }
   return (
-    <section className="page-hero">
-      <div className="container narrow">
-        <p className="eyebrow">Produtos digitais</p>
-        <h1>Minhas compras.</h1>
-        <p>
-          Compras feitas neste navegador. Pedidos confirmados ficam disponíveis por{' '}
-          {PAID_ACCESS_MONTHS} meses; os demais, por {ACCESS_DAYS} dias. O acesso fica salvo só
-          neste dispositivo.
-        </p>
-        {purchases === null ? (
-          <p role="status">Carregando suas compras…</p>
-        ) : purchases.length === 0 ? (
-          <>
-            <h2>Nenhuma compra salva neste navegador.</h2>
-            <p>
-              Se você comprou em outro navegador ou dispositivo, abra Minhas compras nele ou use o
-              link pessoal de acesso do pedido. Se perdeu os dois, fale pelo contato do site com o
-              número do pedido ou da operação do Mercado Pago.
+    <CommerceShell note="Minhas compras">
+      <section className="fc-main">
+        <div className="fj-wrap fc-narrow">
+          <p className="fj-eyebrow">Produtos digitais</p>
+          <h1 className="fj-h2">Minhas compras.</h1>
+          <p className="fj-lead">
+            Compras feitas neste navegador. Pedidos confirmados ficam disponíveis por{' '}
+            {PAID_ACCESS_MONTHS} meses; os demais, por {ACCESS_DAYS} dias. O acesso fica salvo só
+            neste dispositivo.
+          </p>
+          {purchases === null ? (
+            <p className="fc-note" role="status">
+              Carregando suas compras…
             </p>
-          </>
-        ) : (
-          <ul className="purchases">
-            {purchases.map(({ session, order, state }) => (
-              <li key={session.id}>
-                <h2>{order?.title || 'Produto digital'}</h2>
-                <p>Pedido: {session.id}</p>
-                <p>
-                  {state === 'loading'
-                    ? 'Consultando o pedido…'
-                    : state === 'unavailable'
-                      ? 'Não foi possível consultar este pedido agora. O acesso pode ter expirado.'
-                      : orderStatusText(order)}
-                </p>
-                <div className="commerce-access__actions">
-                  <Link className="button" to={`/checkout?pedido=${session.id}`}>
-                    Abrir pedido
-                  </Link>
-                  {confirming === session.id ? (
-                    <>
-                      <button className="button button--secondary" type="button" onClick={() => forget(session.id)}>
-                        Confirmar: esquecer neste dispositivo
+          ) : purchases.length === 0 ? (
+            <div className="fc-card fc-empty">
+              <h2 className="fj-h3">Nenhuma compra salva neste navegador.</h2>
+              <p>
+                Se você comprou em outro navegador ou dispositivo, abra Minhas compras nele ou use o
+                link pessoal de acesso do pedido. Se perdeu os dois, fale pelo contato do site com o
+                número do pedido ou da operação do Mercado Pago.
+              </p>
+            </div>
+          ) : (
+            <ul className="fc-purchases">
+              {purchases.map(({ session, order, state }) => (
+                <li key={session.id} className="fc-card">
+                  <h2 className="fc-product">{order?.title || 'Produto digital'}</h2>
+                  <p className="fc-meta">
+                    Pedido: <span className="fc-code">{session.id}</span>
+                  </p>
+                  <p className={`fc-status is-${order ? orderState(order) : 'pending'}`}>
+                    {state === 'loading'
+                      ? 'Consultando o pedido…'
+                      : state === 'unavailable'
+                        ? 'Não foi possível consultar este pedido agora. O acesso pode ter expirado.'
+                        : orderStatusText(order)}
+                  </p>
+                  <div className="fc-inline-actions">
+                    <ArrowButton variant="pink" to={`/checkout?pedido=${session.id}`}>
+                      Abrir pedido
+                    </ArrowButton>
+                    {confirming === session.id ? (
+                      <>
+                        <button
+                          className="fc-ghost"
+                          type="button"
+                          onClick={() => forget(session.id)}
+                        >
+                          Confirmar: esquecer neste dispositivo
+                        </button>
+                        <button
+                          className="fc-ghost"
+                          type="button"
+                          onClick={() => setConfirming('')}
+                        >
+                          Manter
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="fc-ghost"
+                        type="button"
+                        onClick={() => setConfirming(session.id)}
+                      >
+                        Esquecer neste dispositivo
                       </button>
-                      <button className="button button--secondary" type="button" onClick={() => setConfirming('')}>
-                        Manter
-                      </button>
-                    </>
-                  ) : (
-                    <button className="button button--secondary" type="button" onClick={() => setConfirming(session.id)}>
-                      Esquecer neste dispositivo
-                    </button>
+                    )}
+                  </div>
+                  {confirming === session.id && (
+                    <p className="fc-note">
+                      Sem o link pessoal, você só recupera este pedido pelo contato do site.
+                    </p>
                   )}
-                </div>
-                {confirming === session.id && (
-                  <p>Sem o link pessoal, você só recupera este pedido pelo contato do site.</p>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-        <p>
-          <ButtonLink to="/ferramentas" secondary>
-            Voltar às ferramentas
-          </ButtonLink>
-        </p>
-      </div>
-    </section>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="fc-links">
+            <Link className="fj-text-link" to="/meu-dinheiro-minhas-regras">
+              Meu Dinheiro, Minhas Regras
+            </Link>
+          </p>
+        </div>
+      </section>
+    </CommerceShell>
   );
 }

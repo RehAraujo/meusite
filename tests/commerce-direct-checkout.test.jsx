@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import FinanceProductPage from '../src/pages/FinanceProductPage';
+import CheckoutPage from '../src/pages/CheckoutPage';
 import { navigatePayment } from '../src/lib/commerce-session';
 import { STATUS_TEXT, orderState, orderStatusText } from '../src/lib/commerce-status';
 
@@ -158,5 +159,113 @@ describe('buyer-facing order states', () => {
       'Pagamento reembolsado. O acesso a este pedido foi encerrado após o registro do reembolso.',
     );
     expect(STATUS_TEXT.blocked).toMatch(/temporariamente indisponível.*número do pedido/);
+  });
+});
+
+describe('order page actions per state', () => {
+  const id = '32a6f0a0-2759-4ca1-a1be-c808c34921d1';
+  const token = 'ab'.repeat(32);
+  const view = (extra) => ({
+    order_id: id,
+    product_id: 'meu-dinheiro-minhas-regras',
+    title: 'Meu Dinheiro, Minhas Regras',
+    amount: '47.00',
+    currency: 'BRL',
+    paid: false,
+    delivery_blocked: false,
+    block: null,
+    can_retry: false,
+    delivery: 'notion',
+    access_expires: Date.now() + 86400000,
+    ...extra,
+  });
+  const redirect = (orderId) =>
+    json({
+      order_id: orderId,
+      environment: 'staging',
+      checkout_url: `https://www.mercadopago.com.br/checkout/v1/redirect?order_id=${ORDER}`,
+    });
+  function orderPage() {
+    return render(
+      <MemoryRouter initialEntries={[`/checkout?pedido=${id}`]}>
+        <CheckoutPage />
+      </MemoryRouter>,
+    );
+  }
+  beforeEach(() => {
+    localStorage.setItem(
+      `commerce:${id}`,
+      JSON.stringify({ id, token, product: 'meu-dinheiro-minhas-regras', created: Date.now() }),
+    );
+    localStorage.setItem('commerce:pending:meu-dinheiro-minhas-regras', id);
+  });
+
+  it('retries on the same Mercado Pago order when the provider allows it', async () => {
+    const fetch = vi.fn(async (url, options) =>
+      url === '/api/commerce/checkout'
+        ? redirect(options.headers['Idempotency-Key'])
+        : json(
+            view({ status: 'action_required', status_detail: 'waiting_retry', can_retry: true }),
+          ),
+    );
+    vi.stubGlobal('fetch', fetch);
+    orderPage();
+    expect(await screen.findByText(STATUS_TEXT.retry)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /Tentar novamente/ }));
+    await waitFor(() => expect(navigatePayment).toHaveBeenCalled());
+    const post = fetch.mock.calls.find(([url]) => url === '/api/commerce/checkout');
+    expect(post[1].headers['Idempotency-Key']).toBe(id);
+    expect(post[1].headers.Authorization).toBe(`Bearer ${token}`);
+  });
+
+  it('creates a new order after a definitive failure instead of reopening the old one', async () => {
+    const fetch = vi.fn(async (url, options) =>
+      url === '/api/commerce/checkout'
+        ? redirect(options.headers['Idempotency-Key'])
+        : json(view({ status: 'failed', status_detail: 'rejected' })),
+    );
+    vi.stubGlobal('fetch', fetch);
+    orderPage();
+    expect(await screen.findByText(STATUS_TEXT.failed)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Tentar novamente/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Fazer novo pedido/ }));
+    await waitFor(() => expect(navigatePayment).toHaveBeenCalled());
+    const post = fetch.mock.calls.find(([url]) => url === '/api/commerce/checkout');
+    expect(post[1].headers['Idempotency-Key']).not.toBe(id);
+  });
+
+  it('shows the refund message with no access, retry or saved-access actions', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        json(
+          view({
+            status: 'refunded',
+            status_detail: 'refunded',
+            delivery_blocked: true,
+            block: 'refund',
+          }),
+        ),
+      ),
+    );
+    orderPage();
+    expect(await screen.findByText(STATUS_TEXT.refunded)).toBeTruthy();
+    for (const name of [
+      /Acessar meu template/,
+      /Tentar novamente/,
+      /Fazer novo pedido/,
+      /Copiar link de acesso/,
+    ])
+      expect(screen.queryByRole('button', { name })).toBeNull();
+  });
+
+  it('shows the support message for a security block', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => json(view({ paid: true, delivery_blocked: true, block: 'security' }))),
+    );
+    orderPage();
+    expect(await screen.findByText(STATUS_TEXT.blocked)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Acessar meu template/ })).toBeNull();
   });
 });
