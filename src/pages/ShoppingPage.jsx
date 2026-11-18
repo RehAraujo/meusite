@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { LazyMotion, domAnimation } from 'motion/react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArchiveFolders } from '../components/shop/ArchiveFolders';
@@ -13,12 +13,10 @@ import {
   shoppingCategories,
   shoppingHero,
   shoppingProducts,
-  toolFilters,
 } from '../data/shopping';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { useRjReveal } from '../hooks/useRjReveal';
 
-const ALL = 'todas';
 const counts = shoppingProducts.reduce((total, item) => {
   total[item.category] = (total[item.category] ?? 0) + 1;
   return total;
@@ -44,7 +42,6 @@ export default function ShoppingPage() {
   const rootRef = useRef(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [toolFilter, setToolFilter] = useState(ALL);
   useRjReveal(rootRef);
 
   // Links antigos (?categoria=) seguem para a página da categoria.
@@ -52,12 +49,6 @@ export default function ShoppingPage() {
   useEffect(() => {
     if (legacy) navigate(categoryById[legacy].path, { replace: true });
   }, [legacy, navigate]);
-
-  const visibleTools = useMemo(
-    () => tools.filter((item) => toolFilter === ALL || item.tags?.includes(toolFilter)),
-    [toolFilter],
-  );
-  const activeToolFilter = toolFilters.find((item) => item.id === toolFilter);
 
   return (
     <LazyMotion features={domAnimation} strict>
@@ -127,38 +118,28 @@ export default function ShoppingPage() {
               <div>
                 <Eyebrow number="02">Ferramentas Digitais</Eyebrow>
                 <h2 id="ferramentas-title">Ferramentas para colocar a vida em ordem.</h2>
-                <p>Sistemas, templates e recursos digitais para organizar melhor o que importa.</p>
               </div>
-              <ArrowButton variant="yellow" to={toolsPage}>
-                Ver todas as ferramentas
-              </ArrowButton>
+              <Link className="rj-link rj-shop-tools__all" to={toolsPage}>
+                Ver todas as ferramentas <i aria-hidden="true">→</i>
+              </Link>
             </header>
-            <div className="rj-shop-filters" role="group" aria-label="Filtrar ferramentas">
-              {[{ id: ALL, label: 'Todos' }, ...toolFilters].map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  aria-pressed={toolFilter === option.id}
-                  onClick={() => setToolFilter(option.id)}
+            {/* Vitrine editorial: o destaque à esquerda e as demais em linhas à direita.
+                Busca e filtros ficam na página da categoria. */}
+            <ul className="rj-products rj-products--tools" aria-label="Ferramentas em destaque">
+              {tools.map((item, index) => (
+                <li
+                  key={item.id}
+                  className={item.featured ? 'rj-products__lead' : undefined}
+                  data-rj-reveal
+                  style={{ '--rj-i': index + 1 }}
                 >
-                  {option.label}
-                </button>
+                  <span className="rj-tools__index" aria-hidden="true">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <ProductCard product={item} highlight={item.featured} />
+                </li>
               ))}
-            </div>
-            {visibleTools.length > 0 ? (
-              <ul className="rj-products rj-products--tools" aria-label="Ferramentas em destaque">
-                {visibleTools.map((item) => (
-                  <li key={item.id} className={item.featured ? 'rj-products__lead' : undefined}>
-                    <ProductCard product={item} highlight={item.featured} />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="rj-shop-tools__soon" aria-live="polite">
-                <strong>{activeToolFilter?.label}: em breve.</strong> As próximas ferramentas entram
-                aqui assim que estiverem prontas.
-              </p>
-            )}
+            </ul>
           </div>
         </section>
 

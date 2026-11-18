@@ -206,21 +206,17 @@ describe('interações críticas', () => {
     expect(tab('Ferramentas Digitais')).toHaveAttribute('aria-selected', 'true');
   });
 
-  it('filtra as ferramentas na página principal do Shopping', async () => {
-    const user = userEvent.setup();
+  it('mostra a vitrine de ferramentas sem filtros na página principal do Shopping', () => {
     render(
       <MemoryRouter initialEntries={['/shopping']}>
         <ShoppingPage />
       </MemoryRouter>,
     );
-    const filters = screen.getByRole('group', { name: /filtrar ferramentas/i });
-    const list = () => screen.queryByRole('list', { name: /ferramentas em destaque/i });
-    expect(within(list()).getAllByRole('article')).toHaveLength(3);
-    await user.click(within(filters).getByRole('button', { name: 'Finanças' }));
-    expect(within(list()).getAllByRole('article')).toHaveLength(1);
-    await user.click(within(filters).getByRole('button', { name: 'Negócios' }));
-    expect(list()).not.toBeInTheDocument();
-    expect(screen.getByText(/negócios: em breve/i)).toBeInTheDocument();
+    // Os filtros ficam só na página da categoria; aqui, as três ferramentas e o caminho até ela.
+    expect(screen.queryByRole('group', { name: /filtrar ferramentas/i })).not.toBeInTheDocument();
+    const list = screen.getByRole('list', { name: /ferramentas em destaque/i });
+    expect(within(list).getAllByRole('article')).toHaveLength(3);
+    expect(screen.queryByText(/destaque da loja/i)).not.toBeInTheDocument();
   });
 
   it('navega pelo catálogo de Papelaria & Impressos com linhas, busca e orçamento', async () => {

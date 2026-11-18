@@ -438,12 +438,13 @@ export const shoppingProducts = [
     price: featuredProduct.price,
     priceValue: priceValue(featuredProduct.price),
     priceNote: featuredProduct.priceNote,
+    // Capa autoral (arte original, sem alterações). Os prints ficam na página do produto.
     image: {
-      src: featuredProduct.image,
+      src: '/assets/shopping/produto-meu-dinheiro-capa.png',
       srcSet: null,
-      width: 1200,
-      height: 536,
-      alt: featuredProduct.imageAlt,
+      width: 688,
+      height: 338,
+      alt: 'Capa do Meu Dinheiro, Minhas Regras: título em serifa e ilustração de uma cédula com cifrão',
     },
     cta: { label: 'Ver produto', href: featuredProduct.cta.href },
     tags: ['financas', 'organizacao'],
@@ -458,12 +459,10 @@ export const shoppingProducts = [
     description: planner.description,
     price: planner.price,
     priceValue: priceValue(planner.price),
-    image: {
-      ...asset('produto-planner-alimentar', [640, 1000]),
-      width: 1000,
-      height: 522,
-      alt: 'Prévia do Planner Anti-Inflamatório no Notion, com a área de planejamento alimentar',
-    },
+    // Capa provisória de página (ícone + identificação) até a arte definitiva.
+    image: null,
+    cover: 'Planejamento alimentar',
+    coverStyle: 'pagina',
     cta: { label: 'Ver produto', to: planner.detailUrl },
     tags: ['organizacao'],
   }),
@@ -476,9 +475,10 @@ export const shoppingProducts = [
     description: training.description,
     price: training.price,
     priceValue: priceValue(training.price),
-    // Sem captura do produto nos arquivos: capa tipográfica até haver uma imagem real.
+    // Capa provisória de página (ícone + identificação) até a arte definitiva.
     image: null,
-    cover: 'Planner de Treino',
+    cover: 'Rotina de treino',
+    coverStyle: 'pagina',
     cta: { label: 'Ver produto', to: training.detailUrl },
     tags: ['organizacao'],
   }),

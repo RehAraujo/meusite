@@ -1,6 +1,24 @@
 import { Link } from 'react-router-dom';
 import { statusLabels } from '../../data/shopping';
 
+// Ícone de página (traço fino), usado nas capas provisórias das ferramentas.
+function PageIcon() {
+  return (
+    <svg
+      viewBox="0 0 20 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.2"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3.5 1.5h9l5 5v16h-14z" />
+      <path d="M12.5 1.5v5h5" />
+      <path d="M6.5 12h7M6.5 15.5h7M6.5 19h4.5" />
+    </svg>
+  );
+}
+
 /*
  * Card de produto da vitrine. Mostra tipo (digital/físico), categoria, preço ou
  * "Sob orçamento" e o estado de disponibilidade. Produtos disponíveis levam à sua
@@ -57,6 +75,11 @@ export function ProductCard({ product, showCategory = false, categories = [], hi
             loading="lazy"
             decoding="async"
           />
+        ) : product.coverStyle === 'pagina' ? (
+          <span className="rj-product__page">
+            <PageIcon />
+            <span>{product.cover}</span>
+          </span>
         ) : (
           <span className={`rj-product__cover rj-product__cover--${product.kind}`}>
             <small>{product.format}</small>
@@ -64,7 +87,6 @@ export function ProductCard({ product, showCategory = false, categories = [], hi
             <em>{product.coverNote ?? 'Capa provisória'}</em>
           </span>
         )}
-        {highlight ? <span className="rj-product__flag">Destaque da loja</span> : null}
         {/* Um único selo, só quando o estado muda a decisão de compra. */}
         {product.status !== 'disponivel' ? (
           <span className="rj-product__badges">

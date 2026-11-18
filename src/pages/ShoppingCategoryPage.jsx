@@ -132,7 +132,9 @@ export default function ShoppingCategoryPage() {
 
         {soon ? null : (
           <section
-            className="rj-section rj-section--white rj-shop-showcase"
+            className={`rj-section rj-section--white rj-shop-showcase${
+              category.id === 'ferramentas-digitais' ? ' rj-shop-showcase--tools' : ''
+            }`}
             id="catalogo"
             aria-label={`Catálogo de ${category.label}`}
           >
