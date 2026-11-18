@@ -174,7 +174,25 @@ async function confirmedWebhook(env, row) {
     'SELECT order_id FROM commerce_webhook_confirmations WHERE order_id=? AND remote_updated=?',
   ).bind(row.id, row.remote_updated).first());
 }
+// Validates the private template URL read from a Worker secret. Returns null when the
+// product has no Notion access, the secret is missing, or it is not an https Notion URL.
+export function templateUrl(env, product) {
+  const name = product?.access?.type === 'notion' ? product.access.secret : null;
+  const value = name ? env[name] : null;
+  if (typeof value !== 'string' || !value.trim()) return null;
+  try {
+    const url = new URL(value.trim());
+    const host = url.hostname.toLowerCase();
+    const notion = host === 'notion.so' || host === 'www.notion.so' || host.endsWith('.notion.site');
+    return url.protocol === 'https:' && !url.username && !url.password && !url.port && notion
+      ? url.href
+      : null;
+  } catch {
+    return null;
+  }
+}
 function view(row) {
+  const product = Object.hasOwn(CATALOG, row.product_id) ? CATALOG[row.product_id] : null;
   return {
     order_id: row.id,
     product_id: row.product_id,
@@ -186,6 +204,8 @@ function view(row) {
     paid: row.status === 'processed' && row.status_detail === 'accredited' && !row.delivery_blocked && row.webhook_confirmed !== false,
     delivery_blocked: !!row.delivery_blocked,
     access_expires: row.access_expires,
+    // Delivery channel only; the URL itself is returned exclusively by /access.
+    delivery: product?.access?.type === 'notion' ? 'notion' : 'download',
   };
 }
 export function matchesOrder(remote, row, env = { COMMERCE_ENVIRONMENT: 'staging' }) {
@@ -405,7 +425,7 @@ export async function handleCommerce(request, env, url = new URL(request.url)) {
     if (!configured(env)) return json({ message: 'Checkout temporariamente indisponível.' }, 503);
     if (path === '/checkout' && request.method === 'POST') return await checkout(request, env);
     if (path === '/webhook' && request.method === 'POST') return await webhook(request, env, url);
-    const match = path.match(/^\/orders\/([a-f0-9-]{36})(\/download)?$/i);
+    const match = path.match(/^\/orders\/([a-f0-9-]{36})(\/download|\/access)?$/i);
     if (!match || !UUID.test(match[1])) return json({ message: 'Não encontrado.' }, 404);
     if (request.method !== 'GET') return json({ message: 'Método não permitido.' }, 405);
     if (await limited(request, env, 'access', 30))
@@ -418,6 +438,27 @@ export async function handleCommerce(request, env, url = new URL(request.url)) {
         row.webhook_confirmed = await confirmedWebhook(env, row);
       }
       return json(view(row));
+    }
+    if (match[2].toLowerCase() === '/access') {
+      // Same guards as the download, in the same order. Opening the Notion link does not
+      // consume the 10 ZIP downloads: access is bounded by the token, its 7-day validity,
+      // the per-IP rate limit and an authoritative payment check on every call.
+      if (row.delivery_blocked)
+        return json(
+          { message: 'Entrega suspensa para revisão. Entre em contato com o suporte.' },
+          403,
+        );
+      if (!row.mp_id) return json({ message: 'Pagamento não confirmado.' }, 403);
+      const product = Object.hasOwn(CATALOG, row.product_id) ? CATALOG[row.product_id] : null;
+      if (product?.access?.type !== 'notion') return json({ message: 'Não encontrado.' }, 404);
+      row = await reconcile(env, row);
+      if (!view(row).paid || !row.verified_paid)
+        return json({ message: 'Pagamento não confirmado.' }, 403);
+      if (complementaryReconciliation(env) && !(await confirmedWebhook(env, row)))
+        return json({ message: 'Aguardando confirmação do pagamento por notificação.' }, 403);
+      const url = templateUrl(env, product);
+      if (!url) return json({ message: 'Acesso temporariamente indisponível.' }, 503);
+      return json({ url });
     }
     if (!validDownloadAttempt(request.headers.get('X-Download-Attempt')))
       return json({ message: 'Tentativa de download inválida. Atualize a página.' }, 400);

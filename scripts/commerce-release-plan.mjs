@@ -14,7 +14,14 @@ export const BUILD_INPUTS = [
 // Names that exist as Cloudflare secrets and must never be declared as plain vars.
 export const SECRET_NAMES = [
   'MERCADOPAGO_ACCESS_TOKEN', 'MERCADOPAGO_WEBHOOK_SECRET', 'COMMERCE_SELLER_ID', 'COMMERCE_APPLICATION_ID',
+  'NOTION_TEMPLATE_URL_MEU_DINHEIRO',
 ];
+// A private Notion template URL must only ever exist as a Worker secret.
+export const NOTION_URL = /https?:\/\/(?:[a-z0-9-]+\.)*notion\.(?:so|site)\//i;
+export const LEAK_SCAN = ['src', 'public', 'index.html', 'worker', 'config'];
+export function findNotionLeaks(files) {
+  return files.filter(({ text }) => NOTION_URL.test(text)).map(({ path }) => path);
+}
 export const TARGETS = {
   production: {
     config: 'config/commerce-production.prepared.json',
@@ -31,11 +38,12 @@ export const TARGETS = {
 
 export const parseJsonc = (text) => JSON.parse(text.replace(/^\s*\/\/.*$/gm, ''));
 
-export function releasePlan({ target = 'production', sha, dirty = [], config }) {
+export function releasePlan({ target = 'production', sha, dirty = [], config, leaks = [] }) {
   const spec = TARGETS[target];
   if (!spec) throw new Error(`Alvo desconhecido: ${target}`);
   if (!/^[0-9a-f]{40}$/.test(sha || '')) throw new Error('Commit HEAD inválido.');
   if (dirty.length) throw new Error(`Alterações não commitadas afetam o build:\n${dirty.join('\n')}`);
+  if (leaks.length) throw new Error(`Link do Notion em arquivo versionado:\n${leaks.join('\n')}`);
   const worker = spec.env ? config.env?.[spec.env] : config;
   const vars = worker?.vars || {};
   if (vars.COMMERCE_MODE !== 'disabled')
@@ -63,7 +71,10 @@ function main() {
     .split('\n').filter(Boolean);
   const spec = TARGETS[target];
   const config = spec ? parseJsonc(readFileSync(spec.config, 'utf8')) : {};
-  const plan = releasePlan({ target, sha, dirty, config });
+  const tracked = git('ls-files', '-z', '--', ...LEAK_SCAN).split('\0').filter(Boolean)
+    .filter((path) => !/\.(png|jpe?g|webp|gif|ico|zip|woff2?|pdf)$/i.test(path));
+  const leaks = findNotionLeaks(tracked.map((path) => ({ path, text: readFileSync(path, 'utf8') })));
+  const plan = releasePlan({ target, sha, dirty, config, leaks });
   console.log(`Alvo: ${target} | build: ${plan.build}\nNada foi executado. Comandos, após autorização:\n`);
   for (const command of plan.commands) console.log(`  ${command}`);
 }

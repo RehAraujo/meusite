@@ -803,20 +803,6 @@
   font-weight: 600;
 }
 
-.fj-purchase-note {
-  margin-top: 0.9rem;
-  color: var(--rj-text-light-soft);
-  font-size: 0.82rem;
-  line-height: 1.6;
-}
-
-.fj-purchase-note a {
-  color: var(--rj-ink);
-  text-decoration: underline;
-  text-decoration-color: var(--rj-pink);
-  text-underline-offset: 0.25rem;
-}
-
 .fj-legal-note {
   max-width: 34rem;
   margin-top: 1.25rem;

@@ -3,15 +3,12 @@ import { Link } from 'react-router-dom';
 import { ArrowButton } from '../components/ui/ArrowButton';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { useRjReveal } from '../hooks/useRjReveal';
-import { createWhatsAppUrl } from '../utils/whatsapp';
 import '../styles/finance-product.css';
 
-// Checkout aprovado nesta fase. A entrega automática ainda não está ativa em produção.
-const paymentLink = 'https://mpago.la/2rHeNqX';
+// Checkout integrado: cria o pedido no servidor e só libera o acesso após o Mercado Pago
+// confirmar o pagamento. Em produção ele segue desativado até a homologação.
+const checkoutPath = '/checkout?produto=meu-dinheiro-minhas-regras';
 const brandHome = 'https://renatajoin.com/';
-const deliveryContact = createWhatsAppUrl(
-  'Olá! Comprei o template Meu Dinheiro, Minhas Regras. Meu e-mail para entrega é: [preencher]. Número da transação Mercado Pago: [preencher].',
-);
 const secureNote = 'Pagamento seguro via Mercado Pago';
 const closeup = (name) => `/assets/finance-template/closeups/${name}.webp`;
 
@@ -36,13 +33,16 @@ const steps = [
   ['Personalize', 'Ajuste categorias, páginas e visualizações para acompanhar a sua realidade.'],
 ];
 
-// Fluxo real desta fase: pagamento no Mercado Pago e envio do acesso por e-mail.
+// Fluxo automático: pagamento no Mercado Pago e acesso liberado na página do pedido.
 const purchaseSteps = [
   ['Compre', 'Finalize o pagamento único de R$ 47 no ambiente seguro do Mercado Pago.'],
-  ['Identificação', 'Informe seu e-mail de entrega e o número da transação do Mercado Pago.'],
+  [
+    'Confirmação',
+    'Assim que o Mercado Pago confirma o pagamento, o acesso é liberado na página do pedido.',
+  ],
   [
     'Acesso',
-    'Você recebe o link do template por e-mail em até 24 horas após a confirmação do pagamento.',
+    'Clique em “Acessar meu template no Notion” e use Duplicar para copiá-lo para a sua conta.',
   ],
 ];
 
@@ -152,9 +152,8 @@ function NotionLabel() {
 function BuyButton({ children, className = '' }) {
   return (
     <div className={`fj-buy ${className}`.trim()}>
-      <ArrowButton variant="pink" href={paymentLink}>
+      <ArrowButton variant="pink" to={checkoutPath}>
         {children}
-        <span className="fj-sr"> (abre o pagamento em nova aba)</span>
       </ArrowButton>
       <p className="fj-secure">
         <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
@@ -234,9 +233,9 @@ export default function FinanceProductPage() {
                 acompanhamento do seu dinheiro.
               </p>
               <div className="fj-hero-actions rj-enter" style={{ '--rj-d': 3 }}>
-                <ArrowButton variant="pink" href={paymentLink}>
+                <ArrowButton variant="pink" to={checkoutPath}>
                   Quero organizar meu dinheiro
-                  <span className="fj-sr"> — R$ 47, abre o pagamento em nova aba</span>
+                  <span className="fj-sr"> — R$ 47</span>
                 </ArrowButton>
                 <a className="fj-text-link" href="#como-funciona">
                   Ver como funciona <span aria-hidden="true">↓</span>
@@ -423,10 +422,6 @@ export default function FinanceProductPage() {
                     </li>
                   ))}
                 </ol>
-                <p className="fj-purchase-note">
-                  Nesta fase de lançamento, o envio do acesso é feito por nós.{' '}
-                  <a href={deliveryContact}>Informar e-mail e número da transação</a>
-                </p>
               </div>
               <p className="fj-legal-note">
                 A compra não inclui assinatura paga do Notion. Os registros e a personalização são

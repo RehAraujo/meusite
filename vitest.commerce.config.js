@@ -23,6 +23,8 @@ export default defineConfig({
       'tests/commerce-staging.test.js',
       'tests/commerce-config.test.js',
       'tests/commerce-recovery.test.jsx',
+      'tests/commerce-notion-access.test.js',
+      'tests/commerce-notion-access-ui.test.jsx',
     ],
   },
 });

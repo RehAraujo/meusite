@@ -8,6 +8,7 @@ import {
   prepareCommerceSession,
   paymentTarget,
   navigatePayment,
+  navigateTemplate,
   prepareDownloadAttempt,
   completeDownloadAttempt,
   parseAccessFragment,
@@ -161,6 +162,27 @@ export default function CheckoutPage() {
       setBusy(false);
     }
   }
+  // The private Notion URL is requested only on click, kept only in this function's
+  // scope and never stored: the server releases it after re-checking the payment.
+  async function openTemplate() {
+    if (downloading.current) return;
+    downloading.current = true;
+    setBusy(true);
+    setMessage('');
+    try {
+      const session = readSession(orderId);
+      if (!session) throw new Error('session');
+      const { url } = await (await api(`/orders/${orderId}/access`, session)).json();
+      navigateTemplate(url);
+    } catch {
+      setMessage(
+        'Não foi possível abrir o template agora. Atualize o status ou use o pacote com as instruções.',
+      );
+    } finally {
+      downloading.current = false;
+      setBusy(false);
+    }
+  }
   // Product-specific presentation only: reuse the existing availability guard and buy handler.
   if (productId === 'meu-dinheiro-minhas-regras' && !orderId) {
     return (
@@ -181,8 +203,8 @@ export default function CheckoutPage() {
             </div>
             <details className="fc-help">
               <summary>Como recebo meu template?</summary>
-              <p>Após a confirmação do pagamento, o download fica disponível na página do pedido. O pacote contém o link do template e as instruções para duplicá-lo na sua conta Notion.</p>
-              <p>Use o mesmo navegador: seu acesso fica salvo em Minhas compras. Prazo de acesso: 7 dias após iniciar a compra, com limite de 10 downloads.</p>
+              <p>Assim que o Mercado Pago confirma o pagamento, a página do pedido libera o botão “Acessar meu template no Notion”. Lá, use Duplicar para copiar o template para a sua conta. O pacote com o link e as instruções continua disponível como alternativa.</p>
+              <p>Seu acesso fica salvo neste navegador em Minhas compras e vale por 7 dias após iniciar a compra. Abrir o template não tem limite nesse prazo; o pacote pode ser baixado até 10 vezes.</p>
             </details>
             <Link className="fc-back" to="/meu-dinheiro-minhas-regras">← Voltar ao produto</Link>
           </section>
@@ -216,7 +238,26 @@ export default function CheckoutPage() {
                 <h2>{order.title}</h2>
                 <p className="price">R$ {order.amount.replace('.', ',')}</p>
                 <p role="status">{orderStatusText(order)}</p>
-                {order.paid && !order.delivery_blocked && (
+                {order.paid && !order.delivery_blocked && order.delivery === 'notion' && (
+                  <>
+                    <p>
+                      Abra o template e use Duplicar para copiá-lo para a sua conta Notion. O acesso
+                      vale por 7 dias após iniciar a compra.
+                    </p>
+                    <button className="button" type="button" disabled={busy} onClick={openTemplate}>
+                      Acessar meu template no Notion
+                    </button>
+                    <button
+                      className="button button--secondary"
+                      type="button"
+                      disabled={busy}
+                      onClick={download}
+                    >
+                      Baixar link e instruções (ZIP)
+                    </button>
+                  </>
+                )}
+                {order.paid && !order.delivery_blocked && order.delivery !== 'notion' && (
                   <>
                     <p>
                       Baixe seu pacote em até 7 dias após iniciar a compra. Limite de 10 downloads.

@@ -157,6 +157,13 @@ export function navigatePayment(url) {
   window.location.assign(url);
 }
 
+// Opens the private template URL returned by the server. Only https is followed.
+export function navigateTemplate(url) {
+  const target = new URL(url);
+  if (target.protocol !== 'https:') throw new Error('template-url');
+  window.location.assign(target.href);
+}
+
 // Persist a failed/interrupted attempt across reloads; clear only after receiving the ZIP.
 export function prepareDownloadAttempt(orderId) {
   if (!readCommerceSession(orderId)) throw new Error('session');

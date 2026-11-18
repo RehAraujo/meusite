@@ -181,7 +181,7 @@ describe('Minhas compras', () => {
     renderAt('/minhas-compras', <PurchasesPage />);
     const items = await screen.findAllByRole('listitem');
     expect(items).toHaveLength(2);
-    await within(items[0]).findByText('Pagamento confirmado. Seu arquivo está disponível.');
+    await within(items[0]).findByText('Pagamento confirmado. Seu acesso está liberado.');
     await within(items[1]).findByText(/Aguardando confirmação/);
     expect(within(items[0]).getByRole('link', { name: 'Abrir pedido' })).toHaveAttribute('href', `/checkout?pedido=${id}`);
     await user.click(within(items[1]).getByRole('button', { name: 'Esquecer neste dispositivo' }));

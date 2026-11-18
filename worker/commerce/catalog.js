@@ -22,9 +22,12 @@ export const CATALOG = Object.freeze({
     cents: 4700,
     currency: 'BRL',
     format: 'Template Notion',
-    description: 'Fácil de começar, completo para evoluir. Registre suas movimentações, acompanhe seus saldos e explore os recursos conforme suas necessidades. O template inclui exemplos e orientações para ajudar você a começar.',
+    description:
+      'Fácil de começar, completo para evoluir. Registre suas movimentações, acompanhe seus saldos e explore os recursos conforme suas necessidades. O template inclui exemplos e orientações para ajudar você a começar.',
     key: 'products/meu-dinheiro-minhas-regras/v1.zip',
     filename: 'meu-dinheiro-minhas-regras.zip',
+    // Only the NAME of the Worker secret lives here; the Notion URL never enters the repo.
+    access: Object.freeze({ type: 'notion', secret: 'NOTION_TEMPLATE_URL_MEU_DINHEIRO' }),
   }),
 });
 export const money = (cents) => (cents / 100).toFixed(2);
