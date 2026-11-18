@@ -1,13 +1,15 @@
-import { useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowButton } from '../components/ui/ArrowButton';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { useRjReveal } from '../hooks/useRjReveal';
+import { startCheckout } from '../lib/commerce-checkout';
 import '../styles/finance-product.css';
 
 // Checkout integrado: cria o pedido no servidor e só libera o acesso após o Mercado Pago
 // confirmar o pagamento. Em produção ele segue desativado até a homologação.
-const checkoutPath = '/checkout?produto=meu-dinheiro-minhas-regras';
+const PRODUCT_ID = 'meu-dinheiro-minhas-regras';
+const checkoutPath = `/checkout?produto=${PRODUCT_ID}`;
 const brandHome = 'https://renatajoin.com/';
 const secureNote = 'Pagamento seguro via Mercado Pago';
 const closeup = (name) => `/assets/finance-template/closeups/${name}.webp`;
@@ -149,12 +151,43 @@ function NotionLabel() {
   );
 }
 
+/*
+ * CTA → Mercado Pago in one click. The link still points to the summary page, which is
+ * the fallback when JavaScript is off, the session cannot be stored or the checkout is
+ * unavailable. Modified clicks (new tab) keep the plain link behaviour.
+ */
+function useDirectCheckout() {
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+  async function onClick(event) {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+      return;
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    try {
+      await startCheckout(PRODUCT_ID);
+    } catch {
+      setBusy(false);
+      navigate(checkoutPath);
+    }
+  }
+  return { busy, onClick };
+}
+
+function CheckoutLink({ children }) {
+  const { busy, onClick } = useDirectCheckout();
+  return (
+    <ArrowButton variant="pink" to={checkoutPath} onClick={onClick} aria-busy={busy || undefined}>
+      {busy ? 'Abrindo pagamento…' : children}
+    </ArrowButton>
+  );
+}
+
 function BuyButton({ children, className = '' }) {
   return (
     <div className={`fj-buy ${className}`.trim()}>
-      <ArrowButton variant="pink" to={checkoutPath}>
-        {children}
-      </ArrowButton>
+      <CheckoutLink>{children}</CheckoutLink>
       <p className="fj-secure">
         <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
           <path
@@ -233,10 +266,10 @@ export default function FinanceProductPage() {
                 acompanhamento do seu dinheiro.
               </p>
               <div className="fj-hero-actions rj-enter" style={{ '--rj-d': 3 }}>
-                <ArrowButton variant="pink" to={checkoutPath}>
+                <CheckoutLink>
                   Quero organizar meu dinheiro
                   <span className="fj-sr"> — R$ 47</span>
-                </ArrowButton>
+                </CheckoutLink>
                 <a className="fj-text-link" href="#como-funciona">
                   Ver como funciona <span aria-hidden="true">↓</span>
                 </a>

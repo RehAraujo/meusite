@@ -1,10 +1,38 @@
-// Buyer-facing status, shared by the order page and Minhas compras.
+// Buyer-facing state of an order, shared by the order page and Minhas compras.
+// Only the server's view decides the state; return parameters are never read here.
+const FAILED = ['failed', 'canceled', 'expired'];
+const REFUNDED = ['refunded'];
+
+export const STATUS_TEXT = Object.freeze({
+  approved: 'Pagamento confirmado. Seu acesso está liberado.',
+  pending:
+    'Estamos aguardando a confirmação do pagamento. Você poderá acessar o produto assim que ele for aprovado.',
+  retry:
+    'Não foi possível concluir o pagamento. Você pode tentar novamente utilizando outro meio de pagamento.',
+  failed:
+    'Não foi possível concluir este pagamento. Para usar outro meio de pagamento, faça um novo pedido.',
+  refunded:
+    'Pagamento reembolsado. O acesso a este pedido foi encerrado após o registro do reembolso.',
+  blocked:
+    'Seu acesso está temporariamente indisponível. Entre em contato com o suporte informando o número do pedido.',
+});
+
+// approved | pending | retry (provider allows a new attempt) | failed (definitive)
+// refunded (definitive) | blocked (security hold, temporary until reviewed)
+export function orderState(order) {
+  if (
+    order.block === 'refund' ||
+    REFUNDED.includes(order.status) ||
+    order.status_detail === 'partially_refunded'
+  )
+    return 'refunded';
+  if (order.delivery_blocked || order.status === 'charged_back') return 'blocked';
+  if (order.paid) return 'approved';
+  if (order.can_retry) return 'retry';
+  if (FAILED.includes(order.status)) return 'failed';
+  return 'pending';
+}
+
 export function orderStatusText(order) {
-  if (order.delivery_blocked)
-    return 'Entrega suspensa para revisão. Fale pelo contato do site com o número do pedido.';
-  if (order.paid) return 'Pagamento confirmado. Seu acesso está liberado.';
-  if (['refunded', 'canceled', 'failed', 'charged_back'].includes(order.status) ||
-      order.status_detail === 'partially_refunded')
-    return 'Pagamento não concluído ou estornado.';
-  return 'Aguardando confirmação do pagamento. Atualize o status em alguns instantes.';
+  return STATUS_TEXT[orderState(order)];
 }

@@ -155,7 +155,9 @@ export async function verifySignature(request, url, secret) {
 }
 const byId = (env, id) =>
   env.COMMERCE_DB.prepare(
-    `SELECT commerce_orders.*, ${BLOCKED_SQL} AS delivery_blocked FROM commerce_orders WHERE id=?`,
+    `SELECT commerce_orders.*, ${BLOCKED_SQL} AS delivery_blocked,
+      (SELECT reason FROM commerce_delivery_holds h WHERE h.order_id=commerce_orders.id ORDER BY created_at LIMIT 1) AS hold_reason
+      FROM commerce_orders WHERE id=?`,
   )
     .bind(id)
     .first();
@@ -214,6 +216,17 @@ function view(row) {
     access_expires: row.access_expires,
     // Delivery channel only; the URL itself is returned exclusively by /access.
     delivery: product?.access?.type === 'notion' ? 'notion' : 'download',
+    // Why delivery is blocked, without details: a refund, or any security hold
+    // (chargeback, fraud alert, unassociated risk event).
+    block: row.delivery_blocked ? (row.hold_reason === 'refund' ? 'refund' : 'security') : null,
+    // Mercado Pago lets the buyer retry on the same Order only while it waits for a retry
+    // and the Order has not expired (created with expiration_time P1D).
+    can_retry:
+      row.status === 'action_required' &&
+      row.status_detail === 'waiting_retry' &&
+      !!row.checkout_url &&
+      !row.delivery_blocked &&
+      row.created_at + 86400000 > Date.now(),
   };
 }
 export function matchesOrder(remote, row, env = { COMMERCE_ENVIRONMENT: 'staging' }) {

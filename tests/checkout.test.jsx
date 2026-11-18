@@ -73,7 +73,7 @@ describe('checkout experience', () => {
     );
     vi.stubGlobal('fetch', fetch);
     page(`pedido=${id}&status=approved&collection_status=approved`);
-    expect(await screen.findByRole('status')).toHaveTextContent('Aguardando confirmação');
+    expect(await screen.findByRole('status')).toHaveTextContent(/aguardando a confirmação do pagamento/i);
     expect(screen.queryByRole('button', { name: 'Baixar produto' })).not.toBeInTheDocument();
     expect(fetch.mock.calls[0][1].headers.Authorization).toBe(`Bearer ${token}`);
     expect(fetch.mock.calls[0][0]).not.toContain(token);
@@ -122,7 +122,7 @@ describe('checkout experience', () => {
       ),
     );
     page(`pedido=${id}`);
-    expect(await screen.findByRole('status')).toHaveTextContent('Entrega suspensa');
+    expect(await screen.findByRole('status')).toHaveTextContent('temporariamente indisponível');
     expect(screen.queryByRole('button', { name: 'Baixar produto' })).not.toBeInTheDocument();
   });
 });
@@ -179,7 +179,7 @@ describe('normal same-tab checkout lifecycle, entirely offline', () => {
     const sessionBeforeReturn = localStorage.getItem(`commerce:${saved.id}`);
     cleanup(); // Recreate the page as after top-level navigation; preserve this tab's storage.
     page(`pedido=${saved.id}&status=approved`);
-    expect(await screen.findByRole('status')).toHaveTextContent('Aguardando confirmação');
+    expect(await screen.findByRole('status')).toHaveTextContent(/aguardando a confirmação do pagamento/i);
     expect(localStorage.getItem(`commerce:${saved.id}`)).toBe(sessionBeforeReturn);
     expect(screen.queryByRole('button', { name: 'Baixar produto' })).not.toBeInTheDocument();
     paid = true; // Simulated signed/provider-verified backend confirmation, not a payment call.

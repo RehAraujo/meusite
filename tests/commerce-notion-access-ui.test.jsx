@@ -107,7 +107,7 @@ describe('Notion access on the order page', () => {
       vi.fn(async () => json(order({ paid: false, status: 'created', status_detail: 'created' }))),
     );
     renderOrder(`pedido=${id}&status=approved&collection_status=approved&payment_id=123`);
-    await screen.findByText(/Aguardando confirmação do pagamento/);
+    await screen.findByText(/aguardando a confirmação do pagamento/i);
     expect(screen.queryByRole('button', { name: BUTTON })).toBeNull();
   });
 

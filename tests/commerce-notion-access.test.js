@@ -403,6 +403,65 @@ describe('closing sales keeps existing buyers served', () => {
   });
 });
 
+describe('order view: block reason and retry', () => {
+  const viewNow = async () => (await run(`/orders/${id}`)).json();
+
+  it('reports a refund block, without exposing hold details', async () => {
+    await checkout();
+    await notify();
+    await notify(
+      snapshot({
+        status: 'refunded',
+        status_detail: 'refunded',
+        last_updated_date: new Date().toISOString(),
+      }),
+    );
+    const view = await viewNow();
+    expect(view.block).toBe('refund');
+    expect(JSON.stringify(view)).not.toMatch(/hold_reason|refund_review/);
+  });
+
+  it('reports chargebacks and fraud alerts as a generic security block', async () => {
+    await checkout();
+    await notify();
+    db.prepare(
+      "INSERT INTO commerce_risk_events (topic,resource_id,task,received_at) VALUES ('chargeback','777','dispute_review',?)",
+    ).run(Date.now());
+    expect((await viewNow()).block).toBe('security');
+  });
+
+  it('allows a retry only while Mercado Pago waits for one, on a non-expired order', async () => {
+    await checkout();
+    await notify(
+      snapshot({
+        status: 'action_required',
+        status_detail: 'waiting_retry',
+        total_paid_amount: '0.00',
+      }),
+    );
+    expect((await viewNow()).can_retry).toBe(true);
+    db.prepare('UPDATE commerce_orders SET created_at=created_at-?').run(2 * 86400000);
+    expect((await viewNow()).can_retry).toBe(false);
+  });
+
+  it('never offers a retry for pending, failed or paid orders', async () => {
+    await checkout();
+    await notify(
+      snapshot({ status: 'processing', status_detail: 'in_process', total_paid_amount: '0.00' }),
+    );
+    expect((await viewNow()).can_retry).toBe(false);
+    await notify(
+      snapshot({
+        status: 'failed',
+        status_detail: 'rejected',
+        total_paid_amount: '0.00',
+        last_updated_date: new Date().toISOString(),
+      }),
+    );
+    expect((await viewNow()).can_retry).toBe(false);
+  });
+});
+
 describe('private template URL handling', () => {
   it('keeps only the secret name in the catalog', () => {
     expect(CATALOG[PRODUCT].access).toEqual({
