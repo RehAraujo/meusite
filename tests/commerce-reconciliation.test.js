@@ -74,8 +74,11 @@ it('does not reuse an older signed approval for a newer provider version', async
   expect((await run('/download')).status).toBe(403);
   expect(assetGet).not.toHaveBeenCalled();
 });
-it('keeps the current status-read behavior unless explicitly opted into isolated testing', async () => {
+it('without the isolated opt-in, a status read confirms an awaiting order with the provider (webhook fallback), throttled per order', async () => {
   delete env.COMMERCE_RECONCILIATION;
-  expect((await (await run()).json()).status).toBe('creating');
-  expect(fetchMock).not.toHaveBeenCalled();
+  expect(await (await run()).json()).toMatchObject({ status: 'processed', status_detail: 'accredited', paid: true });
+  const orderReads = () => fetchMock.mock.calls.filter(([url]) => url.endsWith(`/v1/orders/${provider}`)).length;
+  expect(orderReads()).toBe(1);
+  await run(); // already confirmed: no further provider call
+  expect(orderReads()).toBe(1);
 });

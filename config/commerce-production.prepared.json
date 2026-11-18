@@ -11,7 +11,11 @@
     }
   ],
   "observability": {
-    "enabled": false
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": false
+    }
   },
   "assets": {
     "directory": "../dist",

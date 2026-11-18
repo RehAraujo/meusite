@@ -84,6 +84,42 @@ async function limited(request, env, scope, maximum) {
   await env.COMMERCE_DB.prepare('DELETE FROM commerce_limits WHERE expires < ?').bind(now).run();
   return row.count > maximum;
 }
+// Safe operational log: fixed event and reason codes, an 8-character order prefix, HTTP
+// status and failed check names. Never tokens, URLs, provider bodies or payer data.
+const REASONS = new Set([
+  'provider', 'mismatch', 'version', 'amount', 'transactions', 'resources', 'identity',
+  'environment-disabled', 'test-order', 'risk', 'body',
+]);
+export function logEvent(event, { order, error, status, detail } = {}) {
+  const entry = { event };
+  if (typeof order === 'string') entry.order = order.slice(0, 8);
+  if (error) {
+    entry.reason = REASONS.has(error.message) ? error.message : 'unexpected';
+    if (Number.isInteger(error.status)) entry.provider_status = error.status;
+    if (Array.isArray(error.fields)) entry.fields = error.fields.filter((f) => /^[a-z_]+$/.test(f));
+  }
+  if (Number.isInteger(status)) entry.status = status;
+  if (typeof detail === 'string' && /^[a-z_]+$/.test(detail)) entry.detail = detail;
+  console.log(JSON.stringify(entry));
+}
+// Per-order throttle for provider checks, independent of the caller's IP.
+async function throttled(env, key, maximum, windowMs = 60000) {
+  const now = Date.now(),
+    bucket = Math.floor(now / windowMs);
+  const row = await env.COMMERCE_DB.prepare(
+    'INSERT INTO commerce_limits (key,count,expires) VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 RETURNING count',
+  )
+    .bind(`${key}:${bucket}`, (bucket + 2) * windowMs)
+    .first();
+  return row.count > maximum;
+}
+// States worth asking the provider about when the buyer opens the order.
+const FINAL = new Set(['refunded', 'charged_back', 'canceled', 'failed', 'expired']);
+const awaitingConfirmation = (row) =>
+  !!row.mp_id &&
+  !row.delivery_blocked &&
+  !(row.status === 'processed' && row.status_detail === 'accredited') &&
+  !FINAL.has(row.status);
 async function mp(env, path, options = {}) {
   const credential = await verifiedCredential(env);
   const response = await fetch(`https://api.mercadopago.com/v1/orders${path}`, {
@@ -99,7 +135,9 @@ async function mp(env, path, options = {}) {
   // Never log or return provider bodies, headers, tokens or payer data.
   if (!response.ok || (response.status >= 300 && response.status < 400)) {
     await response.body?.cancel();
-    throw new Error('provider');
+    const error = new Error('provider');
+    error.status = response.status;
+    throw error;
   }
   return response.json();
 }
@@ -229,28 +267,41 @@ function view(row) {
       row.created_at + 86400000 > Date.now(),
   };
 }
+// Names of the identity checks an Order fails. Only these names are ever logged.
+export function orderMismatches(remote, row, env = { COMMERCE_ENVIRONMENT: 'staging' }) {
+  const checks = {
+    id: remote.id === row.mp_id,
+    environment: validProviderOrder(remote, env),
+    type: remote.type === 'online',
+    external_reference: remote.external_reference === row.id,
+    currency: remote.currency === row.currency,
+    total_amount: remote.total_amount === money(row.amount_cents),
+  };
+  if (productionMode(env)) {
+    const item = Array.isArray(remote.items) && remote.items.length === 1 ? remote.items[0] : null;
+    Object.assign(checks, {
+      seller: String(remote.user_id) === env.COMMERCE_SELLER_ID,
+      application: String(remote.integration_data?.application_id) === env.COMMERCE_APPLICATION_ID,
+      processing_mode: remote.processing_mode === 'manual',
+      items: !!item,
+      item_title: item?.title === row.product_title,
+      item_quantity: item?.quantity === 1,
+      item_unit_price: item?.unit_price === money(row.amount_cents),
+    });
+  }
+  return Object.keys(checks).filter((name) => !checks[name]);
+}
 export function matchesOrder(remote, row, env = { COMMERCE_ENVIRONMENT: 'staging' }) {
-  return (
-    remote.id === row.mp_id &&
-    validProviderOrder(remote, env) &&
-    remote.type === 'online' &&
-    remote.external_reference === row.id &&
-    remote.currency === row.currency &&
-    remote.total_amount === money(row.amount_cents) &&
-    (!productionMode(env) || (
-      String(remote.user_id) === env.COMMERCE_SELLER_ID &&
-      String(remote.integration_data?.application_id) === env.COMMERCE_APPLICATION_ID &&
-      remote.processing_mode === 'manual' &&
-      Array.isArray(remote.items) && remote.items.length === 1 &&
-      remote.items[0].title === row.product_title &&
-      remote.items[0].quantity === 1 &&
-      remote.items[0].unit_price === money(row.amount_cents)
-    ))
-  );
+  return orderMismatches(remote, row, env).length === 0;
 }
 async function reconcile(env, row) {
   const remote = await mp(env, `/${encodeURIComponent(row.mp_id)}`);
-  if (!matchesOrder(remote, row, env)) throw new Error('mismatch');
+  const mismatches = orderMismatches(remote, row, env);
+  if (mismatches.length) {
+    const error = new Error('mismatch');
+    error.fields = mismatches;
+    throw error;
+  }
   await captureSafety(env, row, remote);
   const updated = Date.parse(remote.last_updated_date);
   if (!Number.isFinite(updated) || updated > Date.now() + 60000) throw new Error('version');
@@ -377,12 +428,15 @@ async function checkout(request, env) {
   return json({ ...view(row), checkout_url: row.checkout_url, environment: env.COMMERCE_ENVIRONMENT });
 }
 async function webhook(request, env, url) {
-  if (!(await verifySignature(request, url, env.MERCADOPAGO_WEBHOOK_SECRET)))
+  if (!(await verifySignature(request, url, env.MERCADOPAGO_WEBHOOK_SECRET))) {
+    logEvent('webhook_rejected', { status: 401, detail: 'signature' });
     return json({ message: 'Assinatura inválida.' }, 401);
+  }
   let input;
   try {
     input = await body(request);
   } catch {
+    logEvent('webhook_rejected', { status: 400, detail: 'body' });
     return json({ message: 'Notificação inválida.' }, 400);
   }
   const id = url.searchParams.get('data.id');
@@ -392,21 +446,41 @@ async function webhook(request, env, url) {
     input?.live_mode !== productionMode(env) ||
     (queryType && queryType !== topic) ||
     url.searchParams.getAll('type').length > 1
-  )
+  ) {
+    logEvent('webhook_rejected', {
+      status: 400,
+      detail: input?.live_mode !== productionMode(env) ? 'live_mode' : 'type',
+    });
     return json({ message: 'Evento incompatível.' }, 400);
+  }
   if (Object.hasOwn(RISK_TOPICS, topic)) {
     if (riskResource(input, topic) !== id) return json({ message: 'Recurso incompatível.' }, 400);
     await persistRisk(env, topic, id);
     return json({ received: true });
   }
-  if (topic !== 'order' || input.data?.id !== id || !validProviderOrder({ id, live_mode: input.live_mode }, env))
+  if (topic !== 'order' || input.data?.id !== id || !validProviderOrder({ id, live_mode: input.live_mode }, env)) {
+    logEvent('webhook_rejected', {
+      status: 400,
+      detail: topic !== 'order' ? 'topic' : input.data?.id !== id ? 'data_id' : 'order_format',
+    });
     return json({ message: 'Evento incompatível.' }, 400);
+  }
   const row = await env.COMMERCE_DB.prepare('SELECT * FROM commerce_orders WHERE mp_id=?')
     .bind(id)
     .first();
   // A notification can precede persistence of the provider ID: ask for a retry.
-  if (!row) return json({ message: 'Pedido ainda não disponível.' }, 503);
-  const verified = await reconcile(env, row);
+  if (!row) {
+    logEvent('webhook_retry', { status: 503, detail: 'order_unknown' });
+    return json({ message: 'Pedido ainda não disponível.' }, 503);
+  }
+  let verified;
+  try {
+    verified = await reconcile(env, row);
+  } catch (error) {
+    logEvent('webhook_reconcile_failed', { order: row.id, error });
+    throw error;
+  }
+  logEvent('webhook_processed', { order: row.id, detail: verified.verified_paid ? 'paid' : 'not_paid' });
   if (complementaryReconciliation(env) && verified.verified_paid && view(verified).paid) {
     await env.COMMERCE_DB.prepare(
       'INSERT INTO commerce_webhook_confirmations (order_id,remote_updated) VALUES (?,?) ON CONFLICT(order_id) DO UPDATE SET remote_updated=MAX(remote_updated,excluded.remote_updated)',
@@ -468,6 +542,16 @@ export async function handleCommerce(request, env, url = new URL(request.url)) {
       if (complementaryReconciliation(env) && row.mp_id) {
         row = await reconcile(env, row);
         row.webhook_confirmed = await confirmedWebhook(env, row);
+      } else if (awaitingConfirmation(row) && !(await throttled(env, `reconcile:${row.id}`, 2))) {
+        // Webhook fallback: the same authoritative Order check the webhook runs. A failure
+        // keeps the stored state (never paid on error) and is logged with safe codes.
+        try {
+          const before = row.status;
+          row = await reconcile(env, row);
+          if (row.verified_paid) logEvent('order_confirmed_by_pull', { order: row.id, detail: before });
+        } catch (error) {
+          logEvent('pull_reconcile_failed', { order: row.id, error });
+        }
       }
       return json(view(row));
     }
@@ -517,8 +601,9 @@ export async function handleCommerce(request, env, url = new URL(request.url)) {
         'Content-Disposition': `attachment; filename="${row.filename}"`,
       },
     });
-  } catch {
-    // Deliberately no exception logging: fetch errors can include credentials or PII.
+  } catch (error) {
+    // Only a fixed reason code is logged: fetch errors can include credentials or PII.
+    logEvent('request_failed', { error });
     return json({ message: 'Serviço temporariamente indisponível. Tente novamente.' }, 503);
   }
 }

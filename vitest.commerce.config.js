@@ -26,6 +26,7 @@ export default defineConfig({
       'tests/commerce-notion-access.test.js',
       'tests/commerce-notion-access-ui.test.jsx',
       'tests/commerce-direct-checkout.test.jsx',
+      'tests/commerce-pull-reconciliation.test.js',
     ],
   },
 });
