@@ -5,7 +5,10 @@ const TOKEN = /^[a-f0-9]{64}$/;
 const PRODUCT = /^[a-z0-9-]{1,64}$/;
 const DAY = 86400000;
 export const ACCESS_DAYS = 7;
+export const PAID_ACCESS_MONTHS = 12;
 const ACCESS = ACCESS_DAYS * DAY;
+// Mirrors the server: a confirmed order may be kept for up to 365 days from its creation.
+const PAID_ACCESS = 365 * DAY;
 const key = (id) => `commerce:${id}`;
 const downloadKey = (id) => `commerce:download:${id}`;
 const PENDING = 'commerce:pending:';
@@ -23,7 +26,7 @@ function readStoredSession(id) {
       session.created <= Date.now() &&
       session.created > 0 &&
       // Never trust a stored expiry beyond the server's own access window.
-      expiresAt(session) <= session.created + ACCESS
+      expiresAt(session) <= session.created + PAID_ACCESS
       ? session
       : null;
   } catch {
@@ -71,6 +74,18 @@ function pendingKeysFor(id) {
     if (name?.startsWith(PENDING) && storage().getItem(name) === id) keys.push(name);
   }
   return keys;
+}
+// Adopts the longer expiry the server reports for a confirmed order (never shortens it,
+// never beyond 12 months from the purchase).
+export function extendCommerceSession(id, expires) {
+  try {
+    const session = readCommerceSession(id);
+    if (!session || !Number.isFinite(expires)) return;
+    const next = Math.min(expires, session.created + PAID_ACCESS);
+    if (next > expiresAt(session)) storage().setItem(key(id), JSON.stringify({ ...session, expires: next }));
+  } catch {
+    /* storage unavailable: keep the current expiry */
+  }
 }
 // A confirmed order is never reused for a new purchase of the same product.
 export function settleCommerceSession(id) {
@@ -129,7 +144,7 @@ export function importCommerceSession({ id, token, product, expires }) {
   if (!UUID.test(id || '') || !TOKEN.test(token || '') || !PRODUCT.test(product || '') ||
       !Number.isFinite(expires) || expires <= now)
     throw new Error('session');
-  const session = { id, token, product, created: now, expires: Math.min(expires, now + ACCESS) };
+  const session = { id, token, product, created: now, expires: Math.min(expires, now + PAID_ACCESS) };
   storage().setItem(key(id), JSON.stringify(session));
   const saved = readCommerceSession(id);
   if (!saved || saved.token !== token) throw new Error('storage');

@@ -1,6 +1,11 @@
 import { useId, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ACCESS_DAYS, personalAccessLink, readCommerceSession } from '../../lib/commerce-session';
+import {
+  ACCESS_DAYS,
+  PAID_ACCESS_MONTHS,
+  personalAccessLink,
+  readCommerceSession,
+} from '../../lib/commerce-session';
 import '../../styles/commerce-access.css';
 
 // The credential-bearing link is never rendered until the buyer explicitly asks for it.
@@ -32,8 +37,9 @@ export function PersonalAccess({ orderId }) {
     <section className="commerce-access" aria-labelledby={`${fieldId}-title`}>
       <h2 id={`${fieldId}-title`}>Acesso ao seu pedido</h2>
       <p>
-        Seu acesso fica salvo neste navegador por até {ACCESS_DAYS} dias. Veja todas as compras
-        em <Link to="/minhas-compras">Minhas compras</Link>.
+        Seu acesso fica salvo neste navegador: {ACCESS_DAYS} dias para pedidos em aberto e{' '}
+        {PAID_ACCESS_MONTHS} meses após a confirmação do pagamento. Veja todas as compras em{' '}
+        <Link to="/minhas-compras">Minhas compras</Link>.
       </p>
       <details>
         <summary>Abrir em outro navegador ou dispositivo</summary>

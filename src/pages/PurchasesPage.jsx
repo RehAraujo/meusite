@@ -3,7 +3,13 @@ import { Link } from 'react-router-dom';
 import '../styles/commerce-access.css';
 import { ButtonLink } from '../components/ui/ButtonLink';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
-import { ACCESS_DAYS, forgetCommerceSession, listCommerceSessions } from '../lib/commerce-session';
+import {
+  ACCESS_DAYS,
+  PAID_ACCESS_MONTHS,
+  extendCommerceSession,
+  forgetCommerceSession,
+  listCommerceSessions,
+} from '../lib/commerce-session';
 import { orderStatusText } from '../lib/commerce-status';
 
 // Lists every purchase stored in this browser, for any digital product in the catalog.
@@ -29,7 +35,10 @@ export default function PurchasesPage() {
           if (!response.ok) throw new Error('request');
           return response.json();
         })
-        .then((order) => ({ order, state: 'ready' }))
+        .then((order) => {
+          if (order?.paid) extendCommerceSession(session.id, order.access_expires);
+          return { order, state: 'ready' };
+        })
         .catch(() => ({ order: null, state: 'unavailable' }))
         .then((result) => {
           if (!active) return;
@@ -53,8 +62,9 @@ export default function PurchasesPage() {
         <p className="eyebrow">Produtos digitais</p>
         <h1>Minhas compras.</h1>
         <p>
-          Compras iniciadas neste navegador nos últimos {ACCESS_DAYS} dias. O acesso fica salvo
-          só neste dispositivo.
+          Compras feitas neste navegador. Pedidos confirmados ficam disponíveis por{' '}
+          {PAID_ACCESS_MONTHS} meses; os demais, por {ACCESS_DAYS} dias. O acesso fica salvo só
+          neste dispositivo.
         </p>
         {purchases === null ? (
           <p role="status">Carregando suas compras…</p>

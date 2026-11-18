@@ -11,6 +11,7 @@ import {
   parseAccessFragment,
   personalAccessLink,
   prepareCommerceSession,
+  extendCommerceSession,
   readCommerceSession,
   settleCommerceSession,
   stripAccessFragment,
@@ -77,8 +78,28 @@ describe('browser-persistent buyer access', () => {
     expect(localStorage.length).toBe(0);
   });
 
-  it('never trusts a stored expiry beyond the access window', () => {
+  it('never trusts a stored expiry beyond the 12-month paid access window', () => {
+    store(id, { expires: Date.now() + 400 * DAY });
+    expect(readCommerceSession(id)).toBeNull();
     store(id, { expires: Date.now() + 30 * DAY });
+    expect(readCommerceSession(id)).not.toBeNull();
+  });
+
+  it('keeps unconfirmed orders at 7 days and adopts the longer expiry only from the server', () => {
+    store(id, { created: Date.now() - 6 * DAY });
+    extendCommerceSession(id, Number.NaN);
+    expect(readCommerceSession(id).expires).toBeUndefined();
+    extendCommerceSession(id, Date.now() + 200 * DAY);
+    const extended = readCommerceSession(id);
+    expect(extended.expires).toBeGreaterThan(Date.now() + 199 * DAY);
+    extendCommerceSession(id, Date.now() + 2 * DAY); // never shortens
+    expect(readCommerceSession(id).expires).toBe(extended.expires);
+    extendCommerceSession(id, Date.now() + 900 * DAY); // never beyond 12 months of the purchase
+    expect(readCommerceSession(id).expires).toBeLessThanOrEqual(extended.created + 365 * DAY);
+  });
+
+  it('lets an unconfirmed order expire after 7 days in this browser', () => {
+    store(id, { created: Date.now() - 8 * DAY });
     expect(readCommerceSession(id)).toBeNull();
   });
 });
@@ -108,7 +129,9 @@ describe('personal access link', () => {
     for (const bad of [{ expires: Date.now() - 1 }, { token: 'x' }, { id: 'nope' }, { product: '../x' }])
       expect(() => importCommerceSession({ ...base, expires: Date.now() + DAY, ...bad })).toThrow();
     const saved = importCommerceSession({ ...base, expires: Date.now() + 90 * DAY });
-    expect(saved.expires).toBeLessThanOrEqual(Date.now() + 7 * DAY);
+    expect(saved.expires).toBeGreaterThan(Date.now() + 89 * DAY);
+    const capped = importCommerceSession({ ...base, expires: Date.now() + 500 * DAY });
+    expect(capped.expires).toBeLessThanOrEqual(Date.now() + 365 * DAY);
   });
 
   it('opens the order in another browser, verifying the link with the server before storing it', async () => {

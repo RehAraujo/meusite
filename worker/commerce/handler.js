@@ -6,6 +6,8 @@ import { CATALOG, money } from './catalog.js';
 import { isLaunchProduct } from '../../src/data/commerce-launch.js';
 
 const encoder = new TextEncoder();
+// Unpaid orders keep the original 7-day window; a confirmed payment extends it.
+export const PAID_ACCESS_MS = 365 * 86400000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const security = {
   'Cache-Control': 'private, no-store',
@@ -248,6 +250,14 @@ async function reconcile(env, row) {
   )
     .bind(status, detail, updated, row.id, updated, updated, verifiedPaid ? 1 : 0)
     .run();
+  // Confirmed buyers keep access for 12 months from the purchase. Only ever extends, and
+  // only while the stored state is processed/accredited; holds still block every access.
+  if (verifiedPaid)
+    await env.COMMERCE_DB.prepare(
+      "UPDATE commerce_orders SET access_expires=MAX(access_expires, created_at + ?) WHERE id=? AND status='processed' AND status_detail='accredited'",
+    )
+      .bind(PAID_ACCESS_MS, row.id)
+      .run();
   return { ...(await byId(env, row.id)), verified_paid: verifiedPaid };
 }
 async function checkout(request, env) {

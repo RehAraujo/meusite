@@ -286,6 +286,59 @@ describe('Notion template access after payment', () => {
   });
 });
 
+describe('12-month access for confirmed payments', () => {
+  const DAY = 86400000;
+  const expiresIn = () =>
+    db.prepare('SELECT access_expires, created_at FROM commerce_orders').get();
+
+  it('keeps an unpaid order at 7 days and extends to 12 months once payment is confirmed', async () => {
+    await checkout();
+    const created = expiresIn();
+    expect(created.access_expires - created.created_at).toBe(7 * DAY);
+    await notify(
+      snapshot({
+        status: 'action_required',
+        status_detail: 'waiting_payment',
+        total_paid_amount: '0.00',
+      }),
+    );
+    expect(expiresIn().access_expires - created.created_at).toBe(7 * DAY);
+    await notify();
+    expect(expiresIn().access_expires - created.created_at).toBe(365 * DAY);
+    const view = await (await run(`/orders/${id}`)).json();
+    expect(view.access_expires).toBe(created.created_at + 365 * DAY);
+  });
+
+  it('serves a confirmed buyer after day 7, still re-checking payment and token', async () => {
+    await checkout();
+    await notify();
+    db.prepare('UPDATE commerce_orders SET created_at=created_at-?').run(30 * DAY);
+    db.prepare('UPDATE commerce_orders SET access_expires=created_at+?').run(365 * DAY);
+    expect((await access()).status).toBe(200);
+    expect((await access({ token: 'cd'.repeat(32) })).status).toBe(404);
+  });
+
+  it('does not serve a refunded order even inside the extended window', async () => {
+    await checkout();
+    await notify();
+    const refunded = snapshot({
+      status: 'refunded',
+      status_detail: 'refunded',
+      last_updated_date: new Date().toISOString(),
+    });
+    await notify(refunded);
+    provide(refunded);
+    expect(expiresIn().access_expires).toBeGreaterThan(Date.now());
+    expect((await access()).status).toBe(403);
+  });
+
+  it('lets an unpaid order expire at day 7', async () => {
+    await checkout();
+    db.prepare('UPDATE commerce_orders SET access_expires=?').run(Date.now() - 1);
+    expect((await access()).status).toBe(404);
+  });
+});
+
 describe('private template URL handling', () => {
   it('keeps only the secret name in the catalog', () => {
     expect(CATALOG[PRODUCT].access).toEqual({

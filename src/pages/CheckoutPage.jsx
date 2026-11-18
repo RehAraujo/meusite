@@ -15,6 +15,7 @@ import {
   stripAccessFragment,
   importCommerceSession,
   settleCommerceSession,
+  extendCommerceSession,
 } from '../lib/commerce-session';
 import { PersonalAccess } from '../components/commerce/PersonalAccess';
 import { orderStatusText } from '../lib/commerce-status';
@@ -97,7 +98,10 @@ export default function CheckoutPage() {
     };
   }, [orderId, productId]);
   useEffect(() => {
-    if (order?.paid && orderId) settleCommerceSession(orderId);
+    if (order?.paid && orderId) {
+      settleCommerceSession(orderId);
+      extendCommerceSession(orderId, order.access_expires);
+    }
   }, [order, orderId]);
   const product = products.find((item) => item.id === productId);
   async function buy() {
@@ -204,7 +208,7 @@ export default function CheckoutPage() {
             <details className="fc-help">
               <summary>Como recebo meu template?</summary>
               <p>Assim que o Mercado Pago confirma o pagamento, a página do pedido libera o botão “Acessar meu template no Notion”. Lá, use Duplicar para copiar o template para a sua conta. O pacote com o link e as instruções continua disponível como alternativa.</p>
-              <p>Seu acesso fica salvo neste navegador em Minhas compras e vale por 7 dias após iniciar a compra. Abrir o template não tem limite nesse prazo; o pacote pode ser baixado até 10 vezes.</p>
+              <p>Seu acesso fica salvo neste navegador em Minhas compras e vale por 12 meses após a confirmação do pagamento. Abrir o template não tem limite nesse prazo; o pacote pode ser baixado até 10 vezes.</p>
             </details>
             <Link className="fc-back" to="/meu-dinheiro-minhas-regras">← Voltar ao produto</Link>
           </section>
@@ -242,7 +246,7 @@ export default function CheckoutPage() {
                   <>
                     <p>
                       Abra o template e use Duplicar para copiá-lo para a sua conta Notion. O acesso
-                      vale por 7 dias após iniciar a compra.
+                      fica disponível por 12 meses após a confirmação do pagamento.
                     </p>
                     <button className="button" type="button" disabled={busy} onClick={openTemplate}>
                       Acessar meu template no Notion
@@ -260,7 +264,7 @@ export default function CheckoutPage() {
                 {order.paid && !order.delivery_blocked && order.delivery !== 'notion' && (
                   <>
                     <p>
-                      Baixe seu pacote em até 7 dias após iniciar a compra. Limite de 10 downloads.
+                      Baixe seu pacote em até 12 meses após a confirmação do pagamento. Limite de 10 downloads.
                       Para templates, as instruções de duplicação estão no pacote.
                     </p>
                     <button className="button" type="button" disabled={busy} onClick={download}>
