@@ -453,6 +453,8 @@ export const shoppingProducts = [
   product({
     id: planner.id,
     category: 'ferramentas-digitais',
+    // Ainda sem venda aberta: aparece como "Em breve", sem preço nem link de produto.
+    status: 'em-breve',
     kind: 'digital',
     format: planner.format,
     name: planner.name,
@@ -469,6 +471,8 @@ export const shoppingProducts = [
   product({
     id: training.id,
     category: 'ferramentas-digitais',
+    // Ainda sem venda aberta: aparece como "Em breve", sem preço nem link de produto.
+    status: 'em-breve',
     kind: 'digital',
     format: training.format,
     name: training.name,

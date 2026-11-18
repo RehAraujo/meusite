@@ -113,8 +113,14 @@ export function ProductCard({ product, showCategory = false, categories = [], hi
           {/* Papelaria (pricing 'ilustrativo'): sem valor exibido, só o pedido de orçamento. */}
           {product.pricing === 'ilustrativo' ? null : (
             <p className="rj-product__price">
-              {product.pricing === 'orcamento' ? 'Sob orçamento' : product.price}
-              {product.priceNote ? <small>{product.priceNote}</small> : null}
+              {product.status === 'em-breve'
+                ? statusLabels['em-breve']
+                : product.pricing === 'orcamento'
+                  ? 'Sob orçamento'
+                  : product.price}
+              {product.priceNote && product.status !== 'em-breve' ? (
+                <small>{product.priceNote}</small>
+              ) : null}
             </p>
           )}
           <ProductAction product={product} />

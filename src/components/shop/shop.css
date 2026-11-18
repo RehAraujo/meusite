@@ -1018,6 +1018,11 @@
     border-top: 0;
   }
 
+  /* "Em breve" já aparece no lugar do preço; o selo sobre a capa branca seria redundante. */
+  :is(.rj-shop-tools, .rj-shop-showcase--tools) .rj-product__badges {
+    display: none;
+  }
+
   :is(.rj-shop-tools, .rj-shop-showcase--tools) .rj-product__price {
     display: block;
     color: var(--t-ice);

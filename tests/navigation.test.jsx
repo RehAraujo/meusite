@@ -229,9 +229,13 @@ describe('rotas essenciais', () => {
     );
     for (const link of screen.getAllByRole('link', { name: /ver produto/i })) {
       expect(link.getAttribute('href')).toMatch(
-        /^(https:\/\/shopping\.renatajoin\.com\/meu-dinheiro-minhas-regras\/|\/guia-alimentar|\/planner-treino)$/,
+        /^https:\/\/shopping\.renatajoin\.com\/meu-dinheiro-minhas-regras\/$/,
       );
     }
+    // Planners ainda indisponíveis: "Em breve", sem preço nem link de produto.
+    const tools = screen.getByRole('list', { name: /ferramentas em destaque/i });
+    expect(within(tools).getAllByText('Em breve', { selector: 'p' })).toHaveLength(2);
+    expect(within(tools).queryByText(/R\$ (67|25)/)).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /comprar/i })).not.toBeInTheDocument();
   });
 
