@@ -37,6 +37,9 @@ const routes = [
   '/pensamentos',
   '/shopping',
   ...shoppingCategoryRoutes,
+  '/checkout',
+  '/minhas-compras',
+  '/meu-dinheiro-minhas-regras',
   '/carreira',
   '/career',
   '/curriculo',
@@ -141,6 +144,15 @@ const metadata = {
     'Compromisso contínuo com uma experiência digital mais acessível.',
   ],
   '/atelie': ['Ateliê | Renata Join', 'Entre o que crio, o que vejo e o que me inspira.'],
+  '/meu-dinheiro-minhas-regras': [
+    'Meu Dinheiro, Minhas Regras | Shopping Join',
+    'Template financeiro para Notion. Organize entradas, despesas, saldos e parcelas. Pagamento único de R$ 47.',
+  ],
+  '/checkout': ['Seu pedido | Renata Join', 'Pagamento e acesso ao seu produto digital.'],
+  '/minhas-compras': [
+    'Minhas compras | Renata Join',
+    'Acesse os produtos digitais comprados neste navegador.',
+  ],
   '/404': ['Página não encontrada | Renata Join', 'Esta página não foi encontrada.'],
 };
 
@@ -151,7 +163,12 @@ const createHead = (route) => {
   const [title, description] = metadata[route];
   const canonicalRoute = route === '/career' || route === '/curriculo' ? '/carreira' : route;
   const canonical = `https://renatajoin.com${canonicalRoute === '/' ? '/' : canonicalRoute}`;
-  const noindex = route === '/404' || route === '/atelie';
+  const noindex =
+    route === '/404' ||
+    route === '/atelie' ||
+    route === '/checkout' ||
+    route === '/minhas-compras' ||
+    route === '/meu-dinheiro-minhas-regras';
   return `
     <title>${title}</title>
     <meta name="description" content="${escapeAttribute(description)}" />

@@ -13,7 +13,12 @@
     "format": "prettier --check .",
     "format:write": "prettier --write .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:commerce:isolated": "vitest run --config vitest.commerce.config.js",
+    "commerce:release-plan": "node scripts/commerce-release-plan.mjs",
+    "check:commerce:staging": "node scripts/check-commerce-staging.mjs",
+    "fixtures:commerce": "python3 scripts/create-commerce-fixtures.py",
+    "prepare:commerce:staging": "node scripts/prepare-commerce-staging.mjs"
   },
   "dependencies": {
     "motion": "^12.43.0",

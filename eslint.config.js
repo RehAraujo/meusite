@@ -16,9 +16,27 @@ export default [
       'curriculo.js',
       'legal-footer.js',
       'worker.js',
+      // Local agent worktrees/settings: copies of other branches, not project source.
+      '.claude',
+      '.wrangler',
     ],
   },
   eslint.configs.recommended,
+  {
+    files: ['worker/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2023,
+      globals: {
+        ...globals.serviceworker,
+        AbortSignal: 'readonly',
+        TextEncoder: 'readonly',
+        URL: 'readonly',
+        crypto: 'readonly',
+        fetch: 'readonly',
+      },
+      parserOptions: { sourceType: 'module' },
+    },
+  },
   {
     files: ['src/**/*.{js,jsx}', 'tests/**/*.{js,jsx}'],
     languageOptions: {

@@ -1,0 +1,47 @@
+{
+  "name": "shopping-join-production",
+  "main": "../worker/commerce/production.js",
+  "compatibility_date": "2026-07-09",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "shopping.renatajoin.com",
+      "custom_domain": true
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": false
+    }
+  },
+  "assets": {
+    "directory": "../dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  "vars": {
+    "COMMERCE_MODE": "disabled",
+    "COMMERCE_ENVIRONMENT": "production",
+    "COMMERCE_ORIGIN": "https://shopping.renatajoin.com",
+    "COMMERCE_PRODUCTION_ORIGIN": "https://shopping.renatajoin.com"
+  },
+  "d1_databases": [
+    {
+      "binding": "COMMERCE_DB",
+      "database_name": "shopping-join-commerce-production",
+      "database_id": "0808b766-f9b5-40ae-9da1-e43a73b320d5",
+      "migrations_dir": "../migrations/commerce"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "DIGITAL_PRODUCTS",
+      "bucket_name": "shopping-join-digital-products-production"
+    }
+  ]
+}

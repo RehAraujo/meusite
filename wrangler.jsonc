@@ -10,9 +10,59 @@
     "directory": "dist",
     "binding": "ASSETS",
     "run_worker_first": [
+      "/meu-dinheiro-minhas-regras*",
+      "/checkout*",
+      "/minhas-compras*",
       "/wrangler.jsonc"
     ],
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page"
+  },
+  "env": {
+    "staging": {
+      "name": "meusite-loja-staging",
+      "workers_dev": true,
+      "routes": [
+        {
+          "pattern": "homologacao.renatajoin.com",
+          "custom_domain": true,
+          "zone_id": "96ae2319f45bfd25104b0944762e6c1e"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "DIGITAL_PRODUCTS",
+          "bucket_name": "meusite-digital-products-staging",
+          "remote": false
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "COMMERCE_DB",
+          "database_name": "meusite-commerce-staging",
+          "database_id": "799f4cf2-8970-4716-990f-36445c166ab3",
+          "migrations_dir": "migrations/commerce",
+          "remote": false
+        }
+      ],
+      "queues": {
+        "producers": [],
+        "consumers": []
+      },
+      "vars": {
+        "COMMERCE_MODE": "disabled",
+        "COMMERCE_ENVIRONMENT": "staging",
+        "COMMERCE_ORIGIN": "https://homologacao.renatajoin.com"
+      },
+      "main": "worker/commerce/staging.js",
+      "assets": {
+        "directory": "dist",
+        "binding": "ASSETS",
+        "run_worker_first": true,
+        "html_handling": "auto-trailing-slash",
+        "not_found_handling": "404-page"
+      },
+      "preview_urls": false
+    }
   }
 }

@@ -16,6 +16,9 @@ import ThoughtsPage from '../pages/ThoughtsPage';
 import TedTecCasePage from '../pages/TedTecCasePage';
 import ShoppingPage from '../pages/ShoppingPage';
 import ShoppingCategoryPage from '../pages/ShoppingCategoryPage';
+import CheckoutPage from '../pages/CheckoutPage';
+import PurchasesPage from '../pages/PurchasesPage';
+import FinanceProductPage from '../pages/FinanceProductPage';
 
 export const routes = createRoutesFromElements(
   <Route element={<SiteLayout />}>
@@ -28,6 +31,9 @@ export const routes = createRoutesFromElements(
     <Route path="pensamentos" element={<ThoughtsPage />} />
     <Route path="shopping" element={<ShoppingPage />} />
     <Route path="shopping/:categoria" element={<ShoppingCategoryPage />} />
+    <Route path="meu-dinheiro-minhas-regras" element={<FinanceProductPage />} />
+    <Route path="checkout" element={<CheckoutPage />} />
+    <Route path="minhas-compras" element={<PurchasesPage />} />
     {/* Ferramentas virou uma categoria do Shopping JOIN. */}
     <Route path="ferramentas" element={<Navigate to="/shopping/ferramentas-digitais" replace />} />
     <Route path="carreira" element={<CareerPage />} />
