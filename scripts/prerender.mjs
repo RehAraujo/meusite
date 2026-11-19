@@ -163,11 +163,15 @@ const createHead = (route) => {
     <meta property="og:title" content="${escapeAttribute(title)}" />
     <meta property="og:description" content="${escapeAttribute(description)}" />
     <meta property="og:url" content="${canonical}" />
-    <meta property="og:image" content="https://renatajoin.com/assets/renata-join-social.jpg" />
+    <meta property="og:image" content="https://renatajoin.com/assets/renata-join-social.jpg?v=join-by-renata" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="JOIN by Renata — Design · Tecnologia · Estratégia" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapeAttribute(title)}" />
     <meta name="twitter:description" content="${escapeAttribute(description)}" />
-    <meta name="twitter:image" content="https://renatajoin.com/assets/renata-join-social.jpg" />`;
+    <meta name="twitter:image" content="https://renatajoin.com/assets/renata-join-social.jpg?v=join-by-renata" />
+    <meta name="twitter:image:alt" content="JOIN by Renata — Design · Tecnologia · Estratégia" />`;
 };
 
 const template = await readFile(resolve('dist/index.html'), 'utf8');
