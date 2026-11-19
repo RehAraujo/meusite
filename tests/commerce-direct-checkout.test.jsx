@@ -8,6 +8,7 @@ import CheckoutPage from '../src/pages/CheckoutPage';
 import { navigatePayment } from '../src/lib/commerce-session';
 import { STATUS_TEXT, orderState, orderStatusText } from '../src/lib/commerce-status';
 
+import { resetCheckoutState } from '../src/lib/commerce-checkout';
 vi.mock('../src/lib/commerce-session', async (original) => ({
   ...(await original()),
   navigatePayment: vi.fn(),
@@ -29,6 +30,7 @@ const cta = () => screen.getAllByRole('link', { name: /Quero organizar meu dinhe
 
 beforeEach(() => localStorage.clear());
 afterEach(() => {
+  resetCheckoutState();
   cleanup();
   vi.unstubAllGlobals();
   vi.clearAllMocks();
@@ -108,7 +110,9 @@ describe('direct checkout from the landing', () => {
     landing();
     fireEvent.click(cta());
     await waitFor(() => expect(navigatePayment).toHaveBeenCalledTimes(1));
-    fireEvent.click(screen.getAllByRole('link', { name: /Quero meu template/ })[0]);
+    // The buyer comes back to the page (Back button / back-forward cache) and taps again.
+    window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
+    fireEvent.click(await screen.findByRole('link', { name: /Quero meu template/ }));
     await waitFor(() => expect(navigatePayment).toHaveBeenCalledTimes(2));
     expect(new Set(keys).size).toBe(1);
   });

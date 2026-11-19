@@ -28,6 +28,8 @@ export default defineConfig({
       'tests/commerce-direct-checkout.test.jsx',
       'tests/commerce-pull-reconciliation.test.js',
       'tests/commerce-session-reuse.test.jsx',
+      'tests/commerce-checkout-recovery.test.jsx',
+      'tests/commerce-checkout-latency.test.js',
     ],
   },
 });

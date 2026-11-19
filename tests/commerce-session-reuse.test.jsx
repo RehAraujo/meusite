@@ -9,7 +9,7 @@ import {
   navigatePayment,
   prepareCommerceSession,
 } from '../src/lib/commerce-session';
-import { startCheckout } from '../src/lib/commerce-checkout';
+import { resetCheckoutState, startCheckout } from '../src/lib/commerce-checkout';
 import { STATUS_TEXT, orderState } from '../src/lib/commerce-status';
 import { createJsonStream, safeSummary } from '../scripts/commerce-safe-tail.mjs';
 
@@ -30,6 +30,7 @@ const age = (session, ms) => {
 
 beforeEach(() => localStorage.clear());
 afterEach(() => {
+  resetCheckoutState();
   cleanup();
   vi.unstubAllGlobals();
   vi.clearAllMocks();
@@ -85,6 +86,8 @@ describe('pending order reuse window', () => {
     release();
     await Promise.all(clicks);
     expect(navigatePayment).toHaveBeenCalledTimes(1);
+    // Back on the page after the redirect (e.g. returning from the Mercado Pago app).
+    window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }));
     const later = startCheckout(PRODUCT);
     await waitFor(() => expect(keys).toHaveLength(2));
     release();

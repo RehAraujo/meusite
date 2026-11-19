@@ -16,6 +16,7 @@ import {
   extendCommerceSession,
 } from '../lib/commerce-session';
 import { restartCheckout, retryCheckout, startCheckout } from '../lib/commerce-checkout';
+import { useCheckoutState } from '../hooks/useCheckoutState';
 import { PersonalAccess } from '../components/commerce/PersonalAccess';
 import { orderState, orderStatusText } from '../lib/commerce-status';
 
@@ -24,6 +25,9 @@ const LOST_ACCESS =
   'Não encontramos o acesso a este pedido neste navegador. Abra Minhas compras no navegador em que iniciou a compra ou use seu link pessoal de acesso. Se perdeu os dois, fale pelo contato do site com o número do pedido.';
 const PAYMENT_ERROR =
   'Não foi possível iniciar o pagamento. Tente novamente; a tentativa será reutilizada.';
+const TIMEOUT_ERROR =
+  'O Mercado Pago demorou para responder. Tente novamente; o mesmo pedido será reutilizado.';
+const RETURNED_HINT = 'Se o pagamento não abriu, toque novamente. Seu pedido continua o mesmo.';
 const SESSION_ERROR =
   'Não foi possível preservar o acesso neste navegador. Não iniciamos outro pagamento. Mantenha esta aba aberta e fale pelo contato do site.';
 const money = (amount) => `R$ ${amount.replace('.', ',')}`;
@@ -46,8 +50,11 @@ export default function CheckoutPage() {
   const [catalogMode, setCatalogMode] = useState('test');
   const [products, setProducts] = useState([]),
     [order, setOrder] = useState(null);
-  const [busy, setBusy] = useState(false),
+  const [localBusy, setBusy] = useState(false),
     [message, setMessage] = useState('');
+  // Payment buttons share one state (loading / redirecting) with every checkout button.
+  const checkout = useCheckoutState();
+  const busy = localBusy || checkout.phase !== 'idle';
   useDocumentMeta({
     title: 'Seu pedido | Renata Join',
     description: 'Pagamento e acesso ao seu produto digital.',
@@ -126,15 +133,29 @@ export default function CheckoutPage() {
   const product = products.find((item) => item.id === productId);
 
   async function pay(action) {
-    setBusy(true);
     setMessage('');
     try {
       await action();
     } catch (error) {
-      setMessage(error.message === 'commerce-session-unavailable' ? SESSION_ERROR : PAYMENT_ERROR);
-      setBusy(false);
+      setMessage(
+        error.message === 'commerce-session-unavailable'
+          ? SESSION_ERROR
+          : error.message === 'checkout-timeout'
+            ? TIMEOUT_ERROR
+            : PAYMENT_ERROR,
+      );
     }
   }
+  const paying = checkout.phase !== 'idle';
+  const payLabel = (label) =>
+    paying ? (
+      <>
+        <span className="fj-spinner" aria-hidden="true" />
+        Abrindo pagamento…
+      </>
+    ) : (
+      label
+    );
   const buy = () => {
     if (!product?.available || product.coming_soon) return;
     pay(() => startCheckout(productId));
@@ -249,17 +270,34 @@ export default function CheckoutPage() {
             )}
             {order && state === 'retry' && (
               <div className="fc-actions">
-                <ArrowButton variant="pink" type="button" disabled={busy} onClick={retry}>
-                  Tentar novamente
+                <ArrowButton
+                  variant="pink"
+                  type="button"
+                  disabled={busy}
+                  aria-busy={paying || undefined}
+                  onClick={retry}
+                >
+                  {payLabel('Tentar novamente')}
                 </ArrowButton>
               </div>
             )}
             {order && (state === 'failed' || state === 'expired') && (
               <div className="fc-actions">
-                <ArrowButton variant="pink" type="button" disabled={busy} onClick={restart}>
-                  Fazer novo pedido
+                <ArrowButton
+                  variant="pink"
+                  type="button"
+                  disabled={busy}
+                  aria-busy={paying || undefined}
+                  onClick={restart}
+                >
+                  {payLabel('Fazer novo pedido')}
                 </ArrowButton>
               </div>
+            )}
+            {checkout.returned && !message && (
+              <p className="fc-hint" role="status">
+                {RETURNED_HINT}
+              </p>
             )}
             {message && (
               <p className="fc-error" role="alert">
@@ -388,15 +426,18 @@ export default function CheckoutPage() {
                   type="button"
                   disabled={busy || !available}
                   onClick={buy}
+                  aria-busy={paying || undefined}
                   aria-describedby="fc-availability"
                 >
-                  {busy
-                    ? 'Preparando…'
-                    : !product || available
-                      ? finance
-                        ? 'Continuar para o pagamento'
-                        : 'Continuar no Mercado Pago'
-                      : 'Checkout temporariamente indisponível'}
+                  {paying
+                    ? payLabel()
+                    : busy
+                      ? 'Preparando…'
+                      : !product || available
+                        ? finance
+                          ? 'Continuar para o pagamento'
+                          : 'Continuar no Mercado Pago'
+                        : 'Checkout temporariamente indisponível'}
                 </ArrowButton>
                 <p id="fc-availability" className="fc-note" aria-live="polite">
                   {!product
@@ -408,6 +449,11 @@ export default function CheckoutPage() {
                         : 'Pagamento seguro via Mercado Pago.'}
                 </p>
               </>
+            )}
+            {checkout.returned && !message && (
+              <p className="fc-hint" role="status">
+                {RETURNED_HINT}
+              </p>
             )}
             {message && (
               <p className="fc-error" role="alert">

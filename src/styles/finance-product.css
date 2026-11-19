@@ -402,6 +402,35 @@
   color: var(--rj-text-light-soft);
 }
 
+/* Checkout em andamento: indicador ao lado do texto e aviso ao voltar para a página */
+.fj-spinner {
+  width: 0.95em;
+  height: 0.95em;
+  margin-right: 0.55em;
+  border: 2px solid currentcolor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  flex: none;
+  animation: fj-spin 800ms linear infinite;
+}
+
+.rj-btn[aria-busy='true'] {
+  cursor: progress;
+}
+
+.fj-buy-note {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+@keyframes fj-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Hero claro com a FOTO2 (fundo #f4f4f4 incorporado à imagem) */
 .fj-hero {
   --rj-focus: var(--rj-ink);

@@ -72,7 +72,7 @@ async function body(request) {
   }
   return JSON.parse(new TextDecoder().decode(bytes));
 }
-async function limited(request, env, scope, maximum) {
+async function limited(request, env, scope, maximum, ctx) {
   const now = Date.now(),
     bucket = Math.floor(now / 60000);
   const ip = await hash(`${request.headers.get('CF-Connecting-IP') || 'local'}:${bucket}`);
@@ -81,7 +81,11 @@ async function limited(request, env, scope, maximum) {
   )
     .bind(`${scope}:${ip}`, (bucket + 2) * 60000)
     .first();
-  await env.COMMERCE_DB.prepare('DELETE FROM commerce_limits WHERE expires < ?').bind(now).run();
+  // Housekeeping only (the count above is per-minute bucket): off the buyer's critical path
+  // when the runtime allows it, otherwise awaited as before.
+  const cleanup = env.COMMERCE_DB.prepare('DELETE FROM commerce_limits WHERE expires < ?').bind(now).run();
+  if (typeof ctx?.waitUntil === 'function') ctx.waitUntil(cleanup.catch(() => {}));
+  else await cleanup;
   return row.count > maximum;
 }
 // Safe operational log: fixed event and reason codes, an 8-character order prefix, HTTP
@@ -120,8 +124,10 @@ const awaitingConfirmation = (row) =>
   !row.delivery_blocked &&
   !(row.status === 'processed' && row.status_detail === 'accredited') &&
   !FINAL.has(row.status);
-async function mp(env, path, options = {}) {
-  const credential = await verifiedCredential(env);
+// `verified` is an identity check already started by the caller for this same request;
+// it is always awaited before any provider call, and is never shared across requests.
+async function mp(env, path, options = {}, verified = verifiedCredential(env)) {
+  const credential = await verified;
   const response = await fetch(`https://api.mercadopago.com/v1/orders${path}`, {
     ...options,
     headers: {
@@ -191,14 +197,25 @@ export async function verifySignature(request, url, secret) {
     encoder.encode(`id:${dataId.toLowerCase()};request-id:${requestId};ts:${ts};`),
   );
 }
-const byId = (env, id) =>
+const byIdStatement = (env, id) =>
   env.COMMERCE_DB.prepare(
     `SELECT commerce_orders.*, ${BLOCKED_SQL} AS delivery_blocked,
       (SELECT reason FROM commerce_delivery_holds h WHERE h.order_id=commerce_orders.id ORDER BY created_at LIMIT 1) AS hold_reason
       FROM commerce_orders WHERE id=?`,
-  )
-    .bind(id)
-    .first();
+  ).bind(id);
+const byId = (env, id) => byIdStatement(env, id).first();
+// Runs a write and then reads the order back. On D1 both go in one batch: one round trip,
+// executed in order inside a single transaction, so the read sees exactly what the write
+// left (the same result as running them one after the other).
+async function writeThenRead(env, write, id) {
+  const read = byIdStatement(env, id);
+  if (typeof env.COMMERCE_DB.batch === 'function') {
+    const [, result] = await env.COMMERCE_DB.batch([write, read]);
+    return result?.results?.[0] ?? null;
+  }
+  await write.run();
+  return read.first();
+}
 async function owned(request, env, id) {
   const bearer = token(request);
   if (!bearer) return null;
@@ -330,10 +347,10 @@ async function reconcile(env, row) {
       .run();
   return { ...(await byId(env, row.id)), verified_paid: verifiedPaid };
 }
-async function checkout(request, env) {
+async function checkout(request, env, ctx) {
   if (request.headers.get('Origin') !== env.COMMERCE_ORIGIN)
     return json({ message: 'Origem inválida.' }, 403);
-  if (await limited(request, env, 'checkout', 10))
+  if (await limited(request, env, 'checkout', 10, ctx))
     return json({ message: 'Aguarde um minuto.' }, 429);
   const bearer = token(request),
     id = request.headers.get('Idempotency-Key');
@@ -349,16 +366,26 @@ async function checkout(request, env) {
     return json({ message: 'Produto inválido.' }, 400);
   if (productionMode(env) && !isLaunchProduct(product.id))
     return json({ message: 'Produto ainda não disponível para compra.' }, 403);
+  // Seller identity check for THIS request, started now (after the rate limit and input
+  // validation) so it overlaps with the database work below. It is still awaited before
+  // any Mercado Pago call and before returning a stored checkout URL; nothing is cached.
+  const identity = verifiedCredential(env);
+  identity.catch(() => {}); // observed below; early returns must not leave it unhandled
   const digest = await hash(bearer);
-  let row = await byId(env, id);
+  // Read the order and check the product file at the same time (both read-only). The file
+  // only matters for a new order: a storage hiccup never blocks resuming an existing one.
+  let [row, asset] = await Promise.all([
+    byId(env, id),
+    env.DIGITAL_PRODUCTS.head(product.key).catch(() => null),
+  ]);
   if (!row) {
-    if (!(await env.DIGITAL_PRODUCTS.head(product.key)))
-      return json({ message: 'Produto indisponível.' }, 503);
+    if (!asset) return json({ message: 'Produto indisponível.' }, 503);
     const now = Date.now();
-    await env.COMMERCE_DB.prepare(
-      'INSERT OR IGNORE INTO commerce_orders (id,token_hash,product_id,product_title,amount_cents,currency,asset_key,filename,created_at,access_expires) VALUES (?,?,?,?,?,?,?,?,?,?)',
-    )
-      .bind(
+    row = await writeThenRead(
+      env,
+      env.COMMERCE_DB.prepare(
+        'INSERT OR IGNORE INTO commerce_orders (id,token_hash,product_id,product_title,amount_cents,currency,asset_key,filename,created_at,access_expires) VALUES (?,?,?,?,?,?,?,?,?,?)',
+      ).bind(
         id,
         digest,
         product.id,
@@ -369,9 +396,9 @@ async function checkout(request, env) {
         product.filename,
         now,
         now + 7 * 86400000,
-      )
-      .run();
-    row = await byId(env, id);
+      ),
+      id,
+    );
   }
   if (
     row.token_hash !== digest ||
@@ -381,7 +408,7 @@ async function checkout(request, env) {
   )
     return json({ message: 'Sessão incompatível.' }, 409);
   if (row.checkout_url) {
-    await verifiedCredential(env);
+    await identity;
     return json({ ...view(row), checkout_url: row.checkout_url, environment: env.COMMERCE_ENVIRONMENT });
   }
   // Identical payload and key for all retries, including timeouts and concurrent requests.
@@ -405,26 +432,28 @@ async function checkout(request, env) {
         },
       },
     }),
-  });
+  }, identity);
   const redirect = checkoutUrl(remote.checkout_url, remote.id);
   if (!validProviderOrder(remote, env) || !redirect || (productionMode(env) && !matchesOrder(remote, { ...row, mp_id: remote.id }, env)))
     throw new Error('test-order');
-  await env.COMMERCE_DB.prepare(
-    `UPDATE commerce_orders SET mp_id=?,checkout_url=?,
-      status=CASE WHEN status='creating' AND ? THEN 'created' ELSE status END,
-      status_detail=CASE WHEN status='creating' AND ? THEN 'created' ELSE status_detail END
-      WHERE id=? AND mp_id IS NULL`,
-  )
-    // Creation is not payment approval. Preserve any newer webhook state.
-    .bind(
-      remote.id,
-      redirect,
-      remote.status === 'created' ? 1 : 0,
-      remote.status === 'created' ? 1 : 0,
-      id,
+  row = await writeThenRead(
+    env,
+    env.COMMERCE_DB.prepare(
+      `UPDATE commerce_orders SET mp_id=?,checkout_url=?,
+        status=CASE WHEN status='creating' AND ? THEN 'created' ELSE status END,
+        status_detail=CASE WHEN status='creating' AND ? THEN 'created' ELSE status_detail END
+        WHERE id=? AND mp_id IS NULL`,
     )
-    .run();
-  row = await byId(env, id);
+      // Creation is not payment approval. Preserve any newer webhook state.
+      .bind(
+        remote.id,
+        redirect,
+        remote.status === 'created' ? 1 : 0,
+        remote.status === 'created' ? 1 : 0,
+        id,
+      ),
+    id,
+  );
   return json({ ...view(row), checkout_url: row.checkout_url, environment: env.COMMERCE_ENVIRONMENT });
 }
 async function webhook(request, env, url) {
@@ -497,7 +526,7 @@ export function health(env) {
     mode: MODES.includes(env.COMMERCE_MODE) ? env.COMMERCE_MODE : 'unknown',
   };
 }
-export async function handleCommerce(request, env, url = new URL(request.url)) {
+export async function handleCommerce(request, env, url = new URL(request.url), ctx) {
   try {
     const path = url.pathname.replace(/^\/api\/commerce/, '');
     // Build stamp only: never secrets, bindings, counters or customer data.
@@ -529,12 +558,12 @@ export async function handleCommerce(request, env, url = new URL(request.url)) {
     if (path === '/checkout' && request.method === 'POST')
       return salesClosed(env)
         ? json({ message: 'Vendas temporariamente encerradas.' }, 503)
-        : await checkout(request, env);
+        : await checkout(request, env, ctx);
     if (path === '/webhook' && request.method === 'POST') return await webhook(request, env, url);
     const match = path.match(/^\/orders\/([a-f0-9-]{36})(\/download|\/access)?$/i);
     if (!match || !UUID.test(match[1])) return json({ message: 'Não encontrado.' }, 404);
     if (request.method !== 'GET') return json({ message: 'Método não permitido.' }, 405);
-    if (await limited(request, env, 'access', 30))
+    if (await limited(request, env, 'access', 30, ctx))
       return json({ message: 'Aguarde um minuto.' }, 429);
     let row = await owned(request, env, match[1]);
     if (!row) return json({ message: 'Acesso inválido ou expirado.' }, 404);

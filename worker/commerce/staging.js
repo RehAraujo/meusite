@@ -2,10 +2,10 @@ import { handleCommerce } from './handler.js';
 
 // This entry point has no diagnostics, AI, queue or production-resource dependency.
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/api/commerce' || url.pathname.startsWith('/api/commerce/')) {
-      return handleCommerce(request, env, url);
+      return handleCommerce(request, env, url, ctx);
     }
     if (url.pathname.startsWith('/api/') || url.pathname === '/wrangler.jsonc') {
       return new Response('Not Found', {

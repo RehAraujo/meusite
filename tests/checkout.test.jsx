@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import CheckoutPage from '../src/pages/CheckoutPage';
 import { navigatePayment } from '../src/lib/commerce-session';
+import { resetCheckoutState } from '../src/lib/commerce-checkout';
 vi.mock('../src/lib/commerce-session', async (original) => ({
   ...(await original()),
   navigatePayment: vi.fn(),
@@ -28,6 +29,7 @@ beforeEach(() => {
   localStorage.clear();
 });
 afterEach(() => {
+  resetCheckoutState();
   cleanup();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
@@ -178,6 +180,7 @@ describe('normal same-tab checkout lifecycle, entirely offline', () => {
     );
     const sessionBeforeReturn = localStorage.getItem(`commerce:${saved.id}`);
     cleanup(); // Recreate the page as after top-level navigation; preserve this tab's storage.
+    resetCheckoutState(); // A new document starts with fresh module state.
     page(`pedido=${saved.id}&status=approved`);
     expect(await screen.findByRole('status')).toHaveTextContent(/aguardando a confirmação do pagamento/i);
     expect(localStorage.getItem(`commerce:${saved.id}`)).toBe(sessionBeforeReturn);

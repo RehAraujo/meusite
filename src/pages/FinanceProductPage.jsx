@@ -4,6 +4,7 @@ import { ArrowButton } from '../components/ui/ArrowButton';
 import { useDocumentMeta } from '../hooks/useDocumentMeta';
 import { useRjReveal } from '../hooks/useRjReveal';
 import { startCheckout } from '../lib/commerce-checkout';
+import { useCheckoutState } from '../hooks/useCheckoutState';
 import { CommerceFooter, CommerceHeader } from '../components/commerce/CommerceChrome';
 import '../styles/finance-product.css';
 
@@ -158,29 +159,51 @@ function NotionLabel() {
  */
 function useDirectCheckout() {
   const navigate = useNavigate();
-  const [busy, setBusy] = useState(false);
+  const { phase, returned } = useCheckoutState();
+  // Only the button the buyer tapped shows the "back on the page" hint.
+  const [mine, setMine] = useState(false);
   async function onClick(event) {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
       return;
     event.preventDefault();
-    if (busy) return;
-    setBusy(true);
+    // Shared state: a tap while another request or redirect is in progress is ignored.
+    if (phase !== 'idle') return;
+    setMine(true);
     try {
       await startCheckout(PRODUCT_ID);
     } catch {
-      setBusy(false);
       navigate(checkoutPath);
     }
   }
-  return { busy, onClick };
+  return { busy: phase !== 'idle', returned: returned && mine, onClick };
 }
 
 function CheckoutLink({ children }) {
-  const { busy, onClick } = useDirectCheckout();
+  const { busy, returned, onClick } = useDirectCheckout();
   return (
-    <ArrowButton variant="pink" to={checkoutPath} onClick={onClick} aria-busy={busy || undefined}>
-      {busy ? 'Abrindo pagamento…' : children}
-    </ArrowButton>
+    <>
+      <ArrowButton
+        variant="pink"
+        to={checkoutPath}
+        onClick={onClick}
+        aria-busy={busy || undefined}
+        aria-disabled={busy || undefined}
+      >
+        {busy ? (
+          <>
+            <span className="fj-spinner" aria-hidden="true" />
+            Abrindo pagamento…
+          </>
+        ) : (
+          children
+        )}
+      </ArrowButton>
+      {returned && (
+        <p className="fj-buy-note" role="status">
+          Se o pagamento não abriu, toque novamente. Seu pedido continua o mesmo.
+        </p>
+      )}
+    </>
   );
 }
 
