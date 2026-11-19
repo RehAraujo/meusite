@@ -1,5 +1,8 @@
 import { useEffect } from 'react';
 
+const socialImage = 'https://renatajoin.com/assets/renata-join-social.jpg?v=join-by-renata';
+const socialImageAlt = 'JOIN by Renata — Design · Tecnologia · Estratégia';
+
 const upsertMeta = (selector, attributes) => {
   let element = document.head.querySelector(selector);
   if (!element) {
@@ -26,7 +29,19 @@ export const useDocumentMeta = ({ title, description, path = '/', noindex = fals
     upsertMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl });
     upsertMeta('meta[property="og:image"]', {
       property: 'og:image',
-      content: 'https://renatajoin.com/assets/renata-join-social.jpg',
+      content: socialImage,
+    });
+    upsertMeta('meta[property="og:image:alt"]', {
+      property: 'og:image:alt',
+      content: socialImageAlt,
+    });
+    upsertMeta('meta[name="twitter:image"]', {
+      name: 'twitter:image',
+      content: socialImage,
+    });
+    upsertMeta('meta[name="twitter:image:alt"]', {
+      name: 'twitter:image:alt',
+      content: socialImageAlt,
     });
     let canonical = document.head.querySelector('link[rel="canonical"]');
     if (!canonical) {
