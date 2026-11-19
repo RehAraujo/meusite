@@ -120,7 +120,8 @@ export default function CheckoutPage() {
       extendCommerceSession(orderId, order.access_expires);
     }
     // A definitive outcome is never reopened as the pending purchase of this browser.
-    if (state === 'failed' || state === 'refunded') settleCommerceSession(orderId);
+    if (state === 'failed' || state === 'expired' || state === 'refunded')
+      settleCommerceSession(orderId);
   }, [order, orderId, state]);
   const product = products.find((item) => item.id === productId);
 
@@ -253,7 +254,7 @@ export default function CheckoutPage() {
                 </ArrowButton>
               </div>
             )}
-            {order && state === 'failed' && (
+            {order && (state === 'failed' || state === 'expired') && (
               <div className="fc-actions">
                 <ArrowButton variant="pink" type="button" disabled={busy} onClick={restart}>
                   Fazer novo pedido
@@ -270,7 +271,7 @@ export default function CheckoutPage() {
                 Atualizar status
               </button>
             )}
-            {order && state !== 'refunded' && state !== 'failed' && (
+            {order && !['refunded', 'failed', 'expired'].includes(state) && (
               <PersonalAccess orderId={orderId} />
             )}
             <p className="fc-links">

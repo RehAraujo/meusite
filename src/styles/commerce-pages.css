@@ -208,7 +208,8 @@
 }
 
 .fj-commerce .fc-status.is-retry,
-.fj-commerce .fc-status.is-failed {
+.fj-commerce .fc-status.is-failed,
+.fj-commerce .fc-status.is-expired {
   border-left-color: var(--rj-pink-strong);
 }
 

@@ -8,6 +8,9 @@ export const ACCESS_DAYS = 7;
 export const PAID_ACCESS_MONTHS = 12;
 // Mirrors the server: a confirmed order may be kept for up to 365 days from its creation.
 const PAID_ACCESS = 365 * DAY;
+// A pending purchase is resumed only briefly (double clicks, returning from the provider);
+// an older one is never reopened, so a stale or expired checkout is not offered again.
+export const PENDING_REUSE_MS = 30 * 60000;
 const key = (id) => `commerce:${id}`;
 const downloadKey = (id) => `commerce:download:${id}`;
 const PENDING = 'commerce:pending:';
@@ -43,7 +46,8 @@ export function prepareCommerceSession(product) {
     const pending = previous ? readStoredSession(previous) : null;
     // Never silently replace an unrecognizable in-flight order and risk a duplicate.
     if (previous && (!pending || pending.product !== product)) throw new Error('storage');
-    if (pending && pending.created > Date.now() - DAY) return pending;
+    if (pending && pending.created > Date.now() - PENDING_REUSE_MS && readCommerceSession(pending.id))
+      return pending;
     const session = {
       id: crypto.randomUUID(),
       token: Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) =>

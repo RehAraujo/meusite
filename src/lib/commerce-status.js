@@ -11,6 +11,7 @@ export const STATUS_TEXT = Object.freeze({
     'Não foi possível concluir o pagamento. Você pode tentar novamente utilizando outro meio de pagamento.',
   failed:
     'Não foi possível concluir este pagamento. Para usar outro meio de pagamento, faça um novo pedido.',
+  expired: 'Este pedido expirou sem pagamento. Faça um novo pedido.',
   refunded:
     'Pagamento reembolsado. O acesso a este pedido foi encerrado após o registro do reembolso.',
   blocked:
@@ -18,6 +19,7 @@ export const STATUS_TEXT = Object.freeze({
 });
 
 // approved | pending | retry (provider allows a new attempt) | failed (definitive)
+// expired (the provider Order expired without any payment)
 // refunded (definitive) | blocked (security hold, temporary until reviewed)
 export function orderState(order) {
   if (
@@ -29,6 +31,11 @@ export function orderState(order) {
   if (order.delivery_blocked || order.status === 'charged_back') return 'blocked';
   if (order.paid) return 'approved';
   if (order.can_retry) return 'retry';
+  if (
+    order.status === 'expired' ||
+    (order.status === 'canceled' && order.status_detail === 'expired')
+  )
+    return 'expired';
   if (FAILED.includes(order.status)) return 'failed';
   return 'pending';
 }
