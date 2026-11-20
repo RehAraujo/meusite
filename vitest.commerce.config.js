@@ -30,6 +30,8 @@ export default defineConfig({
       'tests/commerce-session-reuse.test.jsx',
       'tests/commerce-checkout-recovery.test.jsx',
       'tests/commerce-checkout-latency.test.js',
+      'tests/commerce-ledger.test.js',
+      'tests/commerce-ledger-shadow.test.js',
     ],
   },
 });
