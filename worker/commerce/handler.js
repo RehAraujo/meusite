@@ -3,6 +3,7 @@ import { reserveDownload, validDownloadAttempt } from './downloads.js';
 export { testMode } from './credentials.js';
 import { BLOCKED_SQL, RISK_TOPICS, persistRisk, captureSafety, riskResource } from './safety.js';
 import { CATALOG, money } from './catalog.js';
+import { ledgerShadowEnabled, runLedgerShadow } from './ledger/shadow.js';
 import { isLaunchProduct } from '../../src/data/commerce-launch.js';
 
 const encoder = new TextEncoder();
@@ -216,7 +217,7 @@ async function writeThenRead(env, write, id) {
   await write.run();
   return read.first();
 }
-async function owned(request, env, id) {
+async function owned(request, env, id, ctx) {
   const bearer = token(request);
   if (!bearer) return null;
   const row = await byId(env, id);
@@ -225,7 +226,7 @@ async function owned(request, env, id) {
   // Past the 7-day window a paid order keeps its 12-month right even if no webhook was
   // processed: ask the provider once. reconcile() extends only verified paid orders.
   if (!row.mp_id || row.created_at + PAID_ACCESS_MS <= Date.now()) return null;
-  const checked = await reconcile(env, row);
+  const checked = await reconcile(env, row, ctx);
   return checked.access_expires > Date.now() ? checked : null;
 }
 // Closing sales stops new orders only; buyers keep status, access and downloads.
@@ -311,7 +312,7 @@ export function orderMismatches(remote, row, env = { COMMERCE_ENVIRONMENT: 'stag
 export function matchesOrder(remote, row, env = { COMMERCE_ENVIRONMENT: 'staging' }) {
   return orderMismatches(remote, row, env).length === 0;
 }
-async function reconcile(env, row) {
+async function reconcile(env, row, ctx) {
   const remote = await mp(env, `/${encodeURIComponent(row.mp_id)}`);
   const mismatches = orderMismatches(remote, row, env);
   if (mismatches.length) {
@@ -345,7 +346,21 @@ async function reconcile(env, row) {
     )
       .bind(PAID_ACCESS_MS, row.id)
       .run();
-  return { ...(await byId(env, row.id)), verified_paid: verifiedPaid };
+  const result = { ...(await byId(env, row.id)), verified_paid: verifiedPaid };
+  // R1a shadow (off by default): records the same verified snapshot in the payment
+  // ledger and compares access rules. Never changes this result or the delivery, and
+  // runs after the response (waitUntil) so it adds no latency; it never rejects.
+  if (ledgerShadowEnabled(env)) {
+    const shadow = runLedgerShadow(env, {
+      row: { ...result },
+      remote,
+      currentDeliverable: view(result).paid,
+      log: logEvent,
+    });
+    if (typeof ctx?.waitUntil === 'function') ctx.waitUntil(shadow);
+    else await shadow;
+  }
+  return result;
 }
 async function checkout(request, env, ctx) {
   if (request.headers.get('Origin') !== env.COMMERCE_ORIGIN)
@@ -456,7 +471,7 @@ async function checkout(request, env, ctx) {
   );
   return json({ ...view(row), checkout_url: row.checkout_url, environment: env.COMMERCE_ENVIRONMENT });
 }
-async function webhook(request, env, url) {
+async function webhook(request, env, url, ctx) {
   if (!(await verifySignature(request, url, env.MERCADOPAGO_WEBHOOK_SECRET))) {
     logEvent('webhook_rejected', { status: 401, detail: 'signature' });
     return json({ message: 'Assinatura inválida.' }, 401);
@@ -504,7 +519,7 @@ async function webhook(request, env, url) {
   }
   let verified;
   try {
-    verified = await reconcile(env, row);
+    verified = await reconcile(env, row, ctx);
   } catch (error) {
     logEvent('webhook_reconcile_failed', { order: row.id, error });
     throw error;
@@ -559,24 +574,24 @@ export async function handleCommerce(request, env, url = new URL(request.url), c
       return salesClosed(env)
         ? json({ message: 'Vendas temporariamente encerradas.' }, 503)
         : await checkout(request, env, ctx);
-    if (path === '/webhook' && request.method === 'POST') return await webhook(request, env, url);
+    if (path === '/webhook' && request.method === 'POST') return await webhook(request, env, url, ctx);
     const match = path.match(/^\/orders\/([a-f0-9-]{36})(\/download|\/access)?$/i);
     if (!match || !UUID.test(match[1])) return json({ message: 'Não encontrado.' }, 404);
     if (request.method !== 'GET') return json({ message: 'Método não permitido.' }, 405);
     if (await limited(request, env, 'access', 30, ctx))
       return json({ message: 'Aguarde um minuto.' }, 429);
-    let row = await owned(request, env, match[1]);
+    let row = await owned(request, env, match[1], ctx);
     if (!row) return json({ message: 'Acesso inválido ou expirado.' }, 404);
     if (!match[2]) {
       if (complementaryReconciliation(env) && row.mp_id) {
-        row = await reconcile(env, row);
+        row = await reconcile(env, row, ctx);
         row.webhook_confirmed = await confirmedWebhook(env, row);
       } else if (awaitingConfirmation(row) && !(await throttled(env, `reconcile:${row.id}`, 2))) {
         // Webhook fallback: the same authoritative Order check the webhook runs. A failure
         // keeps the stored state (never paid on error) and is logged with safe codes.
         try {
           const before = row.status;
-          row = await reconcile(env, row);
+          row = await reconcile(env, row, ctx);
           if (row.verified_paid) logEvent('order_confirmed_by_pull', { order: row.id, detail: before });
         } catch (error) {
           logEvent('pull_reconcile_failed', { order: row.id, error });
@@ -596,7 +611,7 @@ export async function handleCommerce(request, env, url = new URL(request.url), c
       if (!row.mp_id) return json({ message: 'Pagamento não confirmado.' }, 403);
       const product = Object.hasOwn(CATALOG, row.product_id) ? CATALOG[row.product_id] : null;
       if (product?.access?.type !== 'notion') return json({ message: 'Não encontrado.' }, 404);
-      row = await reconcile(env, row);
+      row = await reconcile(env, row, ctx);
       if (!view(row).paid || !row.verified_paid)
         return json({ message: 'Pagamento não confirmado.' }, 403);
       if (complementaryReconciliation(env) && !(await confirmedWebhook(env, row)))
@@ -614,7 +629,7 @@ export async function handleCommerce(request, env, url = new URL(request.url), c
       );
     if (!row.mp_id) return json({ message: 'Pagamento não confirmado.' }, 403);
     // Recheck authoritative status on EVERY download, including refunds/chargebacks.
-    row = await reconcile(env, row);
+    row = await reconcile(env, row, ctx);
     if (!view(row).paid || !row.verified_paid)
       return json({ message: 'Pagamento não confirmado.' }, 403);
     if (complementaryReconciliation(env) && !(await confirmedWebhook(env, row)))
