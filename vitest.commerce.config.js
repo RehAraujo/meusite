@@ -32,6 +32,8 @@ export default defineConfig({
       'tests/commerce-checkout-latency.test.js',
       'tests/commerce-ledger.test.js',
       'tests/commerce-ledger-shadow.test.js',
+      'tests/commerce-pix.test.js',
+      'tests/commerce-pix-ui.test.jsx',
     ],
   },
 });
