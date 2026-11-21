@@ -366,3 +366,52 @@
 .fj-commerce .fc-narrow > .fj-lead {
   margin-top: 1rem;
 }
+
+/* Pix (staging): formulário no cartão do pedido e código na página do pedido. */
+.fj-commerce .fc-pix {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rj-line-light);
+}
+
+.fj-commerce .fc-pix label {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.fj-commerce .fc-pix :is(input[type='email'], textarea) {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--rj-line-light);
+  border-radius: 0.5rem;
+  background: var(--rj-paper-raised);
+  color: var(--rj-ink);
+  font: inherit;
+}
+
+.fj-commerce .fc-pix textarea {
+  font:
+    400 0.78rem / 1.4 ui-monospace,
+    Menlo,
+    monospace;
+  resize: none;
+  word-break: break-all;
+}
+
+.fj-commerce .fc-pix .fc-check {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-weight: 400;
+}
+
+.fj-commerce .fc-qr {
+  width: min(220px, 100%);
+  height: auto;
+  border: 1px solid var(--rj-line-light);
+  border-radius: var(--rj-radius);
+  background: var(--rj-white);
+  image-rendering: pixelated;
+}

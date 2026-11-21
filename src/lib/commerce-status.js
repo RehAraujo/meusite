@@ -22,6 +22,9 @@ export const STATUS_TEXT = Object.freeze({
 // expired (the provider Order expired without any payment)
 // refunded (definitive) | blocked (security hold, temporary until reviewed)
 export function orderState(order) {
+  // Pix orders: `paid` is the server's ledger access right, which already excludes holds
+  // and keeps access after a partial refund (decision D1). Checkout Pro is unchanged.
+  if (order.payment_method === 'pix' && order.paid && !order.delivery_blocked) return 'approved';
   if (
     order.block === 'refund' ||
     REFUNDED.includes(order.status) ||

@@ -19,6 +19,8 @@ import { restartCheckout, retryCheckout, startCheckout } from '../lib/commerce-c
 import { useCheckoutState } from '../hooks/useCheckoutState';
 import { PersonalAccess } from '../components/commerce/PersonalAccess';
 import { orderState, orderStatusText } from '../lib/commerce-status';
+import { PixCode, PixStart } from '../components/commerce/PixPayment';
+import { cancelPix } from '../lib/commerce-pix';
 
 const FINANCE = 'meu-dinheiro-minhas-regras';
 const LOST_ACCESS =
@@ -48,6 +50,7 @@ export default function CheckoutPage() {
   const productId = params.get('produto'),
     orderId = params.get('pedido');
   const [catalogMode, setCatalogMode] = useState('test');
+  const [pixOn, setPixOn] = useState(false);
   const [products, setProducts] = useState([]),
     [order, setOrder] = useState(null);
   const [localBusy, setBusy] = useState(false),
@@ -109,6 +112,7 @@ export default function CheckoutPage() {
           if (active) {
             setProducts(data.products);
             setCatalogMode(data.mode);
+            setPixOn(data.pix === true);
           }
         })
         .catch(() => {
@@ -130,6 +134,21 @@ export default function CheckoutPage() {
     if (state === 'failed' || state === 'expired' || state === 'refunded')
       settleCommerceSession(orderId);
   }, [order, orderId, state]);
+  // An open Pix is confirmed by the server (webhook, reconciler or this pull): refresh
+  // the order every 5 s while the code is shown.
+  const waitingPix = !!order?.pix && state === 'pending';
+  useEffect(() => {
+    if (!waitingPix || !orderId) return;
+    const timer = setInterval(() => {
+      const session = readSession(orderId);
+      if (!session) return;
+      api(`/orders/${orderId}`, session)
+        .then((r) => r.json())
+        .then(setOrder)
+        .catch(() => {});
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [waitingPix, orderId]);
   const product = products.find((item) => item.id === productId);
 
   async function pay(action) {
@@ -226,6 +245,21 @@ export default function CheckoutPage() {
     }
   }
 
+  async function cancelOpenPix() {
+    setBusy(true);
+    setMessage('');
+    try {
+      const session = readSession(orderId);
+      if (!session) throw new Error(LOST_ACCESS);
+      await cancelPix(session);
+      setOrder(await (await api(`/orders/${orderId}`, session)).json());
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (orderId) {
     const ready = state === 'approved';
     return (
@@ -242,6 +276,9 @@ export default function CheckoutPage() {
               <div className={`fc-status is-${state}`}>
                 <p role="status">{orderStatusText(order)}</p>
               </div>
+            )}
+            {order?.pix && state === 'pending' && (
+              <PixCode pix={order.pix} busy={busy} onCancel={cancelOpenPix} />
             )}
             {order && ready && order.delivery === 'notion' && (
               <div className="fc-actions">
@@ -449,6 +486,9 @@ export default function CheckoutPage() {
                         : 'Pagamento seguro via Mercado Pago.'}
                 </p>
               </>
+            )}
+            {pixOn && available && (
+              <PixStart productId={productId} testMode={catalogMode === 'test'} disabled={busy} />
             )}
             {checkout.returned && !message && (
               <p className="fc-hint" role="status">
