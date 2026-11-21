@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* global console, process, crypto, fetch, setTimeout */
+/* global console, process, crypto, fetch, setTimeout, URL */
 // Functional Pix test against STAGING only, with Mercado Pago TEST credentials (the
 // staging Worker's own secrets) and the official APRO test payer. No real money, no
 // personal account, no card. Prints only statuses and booleans: never tokens, Notion

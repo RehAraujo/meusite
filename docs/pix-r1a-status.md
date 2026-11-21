@@ -85,3 +85,26 @@ não foi alterada; qualquer ajuste de texto depende de autorização da respons�
    atual (mesmo roteiro de validação da Fase 1, com pagamentos de teste aprovados,
    estornados e parcialmente estornados).
 4. Produção só depois, com nova autorização e observação mínima de 48 h em sombra.
+
+## R1b — Pix funcional em staging (21/11/2026)
+
+Commits `145c81d` (backend), `6f922f9` (interface), `7105a4f` (testes) e o roteiro
+`scripts/pix-staging-e2e.mjs`. Ativo só em staging: `COMMERCE_LEDGER`, `COMMERCE_PIX` e
+`COMMERCE_TEST_REFUNDS` como vars da versão, mais `commerce_settings.pix_creation='on'`
+no D1 de staging. `pixEnabled()` exige `testMode()`, que é falso em produção; o plano de
+publicação recusa essas vars para produção.
+
+- Trava compartilhada: Checkout Pro reserva `cp-<pedido>` antes de chamar o Mercado Pago;
+  Pix reserva `pix-<uuid>`. Um pedido Pix nunca vira Checkout Pro (novo pedido).
+- Pix: `POST /api/commerce/pix` (e-mail enviado ao Mercado Pago, não guardado),
+  QR Code + Copia e Cola na página do pedido, validade 30 min, cancelamento confirmado
+  pelo provedor antes de liberar a trava (D2), tentativa antiga observada por 48 h.
+- Confirmação: consulta na página (a cada 5 s), webhook `order` assinado e reconciliador
+  (cron a cada minuto, lease, backoff, revisão `reconciler_stalled`,
+  `GET /api/commerce/health/reconciler`).
+- Entrega: só com o direito de acesso do ledger ativo, rechecado no provedor a cada
+  acesso ao Notion e download. Reembolso parcial mantém acesso (D1) e abre revisão.
+- Validação oficial sem compras manuais: pagador de teste `APRO` (aprovação automática
+  documentada para Pix na Orders API) e reembolsos pela rota de teste de staging
+  (`POST /orders/{id}/test-refund`, só com `COMMERCE_TEST_REFUNDS=on` e credencial
+  `test_user` verificada).
