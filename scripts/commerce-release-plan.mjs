@@ -51,6 +51,9 @@ export function releasePlan({ target = 'production', sha, dirty = [], config, le
     throw new Error(`Migrações não aprovadas para produção: ${unapproved.join(', ')}`);
   if (target === 'production' && Object.hasOwn(config?.vars || {}, 'COMMERCE_LEDGER_SHADOW'))
     throw new Error('O modo sombra do ledger não é aprovado para produção.');
+  const staged = ['COMMERCE_LEDGER', 'COMMERCE_PIX', 'COMMERCE_TEST_REFUNDS'].filter((name) => Object.hasOwn(config?.vars || {}, name));
+  if (target === 'production' && staged.length)
+    throw new Error(`Pix e ledger não são aprovados para produção: ${staged.join(', ')}`);
   if (!/^[0-9a-f]{40}$/.test(sha || '')) throw new Error('Commit HEAD inválido.');
   if (dirty.length) throw new Error(`Alterações não commitadas afetam o build:\n${dirty.join('\n')}`);
   if (leaks.length) throw new Error(`Link do Notion em arquivo versionado:\n${leaks.join('\n')}`);

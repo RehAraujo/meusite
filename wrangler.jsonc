@@ -84,6 +84,9 @@
         "COMMERCE_ORIGIN": "https://homologacao.renatajoin.com"
       },
       "main": "worker/commerce/staging.js",
+      "triggers": {
+        "crons": ["* * * * *"]
+      },
       "assets": {
         "directory": "dist",
         "binding": "ASSETS",

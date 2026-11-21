@@ -1,9 +1,24 @@
 import { commerceMode, verifiedCredential, validProviderOrder, productionMode } from './credentials.js';
-import { reserveDownload, validDownloadAttempt } from './downloads.js';
+import { reserveDownload, reserveLedgerDownload, validDownloadAttempt } from './downloads.js';
 export { testMode } from './credentials.js';
 import { BLOCKED_SQL, RISK_TOPICS, persistRisk, captureSafety, riskResource } from './safety.js';
 import { CATALOG, money } from './catalog.js';
 import { ledgerShadowEnabled, runLedgerShadow } from './ledger/shadow.js';
+import { reserveAttempt } from './ledger/repository.js';
+import {
+  attemptsOf,
+  cancelPix,
+  createPix,
+  isPixOrder,
+  ledgerEnabled,
+  pixEnabled,
+  pixSwitchOn,
+  pixView,
+  reconcileAttempt,
+  reconcilerHealth,
+  testRefund,
+  validEmail,
+} from './ledger/pix.js';
 import { isLaunchProduct } from '../../src/data/commerce-launch.js';
 
 const encoder = new TextEncoder();
@@ -93,7 +108,7 @@ async function limited(request, env, scope, maximum, ctx) {
 // status and failed check names. Never tokens, URLs, provider bodies or payer data.
 const REASONS = new Set([
   'provider', 'mismatch', 'version', 'amount', 'transactions', 'resources', 'identity',
-  'environment-disabled', 'test-order', 'risk', 'body',
+  'environment-disabled', 'test-order', 'risk', 'body', 'order', 'test-only',
 ]);
 export function logEvent(event, { order, error, status, detail } = {}) {
   const entry = { event };
@@ -362,31 +377,45 @@ async function reconcile(env, row, ctx) {
   }
   return result;
 }
-async function checkout(request, env, ctx) {
+// Shared by Checkout Pro and Pix: request checks and the local order (created once per
+// Idempotency-Key, owned by the bearer). Returns { error } or { id, product, row, identity }.
+async function startOrder(request, env, ctx, allowed) {
   if (request.headers.get('Origin') !== env.COMMERCE_ORIGIN)
-    return json({ message: 'Origem inválida.' }, 403);
+    return { error: json({ message: 'Origem inválida.' }, 403) };
   if (await limited(request, env, 'checkout', 10, ctx))
-    return json({ message: 'Aguarde um minuto.' }, 429);
+    return { error: json({ message: 'Aguarde um minuto.' }, 429) };
   const bearer = token(request),
     id = request.headers.get('Idempotency-Key');
-  if (!bearer || !UUID.test(id || '')) return json({ message: 'Sessão inválida.' }, 400);
+  if (!bearer || !UUID.test(id || '')) return { error: json({ message: 'Sessão inválida.' }, 400) };
   let input;
   try {
     input = await body(request);
   } catch {
-    return json({ message: 'Requisição inválida.' }, 400);
+    return { error: json({ message: 'Requisição inválida.' }, 400) };
   }
   const product = Object.hasOwn(CATALOG, input?.product_id) ? CATALOG[input.product_id] : null;
-  if (!product || Object.keys(input).some((key) => key !== 'product_id'))
-    return json({ message: 'Produto inválido.' }, 400);
+  if (!product || !input || Object.keys(input).some((key) => !allowed.includes(key)))
+    return { error: json({ message: 'Produto inválido.' }, 400) };
   if (productionMode(env) && !isLaunchProduct(product.id))
-    return json({ message: 'Produto ainda não disponível para compra.' }, 403);
+    return { error: json({ message: 'Produto ainda não disponível para compra.' }, 403) };
   // Seller identity check for THIS request, started now (after the rate limit and input
   // validation) so it overlaps with the database work below. It is still awaited before
   // any Mercado Pago call and before returning a stored checkout URL; nothing is cached.
   const identity = verifiedCredential(env);
   identity.catch(() => {}); // observed below; early returns must not leave it unhandled
   const digest = await hash(bearer);
+  const row = await ensureOrder(env, id, digest, product);
+  if (row?.error) return row;
+  if (
+    row.token_hash !== digest ||
+    row.product_id !== product.id ||
+    row.access_expires <= Date.now() ||
+    row.created_at + 86400000 <= Date.now()
+  )
+    return { error: json({ message: 'Sessão incompatível.' }, 409) };
+  return { id, product, row, identity, input };
+}
+async function ensureOrder(env, id, digest, product) {
   // Read the order and check the product file at the same time (both read-only). The file
   // only matters for a new order: a storage hiccup never blocks resuming an existing one.
   let [row, asset] = await Promise.all([
@@ -394,7 +423,7 @@ async function checkout(request, env, ctx) {
     env.DIGITAL_PRODUCTS.head(product.key).catch(() => null),
   ]);
   if (!row) {
-    if (!asset) return json({ message: 'Produto indisponível.' }, 503);
+    if (!asset) return { error: json({ message: 'Produto indisponível.' }, 503) };
     const now = Date.now();
     row = await writeThenRead(
       env,
@@ -415,16 +444,36 @@ async function checkout(request, env, ctx) {
       id,
     );
   }
-  if (
-    row.token_hash !== digest ||
-    row.product_id !== product.id ||
-    row.access_expires <= Date.now() ||
-    row.created_at + 86400000 <= Date.now()
-  )
-    return json({ message: 'Sessão incompatível.' }, 409);
+  return row;
+}
+async function checkout(request, env, ctx) {
+  const started = await startOrder(request, env, ctx, ['product_id']);
+  if (started.error) return started.error;
+  const { id, identity } = started;
+  let { row } = started;
   if (row.checkout_url) {
     await identity;
     return json({ ...view(row), checkout_url: row.checkout_url, environment: env.COMMERCE_ENVIRONMENT });
+  }
+  // Shared charge lock (staging, COMMERCE_LEDGER=on): no Checkout Pro Order while a Pix
+  // holds this order, and a Pix order never switches to Checkout Pro (new order instead).
+  if (ledgerEnabled(env)) {
+    const attempts = await attemptsOf(env, id);
+    if (attempts.some((a) => a.flow === 'pix'))
+      return json({ code: 'pix_order', message: 'Este pedido usa Pix. Faça um novo pedido para pagar de outra forma.' }, 409);
+    const now = Date.now();
+    const lock = await reserveAttempt(env, {
+      id: `cp-${id}`,
+      orderId: id,
+      flow: 'checkout_pro',
+      requestBody: '{}',
+      requestHash: 'checkout_pro',
+      amountCents: row.amount_cents,
+      watchUntil: now + 86400000 + 48 * 3600000,
+      now,
+    });
+    if (!lock.reserved)
+      return json({ code: lock.reason, message: 'Há outro pagamento em andamento para este pedido.' }, 409);
   }
   // Identical payload and key for all retries, including timeouts and concurrent requests.
   const returnUrl = `${env.COMMERCE_ORIGIN}/checkout?pedido=${id}`;
@@ -469,7 +518,61 @@ async function checkout(request, env, ctx) {
       ),
     id,
   );
+  if (ledgerEnabled(env))
+    await env.COMMERCE_DB.prepare(
+      `UPDATE commerce_payment_attempts SET mp_id=?2, phase='open', updated_at=?3
+       WHERE id=?1 AND mp_id IS NULL AND NOT EXISTS (SELECT 1 FROM commerce_payment_attempts WHERE mp_id=?2)`,
+    )
+      .bind(`cp-${id}`, remote.id, Date.now())
+      .run();
   return json({ ...view(row), checkout_url: row.checkout_url, environment: env.COMMERCE_ENVIRONMENT });
+}
+// ---- Pix (staging only, see ledger/pix.js) ----
+const latestPix = (attempts) => attempts.find((a) => a.flow === 'pix' && a.mp_id) || null;
+async function entitlementOf(env, orderId) {
+  return env.COMMERCE_DB.prepare('SELECT state, reason FROM commerce_entitlements WHERE order_id=?').bind(orderId).first();
+}
+function pixOrderView(row, attempts, entitlement) {
+  const state = entitlement?.state ?? 'none';
+  const open = attempts.find((a) => pixView(a));
+  return {
+    ...view({ ...row, delivery_blocked: state === 'suspended' ? 1 : 0, hold_reason: null }),
+    paid: state === 'active',
+    can_retry: false,
+    payment_method: 'pix',
+    pix: open ? pixView(open) : null,
+  };
+}
+// Fresh provider check of the order's latest Pix, then its access right.
+async function refreshPix(env, row, attempts) {
+  const attempt = latestPix(attempts);
+  if (!attempt) return { row, attempts, entitlement: await entitlementOf(env, row.id) };
+  const result = await reconcileAttempt(env, attempt, row);
+  return {
+    row: { ...row, ...result.order },
+    attempts: await attemptsOf(env, row.id),
+    entitlement: result.entitlement,
+  };
+}
+async function pix(request, env, ctx) {
+  if (!(await pixSwitchOn(env))) return json({ message: 'Não encontrado.' }, 404);
+  const started = await startOrder(request, env, ctx, ['product_id', 'email', 'test_approve']);
+  if (started.error) return started.error;
+  const { row, input, identity } = started;
+  if (!validEmail(input.email)) return json({ message: 'Informe um e-mail válido.' }, 400);
+  if (input.test_approve !== undefined && typeof input.test_approve !== 'boolean')
+    return json({ message: 'Requisição inválida.' }, 400);
+  const result = await createPix(env, row, { email: input.email, approve: input.test_approve === true, identity });
+  if (result.status >= 400) {
+    logEvent('pix_create_refused', { order: row.id, status: result.status, detail: result.body.code });
+    return json(result.body, result.status);
+  }
+  logEvent('pix_created', { order: row.id, status: result.status });
+  const attempts = await attemptsOf(env, row.id);
+  return json(
+    { ...pixOrderView(await byId(env, row.id), attempts, await entitlementOf(env, row.id)), environment: env.COMMERCE_ENVIRONMENT },
+    result.status === 201 ? 201 : 200,
+  );
 }
 async function webhook(request, env, url, ctx) {
   if (!(await verifySignature(request, url, env.MERCADOPAGO_WEBHOOK_SECRET))) {
@@ -512,6 +615,27 @@ async function webhook(request, env, url, ctx) {
   const row = await env.COMMERCE_DB.prepare('SELECT * FROM commerce_orders WHERE mp_id=?')
     .bind(id)
     .first();
+  if (!row && ledgerEnabled(env)) {
+    const attempt = await env.COMMERCE_DB.prepare(
+      "SELECT * FROM commerce_payment_attempts WHERE mp_id=? AND flow='pix'",
+    )
+      .bind(id)
+      .first();
+    const order = attempt ? await byId(env, attempt.order_id) : null;
+    if (order) {
+      try {
+        const result = await reconcileAttempt(env, attempt, order);
+        logEvent('webhook_processed', {
+          order: order.id,
+          detail: result.entitlement?.state === 'active' ? 'pix_paid' : 'pix_not_paid',
+        });
+      } catch (error) {
+        logEvent('webhook_reconcile_failed', { order: order.id, error });
+        throw error;
+      }
+      return json({ received: true });
+    }
+  }
   // A notification can precede persistence of the provider ID: ask for a retry.
   if (!row) {
     logEvent('webhook_retry', { status: 503, detail: 'order_unknown' });
@@ -546,10 +670,13 @@ export async function handleCommerce(request, env, url = new URL(request.url), c
     const path = url.pathname.replace(/^\/api\/commerce/, '');
     // Build stamp only: never secrets, bindings, counters or customer data.
     if (path === '/health' && request.method === 'GET') return json(health(env));
+    if (path === '/health/reconciler' && request.method === 'GET')
+      return json(await reconcilerHealth(env));
     if (path === '/catalog' && request.method === 'GET') {
       const available = configured(env);
       return json({
         mode: productionMode(env) ? 'production' : 'test',
+        pix: available && !salesClosed(env) && pixEnabled(env) && (await pixSwitchOn(env)),
         products: Object.values(CATALOG).map(({ id, title, cents, currency, format, description }) => ({
           id,
           title,
@@ -575,13 +702,25 @@ export async function handleCommerce(request, env, url = new URL(request.url), c
         ? json({ message: 'Vendas temporariamente encerradas.' }, 503)
         : await checkout(request, env, ctx);
     if (path === '/webhook' && request.method === 'POST') return await webhook(request, env, url, ctx);
-    const match = path.match(/^\/orders\/([a-f0-9-]{36})(\/download|\/access)?$/i);
+    if (path === '/pix' && request.method === 'POST')
+      return salesClosed(env)
+        ? json({ message: 'Vendas temporariamente encerradas.' }, 503)
+        : await pix(request, env, ctx);
+    const match = path.match(/^\/orders\/([a-f0-9-]{36})(\/download|\/access|\/pix\/cancel|\/test-refund)?$/i);
     if (!match || !UUID.test(match[1])) return json({ message: 'Não encontrado.' }, 404);
-    if (request.method !== 'GET') return json({ message: 'Método não permitido.' }, 405);
+    const action = match[2]?.toLowerCase();
+    const post = action === '/pix/cancel' || action === '/test-refund';
+    if (post && !pixEnabled(env)) return json({ message: 'Não encontrado.' }, 404);
+    if (request.method !== (post ? 'POST' : 'GET')) return json({ message: 'Método não permitido.' }, 405);
+    if (post && request.headers.get('Origin') !== env.COMMERCE_ORIGIN)
+      return json({ message: 'Origem inválida.' }, 403);
     if (await limited(request, env, 'access', 30, ctx))
       return json({ message: 'Aguarde um minuto.' }, 429);
     let row = await owned(request, env, match[1], ctx);
     if (!row) return json({ message: 'Acesso inválido ou expirado.' }, 404);
+    const attempts = ledgerEnabled(env) ? await attemptsOf(env, row.id) : [];
+    if (isPixOrder(row, attempts)) return await pixOrder(request, env, row, attempts, action);
+    if (post) return json({ message: 'Não encontrado.' }, 404);
     if (!match[2]) {
       if (complementaryReconciliation(env) && row.mp_id) {
         row = await reconcile(env, row, ctx);
@@ -650,4 +789,67 @@ export async function handleCommerce(request, env, url = new URL(request.url), c
     logEvent('request_failed', { error });
     return json({ message: 'Serviço temporariamente indisponível. Tente novamente.' }, 503);
   }
+}
+
+// Pix orders: status, Notion access, ZIP download, cancel and the staging test refund.
+// Access is decided only by the ledger entitlement after a fresh provider check.
+async function pixOrder(request, env, row, attempts, action) {
+  if (!action) {
+    const open = attempts.find((a) => a.flow === 'pix' && a.mp_id && ['open', 'canceling'].includes(a.phase));
+    let state = { row, attempts, entitlement: await entitlementOf(env, row.id) };
+    if (open && !(await throttled(env, `reconcile:${row.id}`, 6))) {
+      try {
+        state = await refreshPix(env, row, attempts);
+      } catch (error) {
+        logEvent('pull_reconcile_failed', { order: row.id, error });
+      }
+    }
+    return json(pixOrderView(state.row, state.attempts, state.entitlement));
+  }
+  if (action === '/pix/cancel') {
+    const result = await cancelPix(env, row);
+    logEvent('pix_cancel', { order: row.id, status: result.status });
+    return json(result.body, result.status);
+  }
+  if (action === '/test-refund') {
+    let input;
+    try {
+      input = await body(request);
+    } catch {
+      return json({ message: 'Requisição inválida.' }, 400);
+    }
+    if (!input || Object.keys(input).some((key) => key !== 'amount')) return json({ message: 'Requisição inválida.' }, 400);
+    const result = await testRefund(env, row, { amount: input.amount });
+    logEvent('pix_test_refund', { order: row.id, status: result.status, detail: result.body.reason ?? undefined });
+    return json(result.body, result.status);
+  }
+  const product = Object.hasOwn(CATALOG, row.product_id) ? CATALOG[row.product_id] : null;
+  if (action === '/access' && product?.access?.type !== 'notion') return json({ message: 'Não encontrado.' }, 404);
+  if (action === '/download' && !validDownloadAttempt(request.headers.get('X-Download-Attempt')))
+    return json({ message: 'Tentativa de download inválida. Atualize a página.' }, 400);
+  // Authoritative check on EVERY delivery, including refunds and disputes.
+  const state = await refreshPix(env, row, attempts);
+  if (state.entitlement?.state !== 'active') {
+    const suspended = state.entitlement?.state === 'suspended';
+    return json(
+      { message: suspended ? 'Entrega suspensa para revisão. Entre em contato com o suporte.' : 'Pagamento não confirmado.' },
+      403,
+    );
+  }
+  if (action === '/access') {
+    const url = templateUrl(env, product);
+    if (!url) return json({ message: 'Acesso temporariamente indisponível.' }, 503);
+    return json({ url });
+  }
+  const asset = await env.DIGITAL_PRODUCTS.get(row.asset_key);
+  if (!asset) return json({ message: 'Arquivo temporariamente indisponível.' }, 503);
+  if (!(await reserveLedgerDownload(env, row.id, request.headers.get('X-Download-Attempt'))))
+    return json({ message: 'Limite de acesso atingido.' }, 403);
+  return new Response(asset.body, {
+    headers: {
+      ...security,
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename="${row.filename}"`,
+    },
+  });
 }

@@ -1,7 +1,17 @@
-import { handleCommerce } from './handler.js';
+import { handleCommerce, logEvent } from './handler.js';
+import { runReconciler } from './ledger/pix.js';
 
 // This entry point has no diagnostics, AI, queue or production-resource dependency.
 export default {
+  // Payment reconciler (only does work with COMMERCE_LEDGER=on); see ledger/pix.js.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(
+      runReconciler(env, { log: logEvent }).then(
+        (result) => logEvent('reconciler_run', { detail: result.skipped ?? 'done', status: result.failures ?? 0 }),
+        (error) => logEvent('reconciler_failed', { error }),
+      ),
+    );
+  },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === '/api/commerce' || url.pathname.startsWith('/api/commerce/')) {

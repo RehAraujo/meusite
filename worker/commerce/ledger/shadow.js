@@ -23,9 +23,15 @@ export async function runLedgerShadow(env, { row, remote, currentDeliverable, lo
     // provider order were linked to any other attempt, the settlement's foreign key
     // fails, the whole batch rolls back and the failure is only logged.
     const db = env.COMMERCE_DB;
+    // With the shared lock on, a new Checkout Pro order already has attempt `cp-<id>`.
+    const owner = await db
+      .prepare('SELECT id FROM commerce_payment_attempts WHERE mp_id=? AND order_id=?')
+      .bind(row.mp_id, row.id)
+      .first();
+    const attemptId = owner?.id ?? `legacy:${row.id}`;
     const { readBack } = await applySnapshot(env, {
       orderId: row.id,
-      attemptId: `legacy:${row.id}`,
+      attemptId,
       remote,
       before: [legacyAttemptStatement(env, row)],
       after: [
@@ -36,7 +42,7 @@ export async function runLedgerShadow(env, { row, remote, currentDeliverable, lo
       ],
     });
     const attempt = readBack[0]?.results?.[0];
-    if (attempt?.id !== `legacy:${row.id}` || attempt.order_id !== row.id) {
+    if (attempt?.id !== attemptId || attempt.order_id !== row.id) {
       log('ledger_shadow', { order: row.id, detail: 'attempt_missing' });
       return null;
     }
