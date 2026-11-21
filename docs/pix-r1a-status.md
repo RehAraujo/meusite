@@ -1,14 +1,16 @@
 # R1a — estado e limites (20/11/2026)
 
-Branch `feat/pix-r1a`, base `8664e5e`. Nada aplicado em banco, staging ou produção.
+Branch `feat/pix-r1a`, base `8664e5e`. Produção intocada. Staging em homologação (abaixo).
 Referência de desenho: [spec V3](spec-checkout-transparente-pix-v3.md).
 
 ## O que a R1a contém
 
-- Migração `migrations/commerce-ledger/0004_payment_ledger.sql`: só tabelas e índices
-  novos, mais a adoção dos pedidos Checkout Pro como tentativas `legacy:<id>`.
-  Fica **fora** de `migrations/commerce` (diretório de produção e staging, fixado por
-  `tests/commerce-config.test.js`); nenhum `wrangler d1 migrations apply` a encontra.
+- Migração `migrations/commerce/0004_payment_ledger.sql`: só tabelas e índices novos,
+  mais a adoção dos pedidos Checkout Pro como tentativas `legacy:<id>`. **Autorizada
+  apenas para o D1 de staging.** Produção continua aprovada só até 0003:
+  `scripts/commerce-release-plan.mjs` recusa um plano de produção com migração não
+  aprovada ou com `COMMERCE_LEDGER_SHADOW`, e `tests/commerce-config.test.js` fixa as
+  duas listas.
 - Regras financeiras e de acesso: `worker/commerce/ledger/` (`interpret`, `entitlement`,
   `repository`).
 - Modo sombra: `worker/commerce/ledger/shadow.js`, chamado apenas no fim de
@@ -30,6 +32,14 @@ Referência de desenho: [spec V3](spec-checkout-transparente-pix-v3.md).
    do código ou da spec presume o contrário.
 4. **Prazo de 12 meses.** A R1a não cria, altera nem remove prazo. O cálculo novo de
    acesso não tem data de validade. O prazo atual vem de regra já em produção (abaixo).
+
+## Prazo de 12 meses: o que ele significa (registro)
+
+O prazo de 12 meses refere-se **à recuperação do acesso pela loja** (página do pedido,
+"Minhas compras" e link de acesso pessoal), contado da confirmação do pagamento. **Não é
+a expiração da cópia do template já entregue**: a cópia duplicada pelo comprador fica na
+conta Notion dele e não expira nem é retirada por esse prazo. A comunicação em produção
+não foi alterada; qualquer ajuste de texto depende de autorização da responsável.
 
 ## Origem do prazo de 12 meses (somente informação)
 
@@ -54,6 +64,16 @@ Referência de desenho: [spec V3](spec-checkout-transparente-pix-v3.md).
 - Falhas (tabela ausente, erro do D1, snapshot inválido) são registradas como
   `ledger_shadow_failed` e nunca rejeitam a promessa; a resposta e a entrega seguem a
   regra atual. O checkout (`POST /checkout`) nunca executa a sombra.
+
+## Homologação em staging (20/11/2026)
+
+- Backup antes da migração: `output/backups/meusite-commerce-staging-pre-r1a-20261120-214654.sql`
+  (SHA-256 `b6a4e694…`); bookmark Time Travel `0000003d-00000000-0000512a-73238e0217b9c0216357867624f5fd44`.
+- 0004 aplicada só em `meusite-commerce-staging`. `commerce_orders` idêntica antes e
+  depois (34 linhas, mesmo hash); 34 tentativas legadas (23 fechadas sem trava, 11
+  abertas com trava); `foreign_key_check` vazio; `pix_creation=off`.
+- Worker `meusite-loja-staging`, build `966d24e125a3`, `COMMERCE_MODE=test`,
+  `COMMERCE_LEDGER_SHADOW=on`. Rollback de staging: versão `16761947-08eb-4ad6-9805-4050ea69608b`.
 
 ## Requisitos objetivos para iniciar a homologação (staging)
 
