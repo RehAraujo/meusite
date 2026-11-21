@@ -3,7 +3,7 @@
 // Prints the exact, traceable publish commands for a commerce Worker.
 // It never deploys, never reads secrets and never contacts Cloudflare or Mercado Pago.
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 // Everything that ends up in the Worker bundle or its static assets.
@@ -15,6 +15,11 @@ export const BUILD_INPUTS = [
 export const SECRET_NAMES = [
   'MERCADOPAGO_ACCESS_TOKEN', 'MERCADOPAGO_WEBHOOK_SECRET', 'COMMERCE_SELLER_ID', 'COMMERCE_APPLICATION_ID',
   'NOTION_TEMPLATE_URL_MEU_DINHEIRO',
+];
+// Migrations approved for the production D1. A file in migrations/commerce that is not
+// listed here is staging-only and blocks any production publish plan.
+export const PRODUCTION_APPROVED_MIGRATIONS = [
+  '0001_orders.sql', '0002_delivery_safety.sql', '0003_download_attempts.sql',
 ];
 // A private Notion template URL must only ever exist as a Worker secret.
 export const NOTION_URL = /https?:\/\/(?:[a-z0-9-]+\.)*notion\.(?:so|site)\//i;
@@ -38,9 +43,14 @@ export const TARGETS = {
 
 export const parseJsonc = (text) => JSON.parse(text.replace(/^\s*\/\/.*$/gm, ''));
 
-export function releasePlan({ target = 'production', sha, dirty = [], config, leaks = [] }) {
+export function releasePlan({ target = 'production', sha, dirty = [], config, leaks = [], migrations = [] }) {
   const spec = TARGETS[target];
   if (!spec) throw new Error(`Alvo desconhecido: ${target}`);
+  const unapproved = migrations.filter((file) => !PRODUCTION_APPROVED_MIGRATIONS.includes(file));
+  if (target === 'production' && unapproved.length)
+    throw new Error(`Migrações não aprovadas para produção: ${unapproved.join(', ')}`);
+  if (target === 'production' && Object.hasOwn(config?.vars || {}, 'COMMERCE_LEDGER_SHADOW'))
+    throw new Error('O modo sombra do ledger não é aprovado para produção.');
   if (!/^[0-9a-f]{40}$/.test(sha || '')) throw new Error('Commit HEAD inválido.');
   if (dirty.length) throw new Error(`Alterações não commitadas afetam o build:\n${dirty.join('\n')}`);
   if (leaks.length) throw new Error(`Link do Notion em arquivo versionado:\n${leaks.join('\n')}`);
@@ -74,7 +84,8 @@ function main() {
   const tracked = git('ls-files', '-z', '--', ...LEAK_SCAN).split('\0').filter(Boolean)
     .filter((path) => !/\.(png|jpe?g|webp|gif|ico|zip|woff2?|pdf)$/i.test(path));
   const leaks = findNotionLeaks(tracked.map((path) => ({ path, text: readFileSync(path, 'utf8') })));
-  const plan = releasePlan({ target, sha, dirty, config, leaks });
+  const migrations = readdirSync('migrations/commerce').filter((file) => file.endsWith('.sql')).sort();
+  const plan = releasePlan({ target, sha, dirty, config, leaks, migrations });
   console.log(`Alvo: ${target} | build: ${plan.build}\nNada foi executado. Comandos, após autorização:\n`);
   for (const command of plan.commands) console.log(`  ${command}`);
 }

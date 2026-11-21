@@ -16,8 +16,7 @@ export function createD1({ migrations = MIGRATIONS } = {}) {
   const db = new DatabaseSync(':memory:');
   db.exec('PRAGMA foreign_keys = ON');
   for (const file of migrations) {
-    const dir = file === '0004_payment_ledger.sql' ? 'commerce-ledger' : 'commerce';
-    db.exec(readFileSync(new URL(`../../migrations/${dir}/${file}`, import.meta.url), 'utf8'));
+    db.exec(readFileSync(new URL(`../../migrations/commerce/${file}`, import.meta.url), 'utf8'));
   }
   const tick = () => new Promise((resolve) => setImmediate(resolve));
   const execute = (sql, args, mode) => {

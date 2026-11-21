@@ -1,9 +1,9 @@
 -- R1a: payment ledger (spec V3). Additive only: creates tables and indexes and adopts
 -- existing Checkout Pro orders. Never alters or deletes commerce_orders rows, so the
 -- versions already in production keep working on top of this schema.
--- NOT APPLIED anywhere yet. Kept OUT of migrations/commerce (the production and staging
--- migrations_dir, pinned by tests/commerce-config.test.js) so no `wrangler d1 migrations
--- apply` can pick it up. Moving it there is part of an explicitly authorized R1a release.
+-- Authorized for the STAGING D1 only (R1a homologation, 20/11/2026). Production has
+-- approved only 0001-0003: scripts/commerce-release-plan.mjs refuses a production plan
+-- while this file is unapproved, and tests/commerce-config.test.js pins both lists.
 
 -- Every charge (Checkout Pro, Pix, card) is an attempt. At most one attempt per order
 -- may hold the charge lock (partial unique index), shared by all flows.

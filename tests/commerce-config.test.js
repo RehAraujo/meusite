@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it, vi } from 'vitest';
 import { handleCommerce } from '../worker/commerce/handler.js';
 import production from '../worker/commerce/production.js';
-import { SECRET_NAMES, TARGETS, parseJsonc, releasePlan } from '../scripts/commerce-release-plan.mjs';
+import { PRODUCTION_APPROVED_MIGRATIONS, SECRET_NAMES, TARGETS, parseJsonc, releasePlan } from '../scripts/commerce-release-plan.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (path) => parseJsonc(readFileSync(resolve(root, path), 'utf8'));
@@ -13,6 +13,8 @@ const prepared = read('config/commerce-production.prepared.json');
 const example = read('config/commerce-production.example.json');
 const site = read('wrangler.jsonc');
 const PRODUCTION_MIGRATIONS = ['0001_orders.sql', '0002_delivery_safety.sql', '0003_download_attempts.sql'];
+// 0004 is authorized for the staging D1 only (R1a homologation).
+const REVIEWED_MIGRATIONS = [...PRODUCTION_MIGRATIONS, '0004_payment_ledger.sql'];
 const SHA = 'a'.repeat(40);
 
 describe('commerce Worker configuration', () => {
@@ -40,10 +42,26 @@ describe('commerce Worker configuration', () => {
     for (const dir of dirs) {
       expect(dir).toBe(resolve(root, 'migrations/commerce'));
       const files = readdirSync(dir).filter((file) => file.endsWith('.sql')).sort();
-      expect(files).toEqual(PRODUCTION_MIGRATIONS);
+      expect(files).toEqual(REVIEWED_MIGRATIONS);
       for (const file of files)
         expect(readFileSync(resolve(dir, file), 'utf8')).not.toMatch(/commerce_webhook_confirmations/);
     }
+  });
+
+  it('approves only 0001-0003 for production and refuses a production plan with the staging-only ledger', () => {
+    expect(PRODUCTION_APPROVED_MIGRATIONS).toEqual(PRODUCTION_MIGRATIONS);
+    expect(() => releasePlan({ sha: SHA, config: prepared, migrations: REVIEWED_MIGRATIONS }))
+      .toThrow(/0004_payment_ledger\.sql/);
+    expect(releasePlan({ sha: SHA, config: prepared, migrations: PRODUCTION_MIGRATIONS }).build).toBe(SHA.slice(0, 12));
+    expect(releasePlan({ target: 'staging', sha: SHA, config: site, migrations: REVIEWED_MIGRATIONS }).build)
+      .toBe(SHA.slice(0, 12));
+  });
+
+  it('never enables the ledger shadow in a checked-in configuration, and refuses it for production', () => {
+    for (const vars of [prepared.vars, example.vars, site.vars, site.env.staging.vars])
+      expect(Object.hasOwn(vars, 'COMMERCE_LEDGER_SHADOW')).toBe(false);
+    expect(() => releasePlan({ sha: SHA, config: { vars: { ...prepared.vars, COMMERCE_LEDGER_SHADOW: 'on' } } }))
+      .toThrow(/sombra/);
   });
 });
 

@@ -851,7 +851,7 @@ describe('Checkout Pro compatibility and shadow mode', () => {
       db.exec(
         readFileSync(
           new URL(
-            `../migrations/${f.startsWith('0004') ? 'commerce-ledger' : 'commerce'}/${f}`,
+            `../migrations/commerce/${f}`,
             import.meta.url,
           ),
           'utf8',
