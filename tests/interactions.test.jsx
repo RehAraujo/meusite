@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
-import { Header } from '../src/components/layout/Header';
+import { AccountEntry } from '../src/components/layout/AccountEntry';
 import ProjectsPage from '../src/pages/ProjectsPage';
 import HomePage from '../src/pages/HomePage';
 import TedTecCasePage from '../src/pages/TedTecCasePage';
@@ -156,11 +156,13 @@ describe('interações críticas', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
   });
 
+  // O botão saiu do Header até o login existir; o componente segue testado
+  // para quando voltar.
   it('informa que o acesso de membros ainda não existe', async () => {
     const user = userEvent.setup();
     render(
       <MemoryRouter>
-        <Header />
+        <AccountEntry />
       </MemoryRouter>,
     );
     const entrar = screen.getByRole('button', { name: /^entrar$/i });

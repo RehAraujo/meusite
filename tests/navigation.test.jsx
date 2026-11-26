@@ -49,7 +49,7 @@ describe('rotas essenciais', () => {
       expect(link).toHaveAttribute('href', '/shopping');
     }
     expect(
-      screen.getByRole('list', { name: /categorias do shopping join/i }).closest('section'),
+      screen.getByRole('link', { name: /explorar shopping join/i }).closest('section'),
     ).toHaveAttribute('id', 'shopping');
     expect(screen.getByRole('link', { name: /conhecer parcerias/i })).toHaveAttribute(
       'href',
@@ -80,19 +80,18 @@ describe('rotas essenciais', () => {
     expect(premium).toHaveAttribute('aria-expanded', 'false');
     expect(premium).toHaveAttribute('aria-controls', 'join-premium');
     expect(screen.queryByText(/join free/i)).not.toBeInTheDocument();
-    const shop = screen.getByRole('list', { name: /categorias do shopping join/i });
-    expect([...shop.querySelectorAll('strong')].map((label) => label.textContent)).toEqual([
-      'Personalizados',
-      'Ferramentas Digitais',
-      'Moda & Acessórios',
-      'Lifestyle',
-    ]);
-    expect(shop.querySelectorAll('.rj-shop__soon')).toHaveLength(3);
-    // Entrada de acesso preparada sem rota ou formulário fictício.
-    expect(screen.getByRole('button', { name: /^entrar$/i })).toHaveAttribute(
-      'aria-expanded',
-      'false',
+    // Home mostra só categorias com produto; com uma só (a do destaque), a grade some
+    // e o caminho para a vitrine completa continua no botão.
+    expect(
+      screen.queryByRole('list', { name: /categorias do shopping join/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Em breve', { selector: '.rj-shop__soon' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /explorar shopping join/i })).toHaveAttribute(
+      'href',
+      '/shopping',
     );
+    // Sem área de membros ainda: nenhum botão ou link "Entrar" no topo.
+    expect(screen.queryByRole('button', { name: /^entrar$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /entrar/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/^beleza$/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /ler pensamentos/i })).not.toBeInTheDocument();

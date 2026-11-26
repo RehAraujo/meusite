@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { navigation } from '../../data/site';
-import { AccountEntry } from './AccountEntry';
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -104,7 +103,6 @@ export function Header() {
               ),
             )}
           <span className="rj-nav__actions">
-            <AccountEntry />
             {navigation
               .filter(({ emphasis }) => emphasis)
               .map(({ label, to }) => (

@@ -2,6 +2,9 @@ import { useEffect, useId, useRef, useState } from 'react';
 
 /*
  * Entrada discreta para a futura área de membros.
+ * Fora do Header até o login existir: um botão que só avisa "ainda não" gasta
+ * atenção no topo da página sem levar a lugar nenhum. Para reativar, importe
+ * de volta em Header.jsx dentro de .rj-nav__actions.
  * Ainda não existe autenticação no projeto: em vez de uma rota ou formulário
  * sem backend, o botão abre uma nota informativa. Quando o login existir,
  * troque o botão por um <Link> para a rota real de acesso.
