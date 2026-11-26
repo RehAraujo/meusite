@@ -180,7 +180,8 @@ export const creatorInsights = [
     detail: '93.565 contas com engajamento',
   },
   { id: 'profile', label: 'Visitas ao perfil', value: '13.619' },
-  { id: 'followers', label: 'Seguidores', value: '7.093', tone: 'pink' },
+  // Seguidores: contagem do dia (API do Instagram via Windsor.ai, 26/11/2026).
+  { id: 'followers', label: 'Seguidores', value: '7.368', tone: 'pink' },
 ];
 
 export const creatorThemes = ['Tecnologia', 'Cultura', 'Lifestyle', 'Influência', 'Branding', 'Fitness'];

@@ -35,6 +35,8 @@ import { useScrollMotionReady } from '../hooks/useScrollMotionReady';
 import { resetPointer, trackPointer } from '../utils/pointer';
 import { createWhatsAppUrl } from '../utils/whatsapp';
 
+const homeShopCategories = shoppingCategories.filter((category) => category.available);
+
 const iconPaths = {
   search: (
     <>
@@ -451,47 +453,53 @@ export default function HomePage() {
               </p>
             </header>
             <FeaturedProduct product={featuredProduct} />
-            <ul className="rj-shop" aria-label="Categorias do Shopping Join">
-              {shoppingCategories.map((category, index) => {
-                const photo = (
-                  <img
-                    src={category.image}
-                    srcSet={category.imageSet}
-                    sizes="(width <= 48rem) 46vw, 18rem"
-                    alt=""
-                    width="480"
-                    height="640"
-                    loading="lazy"
-                    decoding="async"
-                    style={{ objectPosition: category.imagePosition }}
-                  />
-                );
-                return (
-                  <li key={category.id} data-rj-reveal style={{ '--rj-i': index }}>
-                    {category.available ? (
-                      <Link className="rj-shop__tile rj-shop__tile--active" to={category.to}>
-                        {photo}
-                        <span className="rj-shop__label">
-                          <strong>{category.label}</strong>
-                          <small>{category.description}</small>
-                        </span>
-                      </Link>
-                    ) : (
-                      <div
-                        className={`rj-shop__tile rj-shop__tile--soon rj-shop__tile--${category.id}`}
-                      >
-                        {photo}
-                        <span className="rj-shop__soon">Em breve</span>
-                        <span className="rj-shop__label">
-                          <strong>{category.label}</strong>
-                          {category.description && <small>{category.description}</small>}
-                        </span>
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+            {/* Na home entram só categorias com produto à venda. As que estão "Em breve"
+                continuam no /shopping; aqui, prateleira vazia ao lado do produto real
+                tira força dele. Com uma só categoria (a do próprio destaque), a grade
+                repetiria o banner, então ela some até haver uma segunda. */}
+            {homeShopCategories.length > 1 && (
+              <ul className="rj-shop" aria-label="Categorias do Shopping Join">
+                {homeShopCategories.map((category, index) => {
+                  const photo = (
+                    <img
+                      src={category.image}
+                      srcSet={category.imageSet}
+                      sizes="(width <= 48rem) 46vw, 18rem"
+                      alt=""
+                      width="480"
+                      height="640"
+                      loading="lazy"
+                      decoding="async"
+                      style={{ objectPosition: category.imagePosition }}
+                    />
+                  );
+                  return (
+                    <li key={category.id} data-rj-reveal style={{ '--rj-i': index }}>
+                      {category.available ? (
+                        <Link className="rj-shop__tile rj-shop__tile--active" to={category.to}>
+                          {photo}
+                          <span className="rj-shop__label">
+                            <strong>{category.label}</strong>
+                            <small>{category.description}</small>
+                          </span>
+                        </Link>
+                      ) : (
+                        <div
+                          className={`rj-shop__tile rj-shop__tile--soon rj-shop__tile--${category.id}`}
+                        >
+                          {photo}
+                          <span className="rj-shop__soon">Em breve</span>
+                          <span className="rj-shop__label">
+                            <strong>{category.label}</strong>
+                            {category.description && <small>{category.description}</small>}
+                          </span>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
             <div className="rj-actions-center" data-rj-reveal>
               <ArrowButton variant="pink" to="/shopping">
                 Explorar Shopping Join
